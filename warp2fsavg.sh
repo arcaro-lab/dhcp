@@ -5,8 +5,8 @@ data_path=/mnt/e/vlad_test/
 sub=sub-CC00058XX09
 ses=ses-11300
 
-sub=sub-CC00060XX03
-ses=ses-12501
+sub=sub-CC00071XX06
+ses=ses-27000
 
 #create sub path
 sub_path=${data_path}/${sub}/${ses}/
@@ -71,7 +71,7 @@ write_curv(['lh.sulc'],lh_sulc.cdata,length(lh_sulc.cdata));
 mris_smooth -n 5 -nw -seed 1234 surf/rh.white surf/rh.smoothwm
 mris_inflate -n 2 surf/rh.smoothwm surf/rh.inflated
 mris_curvature -w surf/rh.white
-mris_curvature -thresh .999 -n -a 5 -w -distances 10 10surf/ rh.inflated
+mris_curvature -thresh .999 -n -a 5 -w -distances 10 10 surf/rh.inflated
 mris_sphere surf/rh.inflated surf/rh.sphere
 
 
@@ -92,65 +92,31 @@ mris_convert surf/rh.sphere.reg surf/rh.sphere.reg.gii
 #convert anat to mgz
 mri_convert anat/${sub}_${ses}_desc-restore_T2w.nii.gz surf/orig.mgz
 
+#convert anat to afni format
+3dcopy anat/${sub}_${ses}_desc-restore_T2w.nii.gz anat/${sub}_${ses}_desc-restore_T2w+orig.nii.gz
+
 #make orig directory in surf
 #needed even if empty
 mkdir surf/orig
 
-# run this
-@SUMA_Make_Spec_FS -NIFTI -sid ${sub}
+# run this without the -nifti flag
+@SUMA_Make_Spec_FS -sid ${sub}
 
+#run using original t2 not surfvol
+afni -niml &
+suma -spec SUMA/std.141.${sub}_both.spec -sv anat/${sub}_${ses}_desc-restore_T2w.nii.gz
 
+suma -spec SUMA/std.141.${sub}_both.spec -sv surf/${sub}_SurfVol+orig
 
-
-@SUMA_AlignToExperiment -exp_anat anat/${sub}_${ses}_desc-restore_T2w.nii.gz -surf_anat SUMA/${sub}_SurfVol+orig -align_centers
-
-# # Convert to asc for AFNI
-# # Try this first. It might fail. In which case you run the remaining code
-@SUMA_Make_Spec_FS -sid sub-CC00058XX09
-
-#there's also a @SUMA_Make_Spec_SF (SF INSTEAD OF FS)
-
-mris_convert surf/lh.inflated SUMA/lh.inflated.asc
-mris_convert surf/lh.sphere SUMA/lh.sphere.asc
-mris_convert surf/lh.sphere.reg SUMA/lh.sphere.reg.asc
-mris_convert surf/lh.pial SUMA/lh.pial.asc
-mris_convert surf/lh.white SUMA/lh.white.asc
-mris_convert surf/lh.smoothwm SUMA/lh.smoothwm.asc
-
-mris_convert surf/rh.inflated SUMA/rh.inflated.asc
-mris_convert surf/rh.sphere SUMA/rh.sphere.asc
-mris_convert surf/rh.sphere.reg SUMA/rh.sphere.reg.asc
-mris_convert surf/rh.pial SUMA/rh.pial.asc
-mris_convert surf/rh.white SUMA/rh.white.asc
-mris_convert surf/rh.smoothwm SUMA/rh.smoothwm.asc
-
-
-
-# MapIcosahedron -overwrite -ld 141 -spec CC00110XX03_rh.spec -prefix std.141.
-# MapIcosahedron -overwrite -ld 141 -spec CC00110XX03_lh.spec -prefix std.141.
-
-# # DRAW ROIS
-#VA NOTE: WE are no longer doing these steps
-# 1 calc
-# 2 colat
-# 3 parietal
-# 4 lateral
-# 5 frontal
-
-# Convert .niml.rois to .label
-# need allnode label from fs. make with freeview and remove the header!
-# add header followed by node count on second line
-
-#!ascii label  , from subject  vox2ras=TkReg
-
-# # Register to fsaverage sphere
-# mris_register -1 -dist 10 -spring 1 -L labels/rh_calc_fs.label ../../../fsaverage/rh.DKTatlas40.gcs pericalcarine -L labels/rh_colat_fs.label ../../../fsaverage/rh.destrieux.simple.2009-07-29.gcs S_oc-temp_med_and_Lingual  -L labels/rh_pariet_fs.label ../../../fsaverage/rh.destrieux.simple.2009-07-29.gcs S_oc_sup_and_transversal -L labels/rh_lat_fs.label ../../../fsaverage/rh.destrieux.simple.2009-07-29.gcs S_oc_middle_and_Lunatus -L labels/rh_front_fs.label ../../../fsaverage/rh.destrieux.simple.2009-07-29.gcs S_precentral-sup-part -inflated -curv rh.sphere ../../../fsaverage/rh.sphere rh.sphere.reg
-
-# mris_register -1 -dist 10 -spring 1 -L labels/lh_calc_fs.label ../../../fsaverage/lh.DKTatlas40.gcs pericalcarine -L labels/lh_colat_fs.label ../../../fsaverage/lh.destrieux.simple.2009-07-29.gcs S_oc-temp_med_and_Lingual  -L labels/lh_pariet_fs.label ../../../fsaverage/lh.destrieux.simple.2009-07-29.gcs S_oc_sup_and_transversal -L labels/lh_lat_fs.label ../../../fsaverage/lh.destrieux.simple.2009-07-29.gcs S_oc_middle_and_Lunatus -L labels/lh_front_fs.label ../../../fsaverage/lh.destrieux.simple.2009-07-29.gcs S_precentral-sup-part -inflated -curv lh.sphere ../../../fsaverage/lh.sphere lh.sphere.reg
-
-
-
-
-
-
-
+3dSurf2Vol \
+	-spec SUMA/std.141.${sub}_lh.spec \
+	-surf_A std.141.lh.white.asc \
+	-surf_B std.141.lh.pial.asc \
+	-sv ${sub}_${ses}_desc-restore_T2w.nii.gz \
+	-grid_parent sub-CC00108XX09_ses-36800_task-rest_desc-preproc_bold_meanTP.nii.gz \
+	-sdata Wang_maxprob_surf_lh_edits.1D.dset \
+	-map_func mode \
+	-f_steps 500 \
+	-f_p1_mm -0.5 \
+	-f_pn_mm 0.5 \
+	-prefix Wang_maxprob_surf_lh_edits_extended_epi
