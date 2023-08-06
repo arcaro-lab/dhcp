@@ -67,11 +67,17 @@ def find_eligble_subs():
 
 #load subject list
 sub_list = pd.read_csv(f'{out_dir}/participants.csv')
-sub_list = sub_list.head(1)
-run_phase1 = False
-run_phase2 = False
-run_phase3 = False
+sub_list = sub_list.head(4)
+
+run_phase1 = True
+run_phase2 = True
+run_phase3 = True
 run_phase4 = True
+register_rois = True
+
+#time it 
+import time
+start = time.time()
 
 if run_phase1:
     '''
@@ -134,3 +140,22 @@ if run_phase4:
 
         bash_cmd = f'python {git_dir}/registration/phase4_registration.py {sub} {ses}'
         subprocess.run(bash_cmd, check=True, shell=True)
+
+
+
+if register_rois:
+    '''
+    Register ROIs to anat and EPI
+    '''
+
+    atlas = 'Wang'
+
+    for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+        print(f'Running ROI registration for {sub}')
+
+        bash_cmd = f'python {git_dir}/registration/register_rois.py {sub} {ses} {atlas}'
+        subprocess.run(bash_cmd, check=True, shell=True)
+
+#end time
+end = time.time()
+print(f'Total time: {(end-start)/60}')

@@ -1,5 +1,6 @@
 git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
 
+import pandas as pd
 #set directories
 raw_data_dir = '/mnt/e/dHCP_raw'
 
@@ -10,3 +11,15 @@ atlas_dir = f'{out_dir}/atlases'
 
 
 hemis = ['lh','rh']
+
+
+def load_roi_info(atlas):
+    '''
+    Load roi info from atlas
+    '''
+    if atlas == 'Wang':
+        atlas_name = f'Wang_maxprob_surf_hemi_edits'
+        roi_labels = pd.read_csv(f'{atlas_dir}/Wang_labels.csv')
+
+
+    return atlas_name, roi_labels
