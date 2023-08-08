@@ -77,12 +77,17 @@ def find_eligble_subs():
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 sub_list = full_sub_list.head(30)
 
+'''
+Flags on what registration steps to run
+'''
+
 
 run_phase1 = False
 run_phase2 = False
 run_phase3 = False
-run_phase4 = True
+run_phase4 = False
 register_rois = False
+split_rois = True
 
 
 
@@ -241,6 +246,42 @@ if register_rois:
     #save updated subject list
     full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
 
+
+if split_rois:
+    '''
+    Split atlas into invidual binary masks
+    '''
+    atlas = 'wang'
+
+    #create new column for the roi_split if it doesn't already exist
+    if f'{atlas}_split' not in full_sub_list.columns:
+        full_sub_list[f'{atlas}_split'] = ''
+
+    #extract subject list where roi_reg has been run but roi_split has not
+    sub_list = full_sub_list[(full_sub_list[f'{atlas}_reg']==1)& (full_sub_list[f'{atlas}_split']!=1)]
+
+    for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+        print(f'Running atlas split for {sub}')
+
+        try:
+            bash_cmd = f'python {git_dir}/registration/split_atlas.py {sub} {ses} {atlas}'
+            subprocess.run(bash_cmd, check=True, shell=True)
+
+            #set roi_split to 1
+            sub_list.loc[sub_list['participant_id']==sub, f'{atlas}_split'] = 1
+        except:
+            #open log file
+            log_file = open(f'{git_dir}/registration/qc/registration_log.txt', 'a')
+            #write error to log file
+            log_file.write(f'Error in split_rois.py for {sub}\n')
+            #close log file
+            log_file.close()
+
+    #add updated sub list to full sub list
+    full_sub_list.update(sub_list)
+
+    #save updated subject list
+    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
 
 #end time
 end = time.time()

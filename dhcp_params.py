@@ -8,6 +8,7 @@ raw_anat_dir = f'{raw_data_dir}/rel3_dhcp_anat_pipeline'
 raw_func_dir = f'{raw_data_dir}/rel3_dhcp_fmri_pipeline'
 out_dir = '/mnt/e/dhcp_analysis_full'
 atlas_dir = f'{out_dir}/atlases'
+derivatives_dir = f'{out_dir}/derivatives'
 
 hemis = ['lh','rh']
 
