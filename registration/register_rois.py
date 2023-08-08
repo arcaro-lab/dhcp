@@ -35,7 +35,7 @@ atlas_dir = params.atlas_dir
 atlas_name, roi_labels = params.load_roi_info(atlas)
 
 #create subplot for each hemi
-fig, ax = plt.subplots(2, figsize = (4,8))
+fig, ax = plt.subplots(2, figsize = (4,6))
 
 #load anat
 anat = nib.load(f'{anat_dir}/anat/{sub}_{ses}_desc-restore_T2w.nii.gz')
@@ -103,8 +103,8 @@ for hemi in params.hemis:
     # subprocess.run(bash_cmd.split(), check = True)
 
     #plot atlas on subject's brain
-    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_anat.nii', bg_img = anat, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}') 
+    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_anat.nii', bg_img = anat, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
 
-#save figure
-plt.savefig(f'{git_dir}/registration/qc/reg_plots/{sub}_{atlas}_anat.png')
+#save figure with tight layout
+plt.savefig(f'{git_dir}/registration/qc/reg_plots/{sub}_{atlas}_anat.png', bbox_inches = 'tight')

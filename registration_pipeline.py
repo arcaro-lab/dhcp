@@ -11,6 +11,7 @@ from glob import glob as glob
 import pdb
 import dhcp_params as params
 import subprocess
+import time
 
 #set directories
 raw_data_dir = params.raw_data_dir
@@ -58,44 +59,66 @@ def find_eligble_subs():
     #append sub- to participant_id
     sub_list['participant_id'] = 'sub-' + sub_list['participant_id']
 
+    #add columns for phase 1-4 as empty
+    sub_list['phase_1'] = ''
+    sub_list['phase_2'] = ''
+    sub_list['phase_3'] = ''
+    sub_list['phase_4'] = ''
+
     #save new list
     sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
 
     #print total number of subjects
     print(f'Total usable of participants: {len(sub_list)}')
 
+#find_eligble_subs()
 
 #load subject list
-sub_list = pd.read_csv(f'{out_dir}/participants.csv')
-sub_list = sub_list.head(4)
+full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+sub_list = full_sub_list.head(30)
 
-run_phase1 = True
-run_phase2 = True
-run_phase3 = True
+
+run_phase1 = False
+run_phase2 = False
+run_phase3 = False
 run_phase4 = True
-register_rois = True
+register_rois = False
+
+
 
 #time it 
-import time
 start = time.time()
 
 if run_phase1:
     '''
     Phase 1: Convert GIFTI files to surf
     '''
+    #extract subject list where phase 1 has not been run
+    sub_list = sub_list[sub_list['phase_1']!=1]
     
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         print(f'Running phase 1 registration for {sub}')
         try:
             bash_cmd = f'python {git_dir}/registration/phase1_registration.py {sub} {ses}'
             subprocess.run(bash_cmd, check=True, shell=True)
+
+            #set phase 1 to 1
+            sub_list.loc[sub_list['participant_id']==sub, 'phase_1'] = 1
+            
+
         except:
             #open log file
-            log_file = open(f'{out_dir}/registration_log.txt', 'a')
+            log_file = open(f'{git_dir}/registration/qc/registration_log.txt', 'a')
             #write error to log file
-            log_file.write(f'Error in phase1_registration.py for {sub} {ses}')
+            log_file.write(f'Error in phase1_registration.py for {sub} {ses}\n')
             #close log file
             log_file.close()
+
+    #add updated sub list to full sub list
+    full_sub_list.update(sub_list)
+    
+    #save updated subject list
+    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
 
 
 if run_phase2:
@@ -107,12 +130,19 @@ if run_phase2:
     print('Running phase 2 registration')
     bash_cmd = "matlab.exe -batch \"run('registration/phase2_registration.m')\""
     subprocess.run(bash_cmd, check=True, shell=True)
+
+    #load updated sub list
+    #this needs to be reloaded because matlab script updates it
+    full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+
     
 
 if run_phase3:
     '''
     Phase 3 of registration pipeline: Creates final surfaces and registers to fsaverage
     '''
+    #extract subject list where phase 2 has been run but phase 3 has not
+    sub_list = full_sub_list[(full_sub_list['phase_2']==1)& (full_sub_list['phase_3']!=1)]
 
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         print(f'Running phase 3 registration for {sub}')
@@ -120,27 +150,54 @@ if run_phase3:
 
             bash_cmd = f'python {git_dir}/registration/phase3_registration.py {sub} {ses}'
             subprocess.run(bash_cmd, check=True, shell=True)
+            
+            #set phase 3 to 1
+            sub_list.loc[sub_list['participant_id']==sub, 'phase_3'] = 1
         except:
             #open log file
-            log_file = open(f'{out_dir}/logs/registration_log.txt', 'a')
+            log_file = open(f'{git_dir}/registration/qc/registration_log.txt', 'a')
             #write error to log file
-            log_file.write(f'Error in phase3_registration.py for {sub}')
+            log_file.write(f'Error in phase3_registration.py for {sub}\n')
             #close log file
             log_file.close()
+
+    #add updated sub list to full sub list
+    full_sub_list.update(sub_list)
+
+    #save updated subject list
+    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+
 
 
 if run_phase4:
     '''
     Phase 4 of registration pipeline: Registers anat to EPI
     '''
+    #extract subject list where phase 3 has been run but phase 4 has not
+    sub_list = full_sub_list[(full_sub_list['phase_3']==1)& (full_sub_list['phase_4']!=1)]
 
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         print(f'Running phase 4 registration for {sub}')
 
+        try:
+            bash_cmd = f'python {git_dir}/registration/phase4_registration.py {sub} {ses}'
+            subprocess.run(bash_cmd, check=True, shell=True)
 
-        bash_cmd = f'python {git_dir}/registration/phase4_registration.py {sub} {ses}'
-        subprocess.run(bash_cmd, check=True, shell=True)
+            #set phase 4 to 1
+            sub_list.loc[sub_list['participant_id']==sub, 'phase_4'] = 1
+        except:
+            #open log file
+            log_file = open(f'{git_dir}/registration/qc/registration_log.txt', 'a')
+            #write error to log file
+            log_file.write(f'Error in phase4_registration.py for {sub}\n')
+            #close log file
+            log_file.close()
 
+    #add updated sub list to full sub list
+    full_sub_list.update(sub_list)
+
+    #save updated subject list
+    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
 
 
 if register_rois:
@@ -148,13 +205,42 @@ if register_rois:
     Register ROIs to anat and EPI
     '''
 
-    atlas = 'Wang'
+    atlas = 'wang'
+    
+    #create new column for the atlas registration if it doesn't already exist
+    if f'{atlas}_reg' not in full_sub_list.columns:
+        full_sub_list[f'{atlas}_reg'] = ''
+    
+
+    #extract subject list where phase 4 has been run but roi_reg has not
+    sub_list = full_sub_list[(full_sub_list['phase_4']==1)& (full_sub_list[f'{atlas}_reg']!=1)]
+    
 
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         print(f'Running ROI registration for {sub}')
 
-        bash_cmd = f'python {git_dir}/registration/register_rois.py {sub} {ses} {atlas}'
-        subprocess.run(bash_cmd, check=True, shell=True)
+        try:
+            bash_cmd = f'python {git_dir}/registration/register_rois.py {sub} {ses} {atlas}'
+            subprocess.run(bash_cmd, check=True, shell=True)
+
+            #set roi_reg to 1
+            sub_list.loc[sub_list['participant_id']==sub, f'{atlas}_reg'] = 1
+        except:
+            #open log file
+            log_file = open(f'{git_dir}/registration/qc/registration_log.txt', 'a')
+            #write error to log file
+            log_file.write(f'Error in register_rois.py for {sub}\n')
+            #close log file
+            log_file.close()
+
+
+
+    #add updated sub list to full sub list
+    full_sub_list.update(sub_list)
+
+    #save updated subject list
+    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+
 
 #end time
 end = time.time()

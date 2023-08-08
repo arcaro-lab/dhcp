@@ -32,15 +32,15 @@ bash_cmd = f'fslmaths {func_input}/{func}.nii.gz -Tmean {out_dir}/{func}_1vol.ni
 subprocess.run(bash_cmd.split(), check = True)
 
 #create registration matrix for anat2func
-bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {anat_input}/{anat}.nii.gz -omat {out_dir}/xfm/anat2func.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
+bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {anat_input}/{anat}.nii.gz -omat {out_dir}/xfm/func2anat.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
 subprocess.run(bash_cmd.split(), check = True)
 
 #apply registration to 1vol func data
-bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {anat_input}/{anat}.nii.gz -out {out_dir}/{func}_1vol_reg.nii.gz -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
+bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {anat_input}/{anat}.nii.gz -out {out_dir}/{func}_1vol_reg.nii.gz -applyxfm -init {out_dir}/xfm/func2anat.mat -interp trilinear'
 subprocess.run(bash_cmd.split(), check = True)
 
-#create registration matrix for func2anat
-bash_cmd = f'flirt -in {anat_input}/{anat}.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -omat {out_dir}/xfm/func2anat.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
+#create registration matrix for anat2func
+bash_cmd = f'flirt -in {anat_input}/{anat}.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -omat {out_dir}/xfm/anat2func.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
 subprocess.run(bash_cmd.split(), check = True)
 
 

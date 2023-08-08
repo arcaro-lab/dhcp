@@ -1,0 +1,8 @@
+Error in phase4_registration.py for sub-CC00056XX07
+Error in phase4_registration.py for sub-CC00057XX08
+Error in phase4_registration.py for sub-CC00058XX09
+Error in phase4_registration.py for sub-CC00060XX03
+Error in phase4_registration.py for sub-CC00063AN06
+Error in phase4_registration.py for sub-CC00063BN06
+Error in phase4_registration.py for sub-CC00064XX07
+Error in phase4_registration.py for sub-CC00065XX08
