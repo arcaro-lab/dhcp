@@ -23,6 +23,8 @@ import shutil
 import pdb
 
 from nilearn.maskers import NiftiMasker
+import warnings
+warnings.filterwarnings("ignore")
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
@@ -38,6 +40,8 @@ func_dir = f'{params.raw_func_dir}/{sub}/{ses}'
 out_dir = f'{params.out_dir}/{sub}/{ses}'
 atlas_dir = params.atlas_dir
 
+results_dir = f'{out_dir}/derivatives/timeseries'
+os.makedirs(results_dir, exist_ok = True)
 
 
 roi_dir = f'{out_dir}/rois/{atlas}'
@@ -58,12 +62,14 @@ for roi_name in roi_labels['label']:
         masker = NiftiMasker(mask_img = roi_img, standardize = True)
         roi_ts = masker.fit_transform(func_img)
 
+        #save multivariate timeseries
+        np.save(f'{results_dir}/{hemi}_{roi_name}.npy', roi_ts)
+
         #average across voxels
-        roi_ts = np.mean(roi_ts, axis = 1)
+        mean_ts = np.mean(roi_ts, axis = 1)
 
         #append to all_ts
-        all_ts.append(roi_ts)
-
+        all_ts.append(mean_ts)
         
 
 

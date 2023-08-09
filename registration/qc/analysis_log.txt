@@ -1,4 +1,0 @@
-Error in compute_fc.py for sub-CC00056XX07
-Error in compute_fc.py for sub-CC00057XX08
-Error in compute_fc.py for sub-CC00058XX09
-Error in compute_fc.py for sub-CC00060XX03
