@@ -46,8 +46,8 @@ for sub_ind = 1:height(sub_list)
             %add 1 to phase 2 column
             sub_list.phase_2(sub_ind) = 1;
         catch
-            fileID = fopen([git_dir,'/registration/qc/','registration_log.txt'], 'a');
-            data = ['Error in phase3_registration.py for ', sub{1}];
+            fileID = fopen([git_dir,'/fmri/qc/','preproc_log.txt'], 'a');
+            data = ['Error in phase2_registration.m for ', sub{1}];
             fprintf(fileID, '%s\n', data);
             fclose(fileID);
 

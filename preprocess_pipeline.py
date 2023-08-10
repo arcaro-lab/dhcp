@@ -48,7 +48,7 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(30)
+sub_list = full_sub_list.head(60)
 
 #set atlas
 atlas = 'wang'
@@ -60,8 +60,8 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = True
-reg_phase2 = True
+reg_phase1 = False
+reg_phase2 = False
 reg_phase3 = True
 reg_phase4 = True
 
@@ -161,6 +161,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
 #time it 
 start = time.time()
 
+
 if find_eligible_subs:
     '''
     Pre-registration phase: Check which subjects have all scans
@@ -183,7 +184,7 @@ if reg_phase2:
     Note: subject loop and error logging is done in matlab script
     '''
     print('Running phase 2 registration')
-    bash_cmd = "matlab.exe -batch \"run('registration/phase2_registration.m')\""
+    bash_cmd = "matlab.exe -batch \"run('fmri/phase2_registration.m')\""
     subprocess.run(bash_cmd, check=True, shell=True)
 
     #load updated sub list

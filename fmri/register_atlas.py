@@ -107,4 +107,4 @@ for hemi in params.hemis:
 
 
 #save figure with tight layout
-plt.savefig(f'{git_dir}/registration/qc/reg_plots/{sub}_{atlas}_anat.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/reg_plots/{sub}_{atlas}_anat.png', bbox_inches = 'tight')
