@@ -24,8 +24,8 @@ anat_input = f'{params.raw_anat_dir}/{sub}/{ses}'
 func_input = f'{params.raw_func_dir}/{sub}/{ses}'
 out_dir = f'{params.out_dir}/{sub}/{ses}'
 
-anat = f'anat/{sub}_{ses}_desc-restore_T2w' 
-func = f'func/{sub}_{ses}_task-rest_desc-preproc_bold'
+anat = f'anat/{sub}_{ses}_{params.anat_suf}.nii.gz' 
+func = f'func/{sub}_{ses}_{params.func_suf}.nii.gz'
 
 #create 1 volume func file
 bash_cmd = f'fslmaths {func_input}/{func}.nii.gz -Tmean {out_dir}/{func}_1vol.nii.gz'
