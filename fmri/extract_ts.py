@@ -43,13 +43,15 @@ atlas_dir = params.atlas_dir
 results_dir = f'{out_dir}/derivatives/timeseries'
 os.makedirs(results_dir, exist_ok = True)
 
+os.makedirs(f'{params.out_dir}/derivatives/fc_matrix', exist_ok = True)
+
 
 roi_dir = f'{out_dir}/rois/{atlas}'
 
 atlas_name, roi_labels = params.load_roi_info(atlas)
 
 #load functional data
-func_img = nib.load(f'{func_dir}/func/{sub}_{ses}_task-rest_desc-preproc_bold.nii.gz')
+func_img = nib.load(f'{func_dir}/func/{sub}_{ses}_{params.func_suf}.nii.gz')
 
 all_ts = []
 #loop through rois in labels file

@@ -57,7 +57,7 @@ for hemi in params.hemis:
         nib.save(roi_atlas, f'{roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz')
 
         #register roi to func
-        bash_cmd = f'flirt -in {roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_task-rest_desc-preproc_bold_1vol.nii.gz -out {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
+        bash_cmd = f'flirt -in {roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
         subprocess.run(bash_cmd.split(), check = True)
         
         #binarize and fill holes in roi using fsl

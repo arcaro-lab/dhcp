@@ -23,6 +23,9 @@ ses = sys.argv[2]
 input_dir = f'{params.raw_anat_dir}/{sub}/{ses}'
 out_dir = f'{params.out_dir}/{sub}/{ses}'
 
+anat_suf = params.anat_suf
+
+
 freesurfer_dir = '/usr/local/freesurfer/7.4.1'
 
 
@@ -57,10 +60,10 @@ for hemi in params.hemis:
 #convert anat to mgz and afni formats
 print(f'Converting {sub} {ses} anat to mgz and afni formats')
 
-bash_cmd = f'mri_convert {input_dir}/anat/{sub}_{ses}_desc-restore_T2w.nii.gz {out_dir}/surf/orig.mgz'
+bash_cmd = f'mri_convert {input_dir}/anat/{sub}_{ses}_{anat_suf}.nii.gz {out_dir}/surf/orig.mgz'
 subprocess.run(bash_cmd, check=True, shell = True)
 
-bash_cmd = f'3dcopy {input_dir}/anat/{sub}_{ses}_desc-restore_T2w.nii.gz {out_dir}/anat/{sub}_{ses}_desc-restore_T2w+orig.nii.gz'
+bash_cmd = f'3dcopy {input_dir}/anat/{sub}_{ses}_{anat_suf}.nii.gz {out_dir}/anat/{sub}_{ses}_{anat_suf}+orig.nii.gz'
 subprocess.run(bash_cmd, check=True, shell = True)
 
 #make orig directory in surf

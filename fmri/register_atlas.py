@@ -38,7 +38,7 @@ atlas_name, roi_labels = params.load_roi_info(atlas)
 fig, ax = plt.subplots(2, figsize = (4,6))
 
 #load anat
-anat = nib.load(f'{anat_dir}/anat/{sub}_{ses}_desc-restore_T2w.nii.gz')
+anat = nib.load(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz')
 affine = anat.affine
 
 for hemi in params.hemis:
@@ -47,17 +47,21 @@ for hemi in params.hemis:
 
     #check if curr atlas exists
     #if it does, delete it
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz'):
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz') or os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz'):
         #delete atlas
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz')
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
+
+                #delete atlas
+        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz')
+        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
                 
     #register atlas to subject with afni
     bash_cmd = f"""3dSurf2Vol \
         -spec {out_dir}/SUMA/std.141.{sub}_{hemi}.spec -surf_A std.141.{hemi}.white.asc \
             -surf_B std.141.{hemi}.pial.asc \
-                -sv {anat_dir}/anat/{sub}_{ses}_desc-restore_T2w.nii.gz \
-                    -grid_parent {out_dir}/func/{sub}_{ses}_task-rest_desc-preproc_bold_1vol_reg.nii.gz \
+                -sv {anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz \
+                    -grid_parent {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol_reg.nii.gz \
                         -sdata {atlas_dir}/{curr_atlas}.1D.dset \
                             -map_func mode \
                                 -f_steps 500 \
@@ -69,8 +73,12 @@ for hemi in params.hemis:
     subprocess.run(bash_cmd.split(), check = True)
 
     
+    #check if atlas has orgi or tlrc extension
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz'): atlas_ext = '+orig'
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz'): atlas_ext = '+tlrc'
+
     #convert to nifti
-    bash_cmd = f'3dAFNItoNIFTI {out_dir}/atlas/{curr_atlas}_anat+orig {curr_atlas}_anat.nii'
+    bash_cmd = f'3dAFNItoNIFTI {out_dir}/atlas/{curr_atlas}_anat{atlas_ext} {curr_atlas}_anat.nii'
     subprocess.run(bash_cmd.split(), check = True)
    
     #move new atlas_anat.nii to atlas dir

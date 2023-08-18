@@ -1,5 +1,0 @@
-10/08/2023 13:35:29: Error in register_atlas.py for sub-CC00056XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
-10/08/2023 13:40:05: Error in register_atlas.py for sub-CC00057XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
-10/08/2023 14:12:45: Error in register_atlas.py for sub-CC00088XX15: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
-10/08/2023 14:17:22: Error in register_atlas.py for sub-CC00089XX16: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
-10/08/2023 14:22:09: Error in register_atlas.py for sub-CC00091XX10: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'

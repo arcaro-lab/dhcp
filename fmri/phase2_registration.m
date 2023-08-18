@@ -1,6 +1,7 @@
 
 %set data directory
 data_dir= 'E:\dhcp_analysis_full';
+data_dir= 'F:\7T_HCP';
 git_dir = 'C:\Users\ArcaroLab\Desktop\git_repos\dhcp';
 
 %load sub_list

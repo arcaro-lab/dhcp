@@ -34,11 +34,12 @@ raw_func_dir = params.raw_func_dir
 out_dir = params.out_dir
 
 #load subject list for funcs
-raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.tsv', sep='\t')
+#raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.tsv', sep='\t')
+raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.csv') #placeholder for now
 
 #set suffixes for anat and func files
-anat_suf = 'desc-restore_T2w'
-func_suf = 'task-rest_desc-preproc_bold'
+anat_suf = params.anat_suf
+func_suf = params.func_suf
 
 
 
@@ -48,7 +49,7 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(60)
+sub_list = full_sub_list.head(30)
 
 #set atlas
 atlas = 'wang'
@@ -60,8 +61,8 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = False
-reg_phase2 = False
+reg_phase1 = True
+reg_phase2 = True
 reg_phase3 = True
 reg_phase4 = True
 
