@@ -61,7 +61,7 @@ for roi_name in roi_labels['label']:
         roi_img = nib.load(f'{roi_dir}/{hemi}_{roi_name}_epi.nii.gz')
 
         #extract roi timeseries
-        masker = NiftiMasker(mask_img = roi_img, standardize = True)
+        masker = NiftiMasker(mask_img = roi_img, standardize = True, smoothing_fwhm=params.smooth_mm)
         roi_ts = masker.fit_transform(func_img)
 
         #save multivariate timeseries

@@ -33,9 +33,6 @@ raw_anat_dir = params.raw_anat_dir
 raw_func_dir = params.raw_func_dir
 out_dir = params.out_dir
 
-#load subject list for funcs
-#raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.tsv', sep='\t')
-raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.csv') #placeholder for now
 
 #set suffixes for anat and func files
 anat_suf = params.anat_suf
@@ -61,13 +58,13 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = True
-reg_phase2 = True
-reg_phase3 = True
-reg_phase4 = True
+reg_phase1 = False
+reg_phase2 = False
+reg_phase3 = False
+reg_phase4 = False
 
 #Registers atlas to individual anat
-register_rois = True
+register_rois = False
 #split atlas into individual rois
 split_rois = True
 
@@ -82,6 +79,7 @@ def find_eligble_subs():
 
     Create new participant list with eligible subjects
     '''
+    raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.tsv', sep='\t')
     #create new sub list
     sub_list = pd.DataFrame(columns=raw_sub_list.columns.to_list() + ['ses'])
 
@@ -191,6 +189,11 @@ if reg_phase2:
     #load updated sub list
     #this needs to be reloaded because matlab script updates it
     full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+    #
+    full_sub_list[full_sub_list == 'NaN'] = ''
+    #save updated sub list
+    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+
 
 
 if reg_phase3:
