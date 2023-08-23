@@ -49,7 +49,7 @@ full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 sub_list = full_sub_list.head(30)
 
 #set atlas
-atlas = 'wang'
+atlas = 'object'
 
 '''
 Flags to determine which preprocessing steps to run
@@ -64,12 +64,12 @@ reg_phase3 = False
 reg_phase4 = False
 
 #Registers atlas to individual anat
-register_rois = False
+register_rois = True
 #split atlas into individual rois
-split_rois = True
+split_rois = False
 
 #extracts timeseries from each roi
-extract_ts = True
+extract_ts = False
 
 
 def find_eligble_subs():
@@ -122,6 +122,8 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
     '''
     Launches preprocessing script and checks for errors
     '''
+
+    
     #create new column if analysis_name doesn't exist
     if analysis_name not in sub_list.columns:
         sub_list[analysis_name] = ''

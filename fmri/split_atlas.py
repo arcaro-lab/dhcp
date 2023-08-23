@@ -43,36 +43,15 @@ if os.path.exists(f'{roi_dir}/{atlas}'):
 
 os.makedirs(f'{roi_dir}/{atlas}', exist_ok = True)
 
-#load anatomical image
-anat_img = image.load_img(f'{out_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz')
-anat_affine = anat_img.affine
-
-#load functional image
-func_img = image.load_img(f'{out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz')
-func_affine = func_img.affine
-
-#check if they are identical    
-if np.array_equal(anat_affine, func_affine):
-    same_affine = True
-else:
-    same_affine = False
 
 
 for hemi in params.hemis:
     #replace hemi in atlas name with current hemi
     curr_atlas = atlas_name.replace('hemi', hemi)
     
-    #if affines are already the same, just copy it
-    if same_affine == False:
-        #register atlas to func
-        bash_cmd = f'flirt -in {out_dir}/atlas/{curr_atlas}_anat.nii -ref {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {out_dir}/atlas//{curr_atlas}_epi.nii -applyxfm -init {out_dir}/xfm/anat2func.mat -interp nearestneighbour'
-        subprocess.run(bash_cmd.split(), check = True)
-    elif same_affine == True:
-        #copy atlas to roi dir
-        shutil.copy(f'{out_dir}/atlas/{curr_atlas}_anat.nii', f'{out_dir}/atlas/{curr_atlas}_epi.nii')
 
     #load atlas
-    atlas_img = image.load_img(f'{out_dir}/atlas/{curr_atlas}_epi.nii')
+    atlas_img = image.load_img(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz')
 
     #loop through rois in labels file
     for roi_ind, roi in zip(roi_labels['index'],roi_labels['label']):

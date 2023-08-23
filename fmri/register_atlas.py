@@ -38,8 +38,19 @@ atlas_name, roi_labels = params.load_roi_info(atlas)
 fig, ax = plt.subplots(2, figsize = (4,6))
 
 #load anat
-anat = nib.load(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz')
-affine = anat.affine
+#load anatomical image
+anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz')
+anat_affine = anat_img.affine
+
+#load functional image
+func_img = image.load_img(f'{out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz')
+func_affine = func_img.affine
+
+#check if they are identical    
+if np.array_equal(anat_affine, func_affine):
+    same_affine = True
+else:
+    same_affine = False
 
 for hemi in params.hemis:
     #replace hemi in atlas name with current hemi
@@ -47,12 +58,13 @@ for hemi in params.hemis:
 
     #check if curr atlas exists
     #if it does, delete it
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz') or os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz'):
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz'):
         #delete atlas
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz')
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
 
-                #delete atlas
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz'):
+        #delete atlas
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz')
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
                 
@@ -101,18 +113,27 @@ for hemi in params.hemis:
     atlas_data = np.squeeze(atlas_data)
 
     #convert back to nifti
-    atlas_nifti = nib.Nifti1Image(atlas_data, affine=affine)
+    atlas_nifti = nib.Nifti1Image(atlas_data, affine=anat_affine)
 
     #save nifti
-    nib.save(atlas_nifti, f'{out_dir}/atlas/{curr_atlas}_anat.nii')
+    nib.save(atlas_nifti, f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz')
+
+    #Register atlas to epi
+    if same_affine == False: #check if anat and func already have the same affine
+        #register atlas to func
+        bash_cmd = f'flirt -in {out_dir}/atlas/{curr_atlas}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {out_dir}/atlas/{curr_atlas}_epi.nii -applyxfm -init {out_dir}/xfm/anat2func.mat -interp nearestneighbour'
+        subprocess.run(bash_cmd.split(), check = True)
+    elif same_affine == True:
+        #copy atlas to roi dir
+        shutil.copy(f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz', f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz')
     
-    # #register atlas to func with flirt
-    #bash_cmd = f'flirt -in {out_dir}/atlas/{curr_atlas}_anat.nii -ref {out_dir}/func/{sub}_{ses}_task-rest_desc-preproc_bold_1vol.nii.gz -out {out_dir}/atlas/{curr_atlas}_epi.nii -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
-    # subprocess.run(bash_cmd.split(), check = True)
-
     #plot atlas on subject's brain
-    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_anat.nii', bg_img = anat, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
+    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
+
+#make qc dir for atlas and group if it doesn't exist
+if not os.path.exists(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}'):
+    os.makedirs(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}', exist_ok = True)
 
 #save figure with tight layout
-plt.savefig(f'{git_dir}/fmri/qc/reg_plots/{sub}_{atlas}_anat.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}/{sub}_{atlas}_anat.png', bbox_inches = 'tight')

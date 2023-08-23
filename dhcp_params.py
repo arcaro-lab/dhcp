@@ -6,7 +6,7 @@ import pandas as pd
 #how much to smooth functional data
 smooth_mm = 4
 
-group= 'adult'
+group= 'infant'
 
 def load_group_params(group):
     '''
@@ -51,6 +51,10 @@ def load_roi_info(atlas):
     if atlas == 'wang':
         atlas_name = f'Wang_maxprob_surf_hemi_edits'
         roi_labels = pd.read_csv(f'{atlas_dir}/Wang_labels.csv')
+
+    elif atlas == 'object':
+        atlas_name  = 'objectareas_fullnode_hemi'
+        roi_labels = pd.read_csv(f'{atlas_dir}/object_labels.csv')
 
 
     return atlas_name, roi_labels
