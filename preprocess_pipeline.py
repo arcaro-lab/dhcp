@@ -49,7 +49,7 @@ full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 sub_list = full_sub_list.head(30)
 
 #set atlas
-atlas = 'object'
+atlas = 'calcsulc'
 
 '''
 Flags to determine which preprocessing steps to run
@@ -66,10 +66,10 @@ reg_phase4 = False
 #Registers atlas to individual anat
 register_rois = True
 #split atlas into individual rois
-split_rois = False
+split_rois = True
 
 #extracts timeseries from each roi
-extract_ts = False
+extract_ts = True
 
 
 def find_eligble_subs():
@@ -127,6 +127,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
     #create new column if analysis_name doesn't exist
     if analysis_name not in sub_list.columns:
         sub_list[analysis_name] = ''
+        full_sub_list[analysis_name] = ''
 
     #check if script has already been run and whether pre-reqs have been met
     curr_subs = sub_list[sub_list[analysis_name]!=1]
@@ -150,6 +151,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #note: full_sub_list is kept outside of the function so its not overwritten
             full_sub_list.update(sub_list)
             full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+            
         except Exception as e:
             #open log file
             log_file = open(f'{script_dir}/qc/preproc_log.txt', 'a')

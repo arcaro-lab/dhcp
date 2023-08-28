@@ -67,7 +67,8 @@ for hemi in params.hemis:
         #delete atlas
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz')
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
-                
+    
+    
     #register atlas to subject with afni
     bash_cmd = f"""3dSurf2Vol \
         -spec {out_dir}/SUMA/std.141.{sub}_{hemi}.spec -surf_A std.141.{hemi}.white.asc \
@@ -81,7 +82,7 @@ for hemi in params.hemis:
                                         -f_pn_mm 0.5 \
                                             -prefix {out_dir}/atlas/{curr_atlas}_anat"""
     
-
+    
     subprocess.run(bash_cmd.split(), check = True)
 
     

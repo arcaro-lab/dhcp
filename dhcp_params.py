@@ -1,5 +1,7 @@
 git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
-
+import sys
+#add git_dir to path
+sys.path.append(git_dir)
 import pandas as pd
 #set directories
 
@@ -7,6 +9,9 @@ import pandas as pd
 smooth_mm = 4
 
 group= 'infant'
+
+results_dir = f'{git_dir}/results'
+fig_dir = f'{git_dir}/figures'
 
 def load_group_params(group):
     '''
@@ -52,9 +57,16 @@ def load_roi_info(atlas):
         atlas_name = f'Wang_maxprob_surf_hemi_edits'
         roi_labels = pd.read_csv(f'{atlas_dir}/Wang_labels.csv')
 
+        #remove FEF from roi_labels
+        roi_labels = roi_labels[roi_labels['ROI'] != 'FEF']
+
     elif atlas == 'object':
         atlas_name  = 'objectareas_fullnode_hemi'
         roi_labels = pd.read_csv(f'{atlas_dir}/object_labels.csv')
+
+    elif atlas == 'calcsulc':
+        atlas_name  = 'calcsulc_binnedroi_hemi'
+        roi_labels = pd.read_csv(f'{atlas_dir}/calcsulc_labels.csv')
 
 
     return atlas_name, roi_labels

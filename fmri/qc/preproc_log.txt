@@ -7,3 +7,48 @@
 23/08/2023 10:25:41: Error in register_atlas.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00057XX08 ses-11002 object' returned non-zero exit status 1.
 23/08/2023 11:46:04: Error in register_atlas.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00056XX07 ses-10700 object' returned non-zero exit status 1.
 23/08/2023 11:46:06: Error in register_atlas.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00057XX08 ses-11002 object' returned non-zero exit status 1.
+23/08/2023 12:00:34: Error in register_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00058XX09 ses-11300 object' returned non-zero exit status 1.
+23/08/2023 17:10:01: Error in register_atlas.py for sub-CC00056XX07: 
+23/08/2023 17:14:29: Error in split_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-CC00058XX09 ses-11300 object' returned non-zero exit status 1.
+23/08/2023 17:25:50: Error in register_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00058XX09 ses-11300 object' returned non-zero exit status 1.
+24/08/2023 10:39:02: Error in register_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00058XX09 ses-11300 object' returned non-zero exit status 1.
+24/08/2023 10:39:05: Error in split_atlas.py for sub-CC00056XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:07: Error in split_atlas.py for sub-CC00057XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:10: Error in split_atlas.py for sub-CC00060XX03: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:12: Error in split_atlas.py for sub-CC00063AN06: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:15: Error in split_atlas.py for sub-CC00063BN06: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:18: Error in split_atlas.py for sub-CC00064XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:20: Error in split_atlas.py for sub-CC00065XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:23: Error in split_atlas.py for sub-CC00066XX09: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:25: Error in split_atlas.py for sub-CC00067XX10: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:28: Error in split_atlas.py for sub-CC00068XX11: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:31: Error in split_atlas.py for sub-CC00069XX12: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:33: Error in split_atlas.py for sub-CC00070XX05: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:36: Error in split_atlas.py for sub-CC00071XX06: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:39: Error in split_atlas.py for sub-CC00072XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:41: Error in split_atlas.py for sub-CC00073XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:44: Error in split_atlas.py for sub-CC00074XX09: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:46: Error in split_atlas.py for sub-CC00075XX10: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:49: Error in split_atlas.py for sub-CC00076XX11: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:52: Error in split_atlas.py for sub-CC00078XX13: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:54: Error in split_atlas.py for sub-CC00079XX14: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:39:57: Error in split_atlas.py for sub-CC00080XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:00: Error in split_atlas.py for sub-CC00098AN17: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:02: Error in split_atlas.py for sub-CC00082XX09: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:05: Error in split_atlas.py for sub-CC00083XX10: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:08: Error in split_atlas.py for sub-CC00084XX11: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:10: Error in split_atlas.py for sub-CC00085XX12: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:13: Error in split_atlas.py for sub-CC00086XX13: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:16: Error in split_atlas.py for sub-CC00087AN14: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:40:18: Error in split_atlas.py for sub-CC00087BN14: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:42:30: Error in extract_ts.py for sub-CC00056XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:44:39: Error in extract_ts.py for sub-CC00057XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 10:46:46: Error in extract_ts.py for sub-CC00060XX03: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+24/08/2023 12:20:33: Error in register_atlas.py for sub-100610: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-100610 ses-01 object' returned non-zero exit status 1.
+25/08/2023 17:34:53: Error in register_atlas.py for sub-100610: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-100610 ses-01 calcsulc' returned non-zero exit status 1.
+25/08/2023 17:34:55: Error in register_atlas.py for sub-102311: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-102311 ses-01 calcsulc' returned non-zero exit status 1.
+25/08/2023 17:34:56: Error in register_atlas.py for sub-102816: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-102816 ses-01 calcsulc' returned non-zero exit status 1.
+25/08/2023 17:35:33: Error in register_atlas.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00056XX07 ses-10700 calcsulc' returned non-zero exit status 1.
+25/08/2023 17:35:34: Error in register_atlas.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00057XX08 ses-11002 calcsulc' returned non-zero exit status 1.
+25/08/2023 17:35:55: Error in register_atlas.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00056XX07 ses-10700 calcsulc' returned non-zero exit status 1.
+25/08/2023 17:35:56: Error in register_atlas.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00057XX08 ses-11002 calcsulc' returned non-zero exit status 1.

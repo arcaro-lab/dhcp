@@ -1,8 +1,8 @@
 #set data path
 data_path=/mnt/e/vlad_test/
 
-sub=sub-CC00060XX03
-ses=ses-12501
+sub=sub-CC00056XX07
+ses=ses-10700
 
 #create sub path
 sub_path=${data_path}/${sub}/${ses}/
@@ -16,6 +16,9 @@ cd $sub_path
 #run using original t2 not surfvol
 afni -niml &
 suma -spec SUMA/std.141.${sub}_both.spec -sv anat/${sub}_${ses}_desc-restore_T2w.nii.gz
+
+afni -niml &
+suma -spec SUMA/std.141.sub-CC00056XX07_both.spec -sv /mnt/e/dHCP_raw/rel3_dhcp_anat_pipeline/sub-CC00056XX07/ses-10700/anat/sub-CC00056XX07_ses-10700_desc-restore_T2w.nii.gz
 
 # Viewing ROIS
 # 	a. Use std.141 spec file
