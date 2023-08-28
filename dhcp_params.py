@@ -58,7 +58,7 @@ def load_roi_info(atlas):
         roi_labels = pd.read_csv(f'{atlas_dir}/Wang_labels.csv')
 
         #remove FEF from roi_labels
-        roi_labels = roi_labels[roi_labels['ROI'] != 'FEF']
+        roi_labels = roi_labels[roi_labels['label'] != 'FEF']
 
     elif atlas == 'object':
         atlas_name  = 'objectareas_fullnode_hemi'
