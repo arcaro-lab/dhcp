@@ -49,7 +49,7 @@ full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 sub_list = full_sub_list.head(30)
 
 #set atlas
-atlas = 'calcsulc'
+atlas = 'wang'
 
 '''
 Flags to determine which preprocessing steps to run
@@ -64,9 +64,9 @@ reg_phase3 = False
 reg_phase4 = False
 
 #Registers atlas to individual anat
-register_rois = True
+register_rois = False
 #split atlas into individual rois
-split_rois = True
+split_rois = False
 
 #extracts timeseries from each roi
 extract_ts = True

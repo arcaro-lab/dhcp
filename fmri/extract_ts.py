@@ -21,6 +21,7 @@ from nilearn import plotting, image
 import nibabel as nib
 import shutil
 import pdb
+import gc
 
 from nilearn.maskers import NiftiMasker
 import warnings
@@ -50,20 +51,50 @@ roi_dir = f'{out_dir}/rois/{atlas}'
 
 atlas_name, roi_labels = params.load_roi_info(atlas)
 
-#load functional data
-func_img = nib.load(f'{func_dir}/func/{sub}_{ses}_{params.func_suf}.nii.gz')
+#glob all func files
+func_files = glob(f'{func_dir}/func/*_bold.nii.gz')
+
+#loop through func files
+all_func = []
+for n, func_file in enumerate(func_files):
+    
+    #load func
+    try:
+
+        curr_img = image.load_img(func_file)
+        
+    except:
+        print(f'Error loading {func_file}')
+        continue
+    
+    all_func.append(curr_img)
+    del curr_img
+
+#concatenate all func files
+func_img = image.concat_imgs(all_func)
+
+
+del all_func
+gc.collect()
+
 
 all_ts = []
 #loop through rois in labels file
 for roi_name in roi_labels['label']:
     for hemi in params.hemis:
+        print(f'Extracting {roi_name} {hemi} timeseries for {sub}...')
+        
         #load roi
-        roi_img = nib.load(f'{roi_dir}/{hemi}_{roi_name}_epi.nii.gz')
+        roi_img = image.load_img(f'{roi_dir}/{hemi}_{roi_name}_epi.nii.gz')
+        
 
         #extract roi timeseries
         masker = NiftiMasker(mask_img = roi_img, standardize = True, smoothing_fwhm=params.smooth_mm)
-        roi_ts = masker.fit_transform(func_img)
+        del roi_img        
 
+        roi_ts = masker.fit_transform(func_img)
+        print('roi_ts shape: ', roi_ts.shape)
+        
         #save multivariate timeseries
         np.save(f'{results_dir}/{hemi}_{roi_name}.npy', roi_ts)
 
@@ -72,7 +103,10 @@ for roi_name in roi_labels['label']:
 
         #append to all_ts
         all_ts.append(mean_ts)
-        
+
+        gc.collect()
+                
+
 
 
 #convert to numpy array

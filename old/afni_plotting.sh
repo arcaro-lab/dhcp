@@ -18,7 +18,7 @@ afni -niml &
 suma -spec SUMA/std.141.${sub}_both.spec -sv anat/${sub}_${ses}_desc-restore_T2w.nii.gz
 
 afni -niml &
-suma -spec SUMA/std.141.sub-CC00056XX07_both.spec -sv /mnt/e/dHCP_raw/rel3_dhcp_anat_pipeline/sub-CC00056XX07/ses-10700/anat/sub-CC00056XX07_ses-10700_desc-restore_T2w.nii.gz
+suma -spec SUMA/std.141.sub-CC00056XX07_lh.spec -sv /mnt/e/dHCP_raw/rel3_dhcp_anat_pipeline/sub-CC00056XX07/ses-10700/anat/sub-CC00056XX07_ses-10700_desc-restore_T2w.nii.gz
 
 # Viewing ROIS
 # 	a. Use std.141 spec file

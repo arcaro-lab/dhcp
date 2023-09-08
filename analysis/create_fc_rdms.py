@@ -23,8 +23,12 @@ atlas_name, roi_labels = params.load_roi_info(atlas)
 age_groups = ['infant', 'adult']
 
 def create_indiv_rdm(group, sub_list, data_dir, atlas):
+    
+    atlas_name, roi_labels = params.load_roi_info(atlas)
+
     #Create fc matrix for each subject
     
+
     all_subs = []
     #for each subject looop through wang labels and load timeseries
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):

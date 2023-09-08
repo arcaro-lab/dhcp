@@ -7,8 +7,9 @@ import pandas as pd
 
 #how much to smooth functional data
 smooth_mm = 4
+vols = 2300
 
-group= 'infant'
+group= 'adult'
 
 results_dir = f'{git_dir}/results'
 fig_dir = f'{git_dir}/figures'
@@ -46,6 +47,7 @@ atlas_dir = f'{out_dir}/atlases'
 derivatives_dir = f'{out_dir}/derivatives'
 
 hemis = ['lh','rh']
+
 
 #sub-CC00056XX07 ses-10700 wang
 
