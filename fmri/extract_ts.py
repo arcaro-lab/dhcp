@@ -24,6 +24,7 @@ import pdb
 import gc
 
 from nilearn.maskers import NiftiMasker
+from nilearn.maskers import NiftiLabelsMasker
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -56,61 +57,71 @@ func_files = glob(f'{func_dir}/func/*_bold.nii.gz')
 
 #loop through func files
 all_func = []
-for n, func_file in enumerate(func_files):
+
     
-    #load func
-    try:
 
-        curr_img = image.load_img(func_file)
-        
-    except:
-        print(f'Error loading {func_file}')
-        continue
-    
-    all_func.append(curr_img)
-    del curr_img
-
-#concatenate all func files
-func_img = image.concat_imgs(all_func)
-
-
-del all_func
 gc.collect()
-
 
 all_ts = []
 #loop through rois in labels file
-for roi_name in roi_labels['label']:
-    for hemi in params.hemis:
-        print(f'Extracting {roi_name} {hemi} timeseries for {sub}...')
-        
-        #load roi
-        roi_img = image.load_img(f'{roi_dir}/{hemi}_{roi_name}_epi.nii.gz')
-        
+for hemi in params.hemis:
+    print(f'Extracting {atlas} {hemi} timeseries for {sub}...')
 
-        #extract roi timeseries
-        masker = NiftiMasker(mask_img = roi_img, standardize = True, smoothing_fwhm=params.smooth_mm)
-        del roi_img        
+    curr_atlas = atlas_name.replace('hemi', hemi)
+    #load roi
+    atlas_dir = f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz'
+    
+    #extract roi timeseries
+    masker = NiftiLabelsMasker(
+        labels_img=atlas_dir,
+        standardize="zscore_sample",
+        standardize_confounds="zscore_sample",
+        smoothing_fwhm=params.smooth_mm)    
+
+    all_runs = []
+    for n, func_file in enumerate(func_files):
+        
+        #load func
+        try:
+
+            func_img = image.load_img(func_file)
+            
+            
+        except:
+            print(f'Error loading {func_file}')
+            continue
+        
 
         roi_ts = masker.fit_transform(func_img)
-        print('roi_ts shape: ', roi_ts.shape)
-        
-        #save multivariate timeseries
-        np.save(f'{results_dir}/{hemi}_{roi_name}.npy', roi_ts)
 
-        #average across voxels
-        mean_ts = np.mean(roi_ts, axis = 1)
+        
 
         #append to all_ts
-        all_ts.append(mean_ts)
+        all_runs.append(roi_ts)
 
         gc.collect()
-                
+    
+    
 
+    #concatenate all runs
+    roi_ts = np.concatenate(all_runs, axis = 0)
+
+    
+    #save
+    np.save(f'{results_dir}/{sub}_{ses}_{atlas}_{hemi}_ts.npy', roi_ts)
+
+    #append to all_ts
+    all_ts.append(roi_ts)
+
+            
 
 
 #convert to numpy array
-all_ts = np.array(all_ts)
+all_ts = np.concatenate(all_ts, axis = 1)
+
+#transpose
+all_ts = all_ts.T
+
 
 #compute correlation matrix across all rois
 corr_mat = np.corrcoef(all_ts)

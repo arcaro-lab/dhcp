@@ -88,3 +88,55 @@
 08/09/2023 01:57:04: Error in extract_ts.py for sub-145834: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-145834 ses-01 wang' returned non-zero exit status 137.
 08/09/2023 02:06:50: Error in extract_ts.py for sub-146129: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-146129 ses-01 wang' returned non-zero exit status 137.
 08/09/2023 02:16:35: Error in extract_ts.py for sub-146432: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-146432 ses-01 wang' returned non-zero exit status 137.
+08/09/2023 17:12:45: Error in split_atlas_linear.py for sub-100610: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas_linear.py sub-100610 ses-01 wang' returned non-zero exit status 1.
+08/09/2023 17:12:59: Error in split_atlas_linear.py for sub-102311: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas_linear.py sub-102311 ses-01 wang' returned non-zero exit status 1.
+08/09/2023 17:23:48: Error in split_atlas_linear.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas_linear.py sub-CC00056XX07 ses-10700 wang' returned non-zero exit status 1.
+08/09/2023 17:30:04: Error in split_atlas_linear.py for sub-CC00056XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+08/09/2023 17:32:35: Error in split_atlas_linear.py for sub-CC00057XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+08/09/2023 17:32:52: Error in extract_ts.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00056XX07 ses-10700 wang' returned non-zero exit status 1.
+08/09/2023 17:33:18: Error in extract_ts.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00057XX08 ses-11002 wang' returned non-zero exit status 1.
+08/09/2023 17:58:43: Error in register_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00058XX09 ses-11300 wang' returned non-zero exit status 1.
+08/09/2023 20:11:53: Error in extract_ts.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00056XX07 ses-10700 wang' returned non-zero exit status 1.
+08/09/2023 20:12:09: Error in extract_ts.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00057XX08 ses-11002 wang' returned non-zero exit status 1.
+08/09/2023 20:13:52: Error in extract_ts.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00058XX09 ses-11300 wang' returned non-zero exit status 1.
+08/09/2023 20:15:25: Error in extract_ts.py for sub-CC00060XX03: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00060XX03 ses-12501 wang' returned non-zero exit status 1.
+08/09/2023 20:16:57: Error in extract_ts.py for sub-CC00063AN06: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00063AN06 ses-15102 wang' returned non-zero exit status 1.
+08/09/2023 20:18:29: Error in extract_ts.py for sub-CC00063BN06: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00063BN06 ses-15104 wang' returned non-zero exit status 1.
+08/09/2023 20:24:37: Error in register_atlas.py for sub-CC00056XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+08/09/2023 20:26:39: Error in register_atlas.py for sub-CC00057XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+08/09/2023 20:29:07: Error in split_atlas.py for sub-CC00056XX07: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+08/09/2023 20:31:47: Error in split_atlas.py for sub-CC00057XX08: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'
+08/09/2023 21:17:04: Error in extract_ts.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/extract_ts.py sub-CC00056XX07 ses-10700 wang' returned non-zero exit status 1.
+09/09/2023 00:37:50: Error in split_atlas.py for sub-100610: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-100610 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:38:05: Error in split_atlas.py for sub-102311: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-102311 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:38:19: Error in split_atlas.py for sub-102816: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-102816 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:38:34: Error in split_atlas.py for sub-104416: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-104416 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:38:49: Error in split_atlas.py for sub-105923: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-105923 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:39:03: Error in split_atlas.py for sub-108323: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-108323 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:39:18: Error in split_atlas.py for sub-109123: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-109123 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:39:33: Error in split_atlas.py for sub-111312: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-111312 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:39:48: Error in split_atlas.py for sub-111514: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-111514 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:40:02: Error in split_atlas.py for sub-114823: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-114823 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:40:17: Error in split_atlas.py for sub-115017: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-115017 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:40:32: Error in split_atlas.py for sub-115825: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-115825 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:40:47: Error in split_atlas.py for sub-116726: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-116726 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:41:01: Error in split_atlas.py for sub-118225: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-118225 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:41:16: Error in split_atlas.py for sub-125525: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-125525 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:41:31: Error in split_atlas.py for sub-126426: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-126426 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:41:45: Error in split_atlas.py for sub-128935: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-128935 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:42:00: Error in split_atlas.py for sub-130114: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-130114 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:42:15: Error in split_atlas.py for sub-130518: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-130518 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:42:29: Error in split_atlas.py for sub-131722: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-131722 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:42:44: Error in split_atlas.py for sub-132118: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-132118 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:42:59: Error in split_atlas.py for sub-134627: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-134627 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:43:14: Error in split_atlas.py for sub-134829: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-134829 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:43:29: Error in split_atlas.py for sub-135124: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-135124 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:43:43: Error in split_atlas.py for sub-137128: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-137128 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:43:58: Error in split_atlas.py for sub-140117: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-140117 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:44:13: Error in split_atlas.py for sub-144226: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-144226 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:44:28: Error in split_atlas.py for sub-145834: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-145834 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:44:42: Error in split_atlas.py for sub-146129: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-146129 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 00:44:57: Error in split_atlas.py for sub-146432: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-146432 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 11:13:34: Error in split_atlas.py for sub-100610: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-100610 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 11:13:36: Error in split_atlas.py for sub-102311: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-102311 ses-01 wang' returned non-zero exit status 1.
+09/09/2023 11:13:38: Error in split_atlas.py for sub-102816: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-102816 ses-01 wang' returned non-zero exit status 1.

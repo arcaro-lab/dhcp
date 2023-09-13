@@ -48,6 +48,7 @@ full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
 sub_list = full_sub_list.head(30)
 
+
 #set atlas
 atlas = 'wang'
 
@@ -64,9 +65,9 @@ reg_phase3 = False
 reg_phase4 = False
 
 #Registers atlas to individual anat
-register_rois = False
+register_rois = True
 #split atlas into individual rois
-split_rois = False
+split_rois = True
 
 #extracts timeseries from each roi
 extract_ts = True

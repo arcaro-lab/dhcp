@@ -77,10 +77,7 @@ for hemi in params.hemis:
                     -grid_parent {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol_reg.nii.gz \
                         -sdata {atlas_dir}/{curr_atlas}.1D.dset \
                             -map_func mode \
-                                -f_steps 500 \
-                                    -f_p1_mm -0.5 \
-                                        -f_pn_mm 0.5 \
-                                            -prefix {out_dir}/atlas/{curr_atlas}_anat"""
+                                    -prefix {out_dir}/atlas/{curr_atlas}_anat"""
     
     
     subprocess.run(bash_cmd.split(), check = True)
@@ -119,22 +116,4 @@ for hemi in params.hemis:
     #save nifti
     nib.save(atlas_nifti, f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz')
 
-    #Register atlas to epi
-    if same_affine == False: #check if anat and func already have the same affine
-        #register atlas to func
-        bash_cmd = f'flirt -in {out_dir}/atlas/{curr_atlas}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {out_dir}/atlas/{curr_atlas}_epi.nii -applyxfm -init {out_dir}/xfm/anat2func.mat -interp nearestneighbour'
-        subprocess.run(bash_cmd.split(), check = True)
-    elif same_affine == True:
-        #copy atlas to roi dir
-        shutil.copy(f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz', f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz')
-    
-    #plot atlas on subject's brain
-    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
-
-#make qc dir for atlas and group if it doesn't exist
-if not os.path.exists(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}'):
-    os.makedirs(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}', exist_ok = True)
-
-#save figure with tight layout
-plt.savefig(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}/{sub}_{atlas}_anat.png', bbox_inches = 'tight')
