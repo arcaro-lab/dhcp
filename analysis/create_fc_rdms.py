@@ -33,22 +33,30 @@ def create_indiv_rdm(group, sub_list, data_dir, atlas):
     #for each subject looop through wang labels and load timeseries
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         all_ts = []
-        for roi in roi_labels['label']:
-            for hemi in params.hemis:
-                #load timeseries
-                ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{hemi}_{roi}.npy')
 
-                #average across voxels
-                mean_ts = np.mean(ts, axis = 1)
-                #append to all_ts
-                all_ts.append(mean_ts)
+        for hemi in params.hemis:
+            #load timeseries
+            #this is all ROIs for a given hemisphere
+            ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_{hemi}_ts.npy')
+
             
-    
-        #convert to numpy array
-        all_ts = np.array(all_ts)
+            #if ts is longer than params.vols, truncate
+            #this is to equalize the number of volumes across groups
+            if ts.shape[0] > params.vols:
+                ts = ts[:params.vols,:]
+
+            #append to all_ts
+            all_ts.append(ts)
+            
+        
+        #intersperse hemis so it goes lh->rh->lh->rh for each rois
+        full_ts = np.zeros((all_ts[0].shape[1] * 2, all_ts[0].shape[0]))
+        full_ts[0::2] = all_ts[0].T
+        full_ts[1::2] = all_ts[1].T
+       
 
         #compute correlation matrix across all rois
-        corr_mat = np.corrcoef(all_ts)
+        corr_mat = np.corrcoef(full_ts)
 
         all_subs.append(corr_mat)
 
@@ -58,8 +66,10 @@ def create_indiv_rdm(group, sub_list, data_dir, atlas):
     #convert to numpy array
     all_subs = np.array(all_subs)
 
-    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_fc.npy', all_subs)
+    
 
+    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_fc.npy', all_subs)
+    
     
 
     return all_subs
@@ -83,20 +93,26 @@ def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas):
         #create empty RDM size of number of rois
         rdm = np.zeros((len(roi_labels), len(roi_labels)))
         
-        for x, roi in enumerate(roi_labels['label']):
-            lts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/lh_{roi}.npy')
-            lts = np.mean(lts, axis = 1)
-            for y, roi in enumerate(roi_labels['label']):
-                #load timeseries
-                rts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/rh_{roi}.npy')
-                rts = np.mean(rts, axis = 1)
+    
+        #load timeseries
+        #this is all ROIs for a given hemisphere
+        lh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy')
+        rh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_rh_ts.npy')
 
-                #compute correlation between lts and rts and add to rdm
-                r = np.corrcoef(lts, rts)[0,1]
+        
+        #if ts is longer than params.vols, truncate
+        if lh_ts.shape[0] > params.vols:
+            lh_ts = lh_ts[:params.vols,:]
+            rh_ts = rh_ts[:params.vols,:]
 
-                #add to rdm
+        #correlate each roi in lh with each roi in rh
+        for x, ts1 in enumerate(lh_ts.T):
+            for y, ts2 in enumerate(rh_ts.T):
+                
+                r = np.corrcoef(ts1,ts2)[0,1]
                 rdm[x,y] = r
 
+  
                 #append to all_ts
         all_rdms.append(rdm)
 
@@ -109,9 +125,6 @@ def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas):
     np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_cross_hemi_fc.npy', all_rdms)
 
     
-
-    
-
     return all_rdms
             
 
@@ -119,7 +132,7 @@ def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas):
 
     
 #create indiv rdm for each subject
-for group in ['infant','adult']:
+for group in age_groups:
     #extract group data
     raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
 
