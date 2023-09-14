@@ -149,7 +149,7 @@ for group in age_groups:
 
     #save median rdm to results dir as csv
     median_fc = pd.DataFrame(median_fc)
-    median_fc.to_csv(f'{params.results_dir}/{group}_{atlas}_median_fc.csv', header = False, index = False)
+    median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc.csv', header = False, index = False)
 
     print(f'Extracting cross-hemi {group} RDMs ...')
     #compute cross hemi rdm
@@ -160,7 +160,7 @@ for group in age_groups:
 
     #save median rdm to results dir as csv
     median_cross_hemi_fc = pd.DataFrame(median_cross_hemi_fc)
-    median_cross_hemi_fc.to_csv(f'{params.results_dir}/{group}_{atlas}_median_cross_hemi_fc.csv', header = False, index = False)
+    median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc.csv', header = False, index = False)
 
 
     
