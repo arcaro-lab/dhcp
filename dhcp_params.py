@@ -9,7 +9,7 @@ import pandas as pd
 smooth_mm = 4
 vols = 2300
 
-group= 'adult'
+group= 'infant'
 
 results_dir = f'{git_dir}/results'
 fig_dir = f'{git_dir}/figures'
@@ -28,6 +28,8 @@ def load_group_params(group):
         anat_suf = f'desc-restore_T2w' 
         func_suf = f'task-rest_desc-preproc_bold'
 
+        brain_mask_suf = 'desc-ribbon_dseg'
+
     elif group == 'adult':
         #7T hcp data directories
         raw_data_dir = '/mnt/f/7T_HCP'
@@ -37,10 +39,12 @@ def load_group_params(group):
         anat_suf = f'restore-1.60_T1w'
         func_suf = f'task-rest_run-01_preproc_bold'
 
-    return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf
+        brain_mask_suf = None
+
+    return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf
 
 
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = load_group_params(group)
+raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf = load_group_params(group)
 
 
 atlas_dir = f'{out_dir}/atlases'
@@ -51,9 +55,9 @@ hemis = ['lh','rh']
 
 #sub-CC00056XX07 ses-10700 wang
 
-def load_roi_info(atlas):
+def load_atlas_info(atlas):
     '''
-    Load roi info from atlas
+    Load atlas info 
     '''
     if atlas == 'wang':
         atlas_name = f'Wang_maxprob_surf_hemi_edits'
@@ -70,5 +74,16 @@ def load_roi_info(atlas):
         atlas_name  = 'calcsulc_binnedroi_hemi'
         roi_labels = pd.read_csv(f'{atlas_dir}/calcsulc_labels.csv')
 
-
     return atlas_name, roi_labels
+
+def load_roi_info(roi):
+    '''
+    Load ROI info
+    '''
+
+    if roi == 'pulvinar':
+        roi_name = 'pulvinar/40week/week40_thalamus_hemi'
+        template = 'pulvinar/40week/week40_T2w'
+        template_name = '40wk'
+
+    return roi_name, template, template_name

@@ -46,11 +46,12 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(30)
+sub_list = full_sub_list.head(2)
 
 
 #set atlas
-atlas = 'wang'
+atlas = 'calcsulc'
+roi = 'pulvinar'
 
 '''
 Flags to determine which preprocessing steps to run
@@ -65,13 +66,18 @@ reg_phase3 = False
 reg_phase4 = False
 
 #Registers atlas to individual anat
-register_rois = True
+register_rois = False
 #split atlas into individual rois
-split_rois = True
+split_rois = False
 
 #extracts timeseries from each roi
-extract_ts = True
+extract_ts = False
 
+#extract brain
+extract_brain = True
+
+#Registrer volumetric roi to individual anat
+register_vol_roi = True
 
 def find_eligble_subs():
 
@@ -232,7 +238,19 @@ if extract_ts:
     launch_script(sub_list = sub_list,script_name='extract_ts.py',analysis_name=f'{atlas}_ts',pre_req=f'{atlas}_split', atlas = atlas)
 
 
+if extract_brain:
+    '''
+    Extract brain
+    *this is mainly needed for volumetric ROI registration
+    '''
+    launch_script(sub_list = sub_list,script_name='extract_brain.py',analysis_name=f'extract_brain',pre_req=f'phase_4')
 
+
+if register_vol_roi:
+    '''
+    Register volumetric roi to individual anat
+    '''
+    launch_script(sub_list = sub_list,script_name='register_vol_roi.py',analysis_name=f'{roi}_reg',pre_req=f'extract_brain', atlas = roi)
 
 #end time
 end = time.time()
