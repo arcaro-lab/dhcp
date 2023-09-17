@@ -46,7 +46,7 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(2)
+sub_list = full_sub_list.head(3)
 
 
 #set atlas
@@ -66,7 +66,7 @@ reg_phase3 = False
 reg_phase4 = False
 
 #Registers atlas to individual anat
-register_rois = False
+register_atlas = False
 #split atlas into individual rois
 split_rois = False
 
@@ -219,7 +219,7 @@ if reg_phase4:
     '''
     launch_script(sub_list = sub_list,script_name='phase4_registration.py',analysis_name='phase_4',pre_req='phase_3')
 
-if register_rois:
+if register_atlas:
     '''
     Register atlas to individual anat
     '''

@@ -21,6 +21,8 @@ from nilearn import plotting, image
 import nibabel as nib
 import shutil
 import pdb
+import matplotlib
+matplotlib.use('Agg')
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
@@ -35,7 +37,7 @@ atlas_dir = params.atlas_dir
 
 roi_dir = f'{out_dir}/rois'
 
-atlas_name, roi_labels = params.load_roi_info(atlas)
+atlas_name, roi_labels = params.load_atlas_info(atlas)
 
 #if atlas dir exists, delete it
 if os.path.exists(f'{roi_dir}/{atlas}'):
@@ -55,6 +57,9 @@ if np.array_equal(anat_affine, func_affine):
     same_affine = True
 else:
     same_affine = False
+
+
+
 
 for hemi in params.hemis:
     #replace hemi in atlas name with current hemi
@@ -88,11 +93,13 @@ for hemi in params.hemis:
         
 
 
-
+#create subplot for each hemi
+fig, ax = plt.subplots(2, figsize = (4,6))
 '''
 Create new atlas with max probability roi
 '''
 for hemi in ['lh','rh']:
+    curr_atlas = atlas_name.replace('hemi', hemi)
     roi_imgs = []
 
     
@@ -116,7 +123,13 @@ for hemi in ['lh','rh']:
     max_roi = nib.Nifti1Image(max_roi, func_img.affine, func_img.header)
 
     #save it
-    nib.save(max_roi, f'{out_dir}/atlas/Wang_maxprob_surf_{hemi}_edits_epi.nii.gz')
+    nib.save(max_roi, f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz')
+
+
+    #plot atlas on subject's brain
+    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
+
+plt.savefig(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
 
         
 

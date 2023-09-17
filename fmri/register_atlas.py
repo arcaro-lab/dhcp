@@ -32,7 +32,7 @@ func_dir = f'{params.raw_func_dir}/{sub}/{ses}'
 out_dir = f'{params.out_dir}/{sub}/{ses}'
 atlas_dir = params.atlas_dir
 
-atlas_name, roi_labels = params.load_roi_info(atlas)
+atlas_name, roi_labels = params.load_atlas_info(atlas)
 
 #create subplot for each hemi
 fig, ax = plt.subplots(2, figsize = (4,6))
@@ -115,5 +115,18 @@ for hemi in params.hemis:
 
     #save nifti
     nib.save(atlas_nifti, f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz')
+
+    #plot atlas
+    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz', title = curr_atlas, axes = ax[params.hemis.index(hemi)], draw_cross = False, annotate = False)
+
+
+#create qc folder for atlas and group
+os.makedirs(f'{git_dir}/fmri/qc/{atlas}/{params.group}', exist_ok = True)
+
+#save figure
+plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{params.group}/{sub}_{atlas}_anat.png', dpi = 300)
+
+
+
 
 

@@ -50,7 +50,7 @@ os.makedirs(f'{params.out_dir}/derivatives/fc_matrix', exist_ok = True)
 
 roi_dir = f'{out_dir}/rois/{atlas}'
 
-atlas_name, roi_labels = params.load_roi_info(atlas)
+atlas_name, roi_labels = params.load_atlas_info(atlas)
 
 #glob all func files
 func_files = glob(f'{func_dir}/func/*_bold.nii.gz')

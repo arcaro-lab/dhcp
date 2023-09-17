@@ -28,7 +28,7 @@ def load_group_params(group):
         anat_suf = f'desc-restore_T2w' 
         func_suf = f'task-rest_desc-preproc_bold'
 
-        brain_mask_suf = 'desc-ribbon_dseg'
+        brain_mask_suf = 'desc-brain_mask'
 
     elif group == 'adult':
         #7T hcp data directories
@@ -52,8 +52,6 @@ derivatives_dir = f'{out_dir}/derivatives'
 
 hemis = ['lh','rh']
 
-
-#sub-CC00056XX07 ses-10700 wang
 
 def load_atlas_info(atlas):
     '''

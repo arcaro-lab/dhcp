@@ -14,7 +14,12 @@ import numpy as np
 import pandas as pd
 from glob import glob as glob
 import dhcp_params as params
+import matplotlib.pyplot as plt
 import pdb
+from nilearn import plotting, image
+import shutil
+import matplotlib
+matplotlib.use('Agg')
 
 #take subject and session as command line argument
 sub = sys.argv[1]
@@ -22,6 +27,7 @@ ses = sys.argv[2]
 roi = sys.argv[3]
 
 roi_name, template, template_name = params.load_roi_info(roi)
+
 
 #set sub dir
 anat_input = f'{params.raw_anat_dir}/{sub}/{ses}'
@@ -31,7 +37,23 @@ atlas_dir = params.atlas_dir
 
 anat = f'anat/{sub}_{ses}_{params.anat_suf}_brain' 
 
+anat_img = image.load_img(f'{data_dir}/{anat}.nii.gz')
+anat_affine = anat_img.affine
+
+#load functional image
+func_img = image.load_img(f'{data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz')
+func_affine = func_img.affine
+
+#check if they are identical    
+if np.array_equal(anat_affine, func_affine):
+    same_affine = True
+else:
+    same_affine = False
+
 os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
+
+#create subplot for each hemi
+fig, ax = plt.subplots(2, figsize = (4,6))
 
 #create transformations from template to anat
 bash_cmd =f'antsRegistrationSyN.sh -f {data_dir}/{anat}.nii.gz -m {atlas_dir}/{template}.nii.gz -d 3 -o {data_dir}/xfm/{template_name}2anat -n 4'
@@ -40,8 +62,6 @@ subprocess.run(bash_cmd, shell=True)
 for hemi in params.hemis:
     curr_roi = roi_name.replace('hemi', hemi)
 
-
-
     #apply transformations to roi
     bash_cmd = f"antsApplyTransforms \
         -d 3 \
@@ -49,5 +69,30 @@ for hemi in params.hemis:
                 -r  {data_dir}/{anat}.nii.gz \
                     -t {data_dir}/xfm/{template_name}2anat1Warp.nii.gz \
                         -t {data_dir}/xfm/{template_name}2anat0GenericAffine.mat \
-                            -o {data_dir}/rois/{roi}_{hemi}.nii.gz"
+                            -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz"
     subprocess.run(bash_cmd, shell=True)
+
+    if same_affine == False:
+        #register anat roi to func space
+        bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -ref {data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {data_dir}/xfm/anat2func.mat -interp nearestneighbour'
+        subprocess.run(bash_cmd, shell=True)
+    elif same_affine ==True:
+        #copy atlas to roi dir
+        shutil.copy(f'{data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz', f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz')
+
+
+    #binarize and fill holes in roi using fsl
+    bash_cmd = f'fslmaths {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -bin -fillh {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz'
+    subprocess.run(bash_cmd.split(), check = True)
+
+
+    #plot atlas on subject's brain
+    plotting.plot_roi(f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {roi}',draw_cross=False) 
+
+
+#create qc folder for atlas and group
+os.makedirs(f'{git_dir}/fmri/qc/{roi}/{params.group}', exist_ok = True)
+
+
+#save figure with tight layout
+plt.savefig(f'{git_dir}/fmri/qc/{roi}/{params.group}/{sub}_{roi}_epi.png', bbox_inches = 'tight')
