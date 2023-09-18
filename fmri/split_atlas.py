@@ -129,7 +129,7 @@ for hemi in ['lh','rh']:
     #plot atlas on subject's brain
     plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
-plt.savefig(f'{git_dir}/fmri/qc/{atlas_name}/{params.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{params.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
 
         
 

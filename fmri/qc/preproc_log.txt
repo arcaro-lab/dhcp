@@ -225,3 +225,7 @@
 17/09/2023 13:45:05: Error in register_vol_roi.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_vol_roi.py sub-CC00056XX07 ses-10700 pulvinar' returned non-zero exit status 1.
 17/09/2023 13:45:06: Error in register_vol_roi.py for sub-CC00057XX08: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_vol_roi.py sub-CC00057XX08 ses-11002 pulvinar' returned non-zero exit status 1.
 17/09/2023 13:45:07: Error in register_vol_roi.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_vol_roi.py sub-CC00058XX09 ses-11300 pulvinar' returned non-zero exit status 1.
+17/09/2023 16:51:21: Error in split_atlas.py for sub-CC00056XX07: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/split_atlas.py sub-CC00056XX07 ses-10700 wang' returned non-zero exit status 1.
+17/09/2023 17:19:21: Error in register_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00058XX09 ses-11300 wang' returned non-zero exit status 134.
+17/09/2023 17:20:38: Error in register_atlas.py for sub-CC00058XX09: Command 'python /mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp/fmri/register_atlas.py sub-CC00058XX09 ses-11300 wang' returned non-zero exit status 1.
+17/09/2023 19:55:35: Error in register_vol_roi.py for sub-CC00058XX09: [Errno 13] Permission denied: '/mnt/e/dhcp_analysis_full/participants.csv'

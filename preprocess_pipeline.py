@@ -50,7 +50,7 @@ sub_list = full_sub_list.head(3)
 
 
 #set atlas
-atlas = 'calcsulc'
+atlas = 'wang'
 roi = 'pulvinar'
 
 '''
@@ -66,12 +66,12 @@ reg_phase3 = False
 reg_phase4 = False
 
 #Registers atlas to individual anat
-register_atlas = False
+register_atlas = True
 #split atlas into individual rois
-split_rois = False
+split_rois = True
 
 #extracts timeseries from each roi
-extract_ts = False
+extract_ts = True
 
 #extract brain
 extract_brain = True

@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 from nilearn import plotting, image
 import nibabel as nib
 import shutil
+import matplotlib
+matplotlib.use('Agg')
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
@@ -34,8 +36,6 @@ atlas_dir = params.atlas_dir
 
 atlas_name, roi_labels = params.load_atlas_info(atlas)
 
-#create subplot for each hemi
-fig, ax = plt.subplots(2, figsize = (4,6))
 
 #load anat
 #load anatomical image
