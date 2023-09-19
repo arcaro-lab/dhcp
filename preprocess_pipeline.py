@@ -46,11 +46,11 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(3)
+sub_list = full_sub_list.head(30)
 
 
 #set atlas
-atlas = 'wang'
+atlas = 'calcsulc'
 roi = 'pulvinar'
 
 '''

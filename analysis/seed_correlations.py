@@ -6,11 +6,12 @@ import sys
 #add git_dir to path
 sys.path.append(git_dir)
 import pandas as pd
-from nilearn import image, plotting
+from nilearn import image, plotting, masking
 #from nilearn.glm import threshold_stats_img
 import numpy as np
 
 from nilearn.maskers import NiftiMasker
+
 import nibabel as nib
 import os
 
@@ -57,8 +58,7 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         target_atlas = image.math_img('img>0', img = target_atlas)
 
         #set masker
-        brain_masker = NiftiMasker(target_atlas,
-        smoothing_fwhm=4, standardize=True)
+        brain_masker = NiftiMasker(target_atlas, standardize=True)
 
         
 
@@ -102,28 +102,53 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         #convert back to nifti
         max_map = nib.Nifti1Image(max_map, affine, header)
 
-        #smooth map
-        max_map = image.smooth_img(max_map, 4)
+        #apply mask
+        brain_masker = NiftiMasker(target_atlas, smoothing_fwhm=3)
+        smoothed_map = brain_masker.fit_transform(max_map)
+
+        #convert back to nifti
+        smoothed_map = brain_masker.inverse_transform(smoothed_map)
+
+
+        #transform back to nifti
+
 
         #save map
-        nib.save(max_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
+        nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
 
+def register_to_template(sub, ses,analysis_name, template_name):
+    '''
+    Use ANTS to register map to template
+    '''
 
+    results_dir = f'{out_dir}/{sub}/{ses}/derivatives/{analysis_name}'
+    for hemi in params.hemis:
+        curr_map = f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz'
+
+    #apply transformations to roi
+    bash_cmd = f"antsApplyTransforms \
+        -d 3 \
+            -i {atlas_dir}/{curr_roi}.nii.gz \
+                -r  {data_dir}/{anat}.nii.gz \
+                    -t {data_dir}/xfm/{template_name}2anat1Warp.nii.gz \
+                        -t {data_dir}/xfm/{template_name}2anat0GenericAffine.mat \
+                            -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz"
+    subprocess.run(bash_cmd, shell=True)
     
 group = 'infant'
 
 raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf = params.load_group_params(group)
 
 
-analysis_name = 'thalmocortical'
+analysis_name = 'retinotopy'
 
-seed_atlas = 'wang'
-target_roi = 'pulvinar'
+seed_atlas = 'calcsulc'
+target_roi = 'wang'
 #load subject list
 #load subject list
 sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
-sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
+sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
 
 #load atlas info
 atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
@@ -143,7 +168,7 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     #set seed dir
     seed_file = f'{out_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{seed_atlas}_hemi_ts.npy'
     target_file = f'{out_dir}/{sub}/{ses}/{target_dir}'
-    results_dir = f'{out_dir}/{sub}/{ses}/derivatives/{analysis_name}'
+    results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
 
     
 

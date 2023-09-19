@@ -116,15 +116,8 @@ for hemi in params.hemis:
     #save nifti
     nib.save(atlas_nifti, f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz')
 
-    #plot atlas
-    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz', title = curr_atlas, axes = ax[params.hemis.index(hemi)], draw_cross = False, annotate = False)
 
 
-#create qc folder for atlas and group
-os.makedirs(f'{git_dir}/fmri/qc/{atlas}/{params.group}', exist_ok = True)
-
-#save figure
-plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{params.group}/{sub}_{atlas}_anat.png', dpi = 300)
 
 
 
