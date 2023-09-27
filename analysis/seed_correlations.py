@@ -19,6 +19,7 @@ import pdb
 
 import warnings
 import dhcp_params as params
+import subprocess
 
 #sub = sys.argv[1]
 #ses = sys.argv[2]
@@ -32,6 +33,7 @@ import dhcp_params as params
 
 
 def compute_correlations(sub, ses, func_dir, seed_file, target_file):
+    print(f'Computing correlations for {sub} {ses}')
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
 
     #load func data
@@ -103,47 +105,102 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         max_map = nib.Nifti1Image(max_map, affine, header)
 
         #apply mask
-        brain_masker = NiftiMasker(target_atlas, smoothing_fwhm=3)
+        brain_masker = NiftiMasker(target_atlas, smoothing_fwhm=0)
         smoothed_map = brain_masker.fit_transform(max_map)
 
         #convert back to nifti
         smoothed_map = brain_masker.inverse_transform(smoothed_map)
 
-
-        #transform back to nifti
-
-
         #save map
         nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
 
-def register_to_template(sub, ses,analysis_name, template_name):
+def register_to_template(sub, ses,analysis_name, template,template_name):
     '''
     Use ANTS to register map to template
     '''
-
-    results_dir = f'{out_dir}/{sub}/{ses}/derivatives/{analysis_name}'
+    print(f'Registering {sub} {analysis_name} to {template}')
+    sub_dir = f'{out_dir}/{sub}/{ses}'
+    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
     for hemi in params.hemis:
-        curr_map = f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz'
+        curr_map = f'{results_dir}/{hemi}_{analysis_name}_map'
 
-    #apply transformations to roi
-    bash_cmd = f"antsApplyTransforms \
-        -d 3 \
-            -i {atlas_dir}/{curr_roi}.nii.gz \
-                -r  {data_dir}/{anat}.nii.gz \
-                    -t {data_dir}/xfm/{template_name}2anat1Warp.nii.gz \
-                        -t {data_dir}/xfm/{template_name}2anat0GenericAffine.mat \
-                            -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz"
-    subprocess.run(bash_cmd, shell=True)
+        #apply transformations to roi
+        bash_cmd = f"antsApplyTransforms \
+            -d 3 \
+                -i {curr_map}.nii.gz \
+                    -r  {out_dir}/templates/{template}.nii.gz \
+                        -t {sub_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
+                            -t [{sub_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
+                                -o {curr_map}_{template_name}.nii.gz \
+                                    -n NearestNeighbor"
+        subprocess.run(bash_cmd, shell=True)
+
+
+def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
+    '''
+    Create group map by loading each subject's map and taking the median
+    '''
+    print(f'Creating group map for {group}')
+    #load template
+    template_file = f'{out_dir}/templates/{template}.nii.gz'
+    affine = image.load_img(template_file).affine
+    header = image.load_img(template_file).header
+
     
+
+    results_dir = f'{out_dir}/derivatives/{analysis_name}'
+    #create results dir
+    os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
+
+    #loop through hemis
+    for hemi in params.hemis:
+        #load roi mask
+        '''
+        NEED TO MAKE THIS WORK FOR THE GROUP
+        '''
+        roi_name = params.load_roi_info(roi)
+        curr_roi = f'{out_dir}/atlases/{roi_name}.nii.gz'
+        #replace hemi in curr_roi
+        curr_roi = curr_roi.replace('hemi', hemi)
+        #create masker
+        brain_masker = NiftiMasker(curr_roi)
+
+        all_maps = []
+        for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+            sub_dir = f'{out_dir}/{sub}/{ses}'
+
+            curr_map = image.load_img(f'{sub_dir}/derivatives/{analysis_name}/{hemi}_{analysis_name}_map_{template_name}.nii.gz')
+            #apply mask
+            curr_map = brain_masker.fit_transform(curr_map)
+            #convert back to nifti
+            curr_map = brain_masker.inverse_transform(curr_map)
+            curr_map = curr_map.get_fdata()
+            all_maps.append(curr_map)
+
+        #convert to numpy array
+        all_maps = np.array(all_maps)
+
+        #take median across subjects
+        group_map = np.median(all_maps, axis = 0)
+
+        #save
+        group_map = nib.Nifti1Image(group_map, affine, header)
+        group_map.to_filename(f'{results_dir}/{hemi}_{analysis_name}_map_{template_name}.nii.gz')
+
+    
+
 group = 'infant'
 
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf = params.load_group_params(group)
+raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, template, template_name = params.load_group_params(group)
 
 
 analysis_name = 'retinotopy'
-
 seed_atlas = 'calcsulc'
 target_roi = 'wang'
+
+#analysis_name = 'thalmocortical'
+#seed_atlas = 'wang'
+#target_roi = 'pulvinar'
 #load subject list
 #load subject list
 sub_list = pd.read_csv(f'{out_dir}/participants.csv')
@@ -159,22 +216,28 @@ try:
     target_dir = f'atlas/{target_name}_epi.nii.gz'
 except:
     target_name = target_roi
-    target_name, _, _ = params.load_roi_info(target_roi)
+    target_name = params.load_roi_info(target_roi)
     target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz'
+
+
 
 #loop through subjects
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-    print(f'Computing correlations for {sub} {seed_atlas} {target_roi}')
     #set seed dir
     seed_file = f'{out_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{seed_atlas}_hemi_ts.npy'
     target_file = f'{out_dir}/{sub}/{ses}/{target_dir}'
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
 
     
+    #compute seed to roi correlations
+    #compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
 
-    compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
+    #register correlations to template
+    #register_to_template(sub, ses,analysis_name, template, template_name)
 
 
 
+
+create_group_map(group, sub_list,  analysis_name, template_name,target_name)
 
 

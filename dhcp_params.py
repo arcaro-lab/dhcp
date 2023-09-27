@@ -29,6 +29,8 @@ def load_group_params(group):
         func_suf = f'task-rest_desc-preproc_bold'
 
         brain_mask_suf = 'desc-brain_mask'
+        group_template = 'week40_T2w'
+        template_name = '40wk'
 
     elif group == 'adult':
         #7T hcp data directories
@@ -40,11 +42,13 @@ def load_group_params(group):
         func_suf = f'task-rest_run-01_preproc_bold'
 
         brain_mask_suf = None
+        group_template = 'MNI152_2009_SurfVol'
+        template_name = 'MNI152'
 
-    return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf
+    return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
 
 
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf = load_group_params(group)
+raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = load_group_params(group)
 
 
 atlas_dir = f'{out_dir}/atlases'
@@ -81,7 +85,13 @@ def load_roi_info(roi):
 
     if roi == 'pulvinar':
         roi_name = 'pulvinar/40week/week40_thalamus_hemi'
-        template = 'pulvinar/40week/week40_T2w'
-        template_name = '40wk'
+        
+        '''
+        NEED TO MAKE THIS WORK FOR THE GROUP
+        '''
+    if roi == 'wang': 
+        roi_name = 'wang'
+        template = 'wang'
+        template_name = 'wang'
 
-    return roi_name, template, template_name
+    return roi_name
