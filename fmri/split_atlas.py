@@ -30,7 +30,7 @@ ses = sys.argv[2]
 atlas = sys.argv[3]
 
 #set sub dir
-anat_dir = f'{params.raw_anat_dir}/{sub}/{ses}'
+anat_dir = f'{params.out_dir}/{sub}/{ses}'
 func_dir = f'{params.raw_func_dir}/{sub}/{ses}'
 out_dir = f'{params.out_dir}/{sub}/{ses}'
 atlas_dir = params.atlas_dir
@@ -45,7 +45,7 @@ if os.path.exists(f'{roi_dir}/{atlas}'):
 
 os.makedirs(f'{roi_dir}/{atlas}', exist_ok = True)
 
-anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz')
+anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}_brain.nii.gz')
 anat_affine = anat_img.affine
 
 #load functional image

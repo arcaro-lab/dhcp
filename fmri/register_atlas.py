@@ -29,8 +29,7 @@ ses = sys.argv[2]
 atlas = sys.argv[3]
 
 #set sub dir
-anat_dir = f'{params.raw_anat_dir}/{sub}/{ses}'
-func_dir = f'{params.raw_func_dir}/{sub}/{ses}'
+anat_dir = f'{params.out_dir}/{sub}/{ses}'
 out_dir = f'{params.out_dir}/{sub}/{ses}'
 atlas_dir = params.atlas_dir
 
@@ -39,7 +38,7 @@ atlas_name, roi_labels = params.load_atlas_info(atlas)
 
 #load anat
 #load anatomical image
-anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz')
+anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}_brain.nii.gz')
 anat_affine = anat_img.affine
 
 #load functional image
@@ -73,7 +72,7 @@ for hemi in params.hemis:
     bash_cmd = f"""3dSurf2Vol \
         -spec {out_dir}/SUMA/std.141.{sub}_{hemi}.spec -surf_A std.141.{hemi}.white.asc \
             -surf_B std.141.{hemi}.pial.asc \
-                -sv {anat_dir}/anat/{sub}_{ses}_{params.anat_suf}.nii.gz \
+                -sv {anat_dir}/anat/{sub}_{ses}_{params.anat_suf}_brain.nii.gz \
                     -grid_parent {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol_reg.nii.gz \
                         -sdata {atlas_dir}/{curr_atlas}.1D.dset \
                             -map_func mode \

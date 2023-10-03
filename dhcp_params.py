@@ -32,6 +32,8 @@ def load_group_params(group):
         group_template = 'week40_T2w'
         template_name = '40wk'
 
+        
+
     elif group == 'adult':
         #7T hcp data directories
         raw_data_dir = '/mnt/f/7T_HCP'
@@ -44,6 +46,22 @@ def load_group_params(group):
         brain_mask_suf = None
         group_template = 'MNI152_2009_SurfVol'
         template_name = 'MNI152'
+
+
+    elif group == 'diffusion':
+         #7T hcp data directories
+        raw_data_dir = '/mnt/e/diffusion/FinalData'
+        raw_anat_dir = f'{raw_data_dir}/rel3_dhcp_anat_pipeline'
+        raw_func_dir = f'{raw_data_dir}/rel3_dhcp_fmri_pipeline'
+        out_dir = {raw_data_dir}
+        anat_suf = f'desc-restore_T2w' 
+        func_suf = f'task-rest_desc-preproc_bold'
+
+        brain_mask_suf = 'desc-brain_mask'
+
+        group_template = 'MNI152_2009_SurfVol'
+        template_name = 'MNI152'
+
 
     return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
 

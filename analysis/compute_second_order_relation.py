@@ -146,15 +146,20 @@ def register_to_template(sub, ses):
 
             curr_map = f'{results_dir}/{hemi}_{roi}_second_order'
 
+            #register to anat using flirt
+            bash_cmd = f'flirt -in {curr_map}.nii.gz -ref {sub_dir}/anat/{sub}_{ses}_{anat_suf}_brain.nii.gz -out {curr_map}_anat.nii.gz -applyxfm -init {sub_dir}/xfm/func2anat.mat -interp trilinear'
+            subprocess.run(bash_cmd, shell=True)
+
+
             #apply transformations to roi
             bash_cmd = f"antsApplyTransforms \
                 -d 3 \
-                    -i {curr_map}.nii.gz \
+                    -i {curr_map}_anat.nii.gz \
                         -r  {out_dir}/templates/{template}.nii.gz \
                             -t {sub_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
                                 -t [{sub_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
                                     -o {curr_map}_{template_name}.nii.gz \
-                                        -n NearestNeighbor"
+                                        -n Linear"
             subprocess.run(bash_cmd, shell=True)  
 
 
@@ -182,7 +187,10 @@ def create_group_map():
 
         curr_target = curr_target.replace('hemi', hemi)
         #create masker
-        brain_masker = NiftiMasker(curr_target)
+        brain_masker = image.load_img(curr_target)
+        #binarize it
+        brain_masker = image.math_img('img > 0', img = brain_masker)
+        
 
         for roi in roi_labels['label']:
 
@@ -203,11 +211,19 @@ def create_group_map():
             #convert to numpy array
             all_maps = np.array(all_maps)
 
+            #take mean across subjects
+            #group_map = np.mean(all_maps, axis = 0)
+
             #take median across subjects
-            group_map = np.mean(all_maps, axis = 0)
+            group_map = np.median(all_maps, axis = 0)
 
             #save
             group_map = nib.Nifti1Image(group_map, affine, header)
+
+            #apply mask
+            group_map = image.math_img('img * mask', img = group_map, mask = brain_masker)
+
+            #save
             group_map.to_filename(f'{results_dir}/{hemi}_{roi}_second_order_corrs_{template_name}.nii.gz')
 
 
@@ -216,6 +232,7 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     
     #compute_indiv_correlations(sub, ses)
 
-    register_to_template(sub, ses)
+    #register_to_template(sub, ses)
+    next
 
 create_group_map()

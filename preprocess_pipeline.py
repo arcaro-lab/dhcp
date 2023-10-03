@@ -59,22 +59,24 @@ Flags to determine which preprocessing steps to run
 #finds eligible subjects based on having all scans
 find_eligible_subs = False
 
+#extract brain
+extract_brain = True
+
 #Reg-phase1-4 : Register individual anat to fsaverage
 reg_phase1 = False
 reg_phase2 = False
 reg_phase3 = False
-reg_phase4 = False
+reg_phase4 = True
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
-split_rois = True
+split_atlas = False
 
 #extracts timeseries from each roi
-extract_ts = True
+extract_ts = False
 
-#extract brain
-extract_brain = True
+
 
 #Registrer volumetric roi to individual anat
 register_vol_roi = True
@@ -179,6 +181,13 @@ if find_eligible_subs:
     Create new participant list with eligible subjects
     '''
     find_eligble_subs()
+
+
+if extract_brain:
+    '''
+    Extract brain
+    '''
+    launch_script(sub_list = sub_list,script_name='extract_brain.py',analysis_name=f'extract_brain')
             
 if reg_phase1:
     '''
@@ -225,7 +234,7 @@ if register_atlas:
     '''
     launch_script(sub_list = sub_list,script_name='register_atlas.py',analysis_name=f'{atlas}_reg',pre_req='phase_4', atlas = atlas)
 
-if split_rois:
+if split_atlas:
     '''
     Split atlas into individual rois
     '''
@@ -237,13 +246,6 @@ if extract_ts:
     '''
     launch_script(sub_list = sub_list,script_name='extract_ts.py',analysis_name=f'{atlas}_ts',pre_req=f'{atlas}_split', atlas = atlas)
 
-
-if extract_brain:
-    '''
-    Extract brain
-    *this is mainly needed for volumetric ROI registration
-    '''
-    launch_script(sub_list = sub_list,script_name='extract_brain.py',analysis_name=f'extract_brain',pre_req=f'phase_4')
 
 
 if register_vol_roi:

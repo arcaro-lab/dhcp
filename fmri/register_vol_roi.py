@@ -61,6 +61,7 @@ subprocess.run(bash_cmd, shell=True)
 
 for hemi in params.hemis:
     curr_roi = roi_name.replace('hemi', hemi)
+    
 
     #apply transformations to roi
     bash_cmd = f"antsApplyTransforms \
