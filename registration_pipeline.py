@@ -46,11 +46,12 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(30)
+sub_list = full_sub_list.head(100)
 
 
 #set atlas
-atlas = 'calcsulc'
+atlas = 'wang'
+
 roi = 'pulvinar'
 
 '''
@@ -63,18 +64,18 @@ find_eligible_subs = False
 extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = False
-reg_phase2 = False
-reg_phase3 = False
+reg_phase1 = True
+reg_phase2 = True
+reg_phase3 = True
 reg_phase4 = True
 
 #Registers atlas to individual anat
-register_atlas = False
+register_atlas = True
 #split atlas into individual rois
-split_atlas = False
+split_atlas = True
 
 #extracts timeseries from each roi
-extract_ts = False
+extract_ts = True
 
 
 
@@ -224,7 +225,7 @@ if reg_phase3:
 
 if reg_phase4:
     '''
-    Phase 4 of registration pipeline: Creates final surfaces and registers to fsaverage
+    Phase 4 of registration pipeline: Registers anat to EPI
     '''
     launch_script(sub_list = sub_list,script_name='phase4_registration.py',analysis_name='phase_4',pre_req='phase_3')
 

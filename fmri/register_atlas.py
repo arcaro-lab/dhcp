@@ -103,7 +103,7 @@ for hemi in params.hemis:
     #convert to numpy
     atlas_data = atlas_img.get_fdata()
 
-    #extrat mask dimension from roi
+    #extract mask dimension from roi
     atlas_data = atlas_data[:,:,:,:,1]
 
     #drop last dimension
