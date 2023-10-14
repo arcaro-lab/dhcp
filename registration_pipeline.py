@@ -195,13 +195,14 @@ if reg_phase1:
     Phase 1: Converts GIFTI files to surf
     '''
     
-    launch_script(sub_list = sub_list,script_name='phase1_registration.py',analysis_name='phase_1')
+    launch_script(sub_list = sub_list,script_name='phase1_registration.py',analysis_name='phase_1',pre_req='extract_brain')
 
 if reg_phase2:
     '''
     Phase 2: Write curv and sulc data to txt in matlab
 
     Note: subject loop and error logging is done in matlab script
+    *If this crashes on a new dataset, check the directory in the matlab script
     '''
     print('Running phase 2 registration')
     bash_cmd = "matlab.exe -batch \"run('fmri/phase2_registration.m')\""
@@ -210,8 +211,9 @@ if reg_phase2:
     #load updated sub list
     #this needs to be reloaded because matlab script updates it
     full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
-    #
-    full_sub_list[full_sub_list == 'NaN'] = ''
+    
+    #Matlab adds a bunch of nans to empty cells, so this deletes them
+    full_sub_list.replace(np.nan,'',inplace=True)
     #save updated sub list
     full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
 

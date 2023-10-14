@@ -103,6 +103,8 @@ def load_roi_info(roi):
 
     if roi == 'pulvinar':
         roi_name = 'pulvinar/40week/week40_thalamus_hemi'
+        template = 'templates/week40_T2w'
+        template_name = '40wk'
         
         '''
         NEED TO MAKE THIS WORK FOR THE GROUP
@@ -112,4 +114,4 @@ def load_roi_info(roi):
         template = 'wang'
         template_name = 'wang'
 
-    return roi_name
+    return roi_name, template, template_name
