@@ -46,7 +46,7 @@ script_dir = f'{git_dir}/fmri'
 #load subject list
 full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 #limit to first 30 subjects
-sub_list = full_sub_list.head(100)
+sub_list = full_sub_list.head(200)
 
 
 #set atlas
@@ -80,7 +80,7 @@ extract_ts = True
 
 
 #Registrer volumetric roi to individual anat
-register_vol_roi = True
+register_vol_roi = False
 
 def find_eligble_subs():
 

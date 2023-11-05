@@ -17,14 +17,15 @@ atlas = 'wang'
 
 
 #load atlast name and roi labels
-atlas_name, roi_labels = params.load_roi_info(atlas)
+atlas_name, roi_labels = params.load_atlas_info(atlas)
 
 
-age_groups = ['infant', 'adult']
+age_groups= ['infant', 'adult']
+age_groups = ['infant']
 
 def create_indiv_rdm(group, sub_list, data_dir, atlas):
     
-    atlas_name, roi_labels = params.load_roi_info(atlas)
+    atlas_name, roi_labels = params.load_atlas_info(atlas)
 
     #Create fc matrix for each subject
     
@@ -83,7 +84,7 @@ def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas):
     ''' 
     create assymmetric RDM by correlating timeseries from one hemisphere with the other hemisphere
     '''
-    atlas_name, roi_labels = params.load_roi_info(atlas)
+    atlas_name, roi_labels = params.load_atlas_info(atlas)
 
     
 
@@ -134,13 +135,13 @@ def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas):
 #create indiv rdm for each subject
 for group in age_groups:
     #extract group data
-    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
+    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params(group)
 
     #load subject list
     sub_list = pd.read_csv(f'{out_dir}/participants.csv')
     sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
 
-    print(f'Extracting individual {group} RDMs...')
+    print(f'Extracting individual {group} RDMs...', len(sub_list)) 
     #create indiv rdm
     all_rdms = create_indiv_rdm(group, sub_list, out_dir, atlas)
 

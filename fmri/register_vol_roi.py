@@ -35,9 +35,9 @@ func_input = f'{params.raw_func_dir}/{sub}/{ses}'
 data_dir = f'{params.out_dir}/{sub}/{ses}'
 atlas_dir = params.atlas_dir
 
-anat = f'anat/{sub}_{ses}_{params.anat_suf}_brain' 
+anat = f'anat/{sub}_{ses}_{params.anat_suf}' 
 
-anat_img = image.load_img(f'{data_dir}/{anat}.nii.gz')
+anat_img = image.load_img(f'{data_dir}/{anat}_brain.nii.gz')
 anat_affine = anat_img.affine
 
 #load functional image
@@ -55,8 +55,24 @@ os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
 #create subplot for each hemi
 fig, ax = plt.subplots(2, figsize = (4,6))
 
-#create transformations from template to anat
-bash_cmd =f'antsRegistrationSyN.sh -f {data_dir}/{anat}.nii.gz -m {atlas_dir}/{template}.nii.gz -d 3 -o {data_dir}/xfm/{template_name}2anat -n 4'
+
+#check if ants transformation already exists
+if os.path.exists(f'{data_dir}/xfm/{template_name}2anat1Warp.nii.gz') == False:
+
+    #create transformations from template to anat
+    bash_cmd =f'antsRegistrationSyN.sh -f {data_dir}/{anat}_brain.nii.gz -m {atlas_dir}/{template}.nii.gz -d 3 -o {data_dir}/xfm/{template_name}2anat -n 4'
+    subprocess.run(bash_cmd, shell=True)
+
+#apply inverse transform to anat
+bash_cmd = f'antsApplyTransforms \
+    -d 3 \
+        -i {data_dir}/{anat}_brain.nii.gz \
+            -r {atlas_dir}/{template}.nii.gz \
+                -t {data_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
+                    -t [{data_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
+                        -o {data_dir}/{anat}_brain_{template_name}.nii.gz \
+                            -n Linear'
+
 subprocess.run(bash_cmd, shell=True)
 
 for hemi in params.hemis:
@@ -67,10 +83,11 @@ for hemi in params.hemis:
     bash_cmd = f"antsApplyTransforms \
         -d 3 \
             -i {atlas_dir}/{curr_roi}.nii.gz \
-                -r  {data_dir}/{anat}.nii.gz \
+                -r  {data_dir}/{anat}_brain.nii.gz \
                     -t {data_dir}/xfm/{template_name}2anat1Warp.nii.gz \
                         -t {data_dir}/xfm/{template_name}2anat0GenericAffine.mat \
-                            -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz"
+                            -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz \
+                                -n NearestNeighbor"
     subprocess.run(bash_cmd, shell=True)
 
     if same_affine == False:

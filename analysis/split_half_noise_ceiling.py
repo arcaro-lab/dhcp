@@ -17,10 +17,11 @@ import dhcp_params as params
 import pdb
 
 age_groups= ['infant', 'adult']
+age_groups = ['infant']
 atlas = 'wang'
 
 #load roi labels
-atlas_name, roi_labels = params.load_roi_info(atlas)
+atlas_name, roi_labels = params.load_atlas_info(atlas)
 
 #add networks to roi labels
 roi_labels['network'] = ['EVC']*6 + ['ventral']*5 + ['lateral']*6 + ['dorsal']*7
@@ -48,8 +49,8 @@ def split_half_reliability(group, atlas, all_rois, all_networks):
     Compute split half reliability for each roi
     '''
 
-    atlas_name, roi_labels = params.load_roi_info(atlas)
-    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
+    atlas_name, roi_labels = params.load_atlas_info(atlas)
+    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params(group)
 
     sub_list = pd.read_csv(f'{out_dir}/participants.csv')
 
@@ -145,7 +146,7 @@ def network_summary(group, atlas):
     '''
     print('computing network summary...')
 
-    atlas_name, roi_labels = params.load_roi_info(atlas)
+    atlas_name, roi_labels = params.load_atlas_info(atlas)
     raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
 
     sub_list = pd.read_csv(f'{out_dir}/participants.csv')
@@ -180,7 +181,7 @@ def roi_summary(group, atlas, all_rois):
     Summarize split half reliability by roi
     '''
     print('computing roi summary...')
-    atlas_name, roi_labels = params.load_roi_info(atlas)
+    atlas_name, roi_labels = params.load_atlas_info(atlas)
     raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
 
     sub_list = pd.read_csv(f'{out_dir}/participants.csv')
