@@ -194,8 +194,8 @@ group = 'infant'
 raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, template, template_name = params.load_group_params(group)
 
 
-analysis_name = 'retinotopy'
-seed_atlas = 'calcsulc'
+analysis_name = 'pulvinar'
+seed_atlas = 'pulvinar'
 target_roi = 'wang'
 
 #analysis_name = 'thalmocortical'
@@ -203,7 +203,7 @@ target_roi = 'wang'
 #target_roi = 'pulvinar'
 #load subject list
 #load subject list
-sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+sub_list = pd.read_csv(f'{git_dir}/participants.csv')
 sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
 sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
 

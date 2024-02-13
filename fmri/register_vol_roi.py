@@ -26,7 +26,8 @@ sub = sys.argv[1]
 ses = sys.argv[2] 
 roi = sys.argv[3]
 
-roi_name, template, template_name = params.load_roi_info(roi)
+roi_name, roi_labels, template, template_name = params.load_roi_info(roi)
+
 
 
 #set sub dir

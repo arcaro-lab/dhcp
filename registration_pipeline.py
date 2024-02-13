@@ -44,9 +44,16 @@ func_suf = params.func_suf
 script_dir = f'{git_dir}/fmri'
 
 #load subject list
-full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+full_sub_list = pd.read_csv(f'{git_dir}/participants.csv')
+
+#limit to subs with 1 in to_run col
+sub_list = full_sub_list[full_sub_list['to_run']==1]
+#reset index
+sub_list.reset_index(drop=True, inplace=True)
+
+
 #limit to first 30 subjects
-sub_list = full_sub_list.head(200)
+#sub_list = full_sub_list.head(200)
 
 
 #set atlas
@@ -61,7 +68,7 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = True
+extract_brain = False
 
 #Reg-phase1-4 : Register individual anat to fsaverage
 reg_phase1 = False
@@ -74,13 +81,15 @@ register_atlas = False
 #split atlas into individual rois
 split_atlas = False
 
-#extracts timeseries from each roi
-extract_ts = False
+#extracts mean timeseries from each roi of atlas
+extract_ts_roi = False
 
 
-
-#Registrer volumetric roi to individual anat
+#Register volumetric roi to individual anat
 register_vol_roi = False
+
+#extract voxel-wise timeseries from rois
+extract_ts_voxel = True
 
 def find_eligble_subs():
 
@@ -160,7 +169,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #update the full_sub_list and save it
             #note: full_sub_list is kept outside of the function so its not overwritten
             full_sub_list.update(sub_list)
-            full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+            full_sub_list.to_csv(f'{git_dir}/participants.csv', index=False)
             
         except Exception as e:
             #open log file
@@ -243,11 +252,11 @@ if split_atlas:
     '''
     launch_script(sub_list = sub_list,script_name='split_atlas.py',analysis_name=f'{atlas}_split',pre_req=f'{atlas}_reg', atlas = atlas)
 
-if extract_ts:
+if extract_ts_roi:
     '''
-    Extract time series from atlas
+    Extract mean timeseries from each roi of atlas
     '''
-    launch_script(sub_list = sub_list,script_name='extract_ts.py',analysis_name=f'{atlas}_ts',pre_req=f'{atlas}_split', atlas = atlas)
+    launch_script(sub_list = sub_list,script_name='extract_ts_roi.py',analysis_name=f'{atlas}_ts',pre_req=f'{atlas}_split', atlas = atlas)
 
 
 
@@ -256,6 +265,14 @@ if register_vol_roi:
     Register volumetric roi to individual anat
     '''
     launch_script(sub_list = sub_list,script_name='register_vol_roi.py',analysis_name=f'{roi}_reg',pre_req=f'extract_brain', atlas = roi)
+
+if extract_ts_voxel:
+    '''
+    Extract voxel-wise timeseries from all voxels of an roi
+
+    *note: this is a very time and memory intensive if you have many ROIs
+    '''
+    launch_script(sub_list = sub_list,script_name='extract_ts_voxel.py',analysis_name=f'{roi}_ts',pre_req=f'{roi}_reg', atlas = roi)
 
 #end time
 end = time.time()

@@ -102,9 +102,11 @@ def load_roi_info(roi):
     '''
 
     if roi == 'pulvinar':
-        roi_name = 'pulvinar/Morel_PulvinarOnly_resamp2mni_2neonate_binarized'
+        roi_name = 'rois/pulvinar/40wk/pulvinar_hemi'
         template = 'templates/week40_T2w'
         template_name = '40wk'
+
+        roi_labels = pd.read_csv(f'{atlas_dir}/pulvinar_labels.csv')
         
         '''
         NEED TO MAKE THIS WORK FOR THE GROUP
@@ -114,4 +116,4 @@ def load_roi_info(roi):
         template = 'wang'
         template_name = 'wang'
 
-    return roi_name, template, template_name
+    return roi_name, roi_labels, template, template_name

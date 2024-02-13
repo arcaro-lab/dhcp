@@ -1,5 +1,5 @@
 '''
-Split atlas into ROIs
+Extract mean timeseries from a set of ROIs
 '''
 
 git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
