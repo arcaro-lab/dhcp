@@ -64,18 +64,18 @@ find_eligible_subs = False
 extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = True
-reg_phase2 = True
-reg_phase3 = True
-reg_phase4 = True
+reg_phase1 = False
+reg_phase2 = False
+reg_phase3 = False
+reg_phase4 = False
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
-split_atlas = True
+split_atlas = False
 
 #extracts timeseries from each roi
-extract_ts = True
+extract_ts = False
 
 
 

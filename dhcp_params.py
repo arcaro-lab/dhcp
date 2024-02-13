@@ -28,7 +28,7 @@ def load_group_params(group):
         anat_suf = f'desc-restore_T2w' 
         func_suf = f'task-rest_desc-preproc_bold'
 
-        brain_mask_suf = 'desc-brain_mask'
+        brain_mask_suf = 'desc-ribbon_dseg'
         group_template = 'week40_T2w'
         template_name = '40wk'
 
@@ -102,7 +102,7 @@ def load_roi_info(roi):
     '''
 
     if roi == 'pulvinar':
-        roi_name = 'pulvinar/40week/week40_thalamus_hemi'
+        roi_name = 'pulvinar/Morel_PulvinarOnly_resamp2mni_2neonate_binarized'
         template = 'templates/week40_T2w'
         template_name = '40wk'
         
