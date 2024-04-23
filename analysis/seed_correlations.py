@@ -48,8 +48,6 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         curr_seed = seed_file.replace('hemi', hemi)
         curr_target = target_file.replace('hemi', hemi)
 
-
-
         #load data from seed
         seed_ts = np.load(curr_seed)
         seed_ts = seed_ts.T
@@ -62,12 +60,9 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         #set masker
         brain_masker = NiftiMasker(target_atlas, standardize=True)
 
-        
-
         #Extract brain data
         brain_time_series = brain_masker.fit_transform(func_img)
 
-        
         all_maps = []
         for n, ts in enumerate(seed_ts):
             #get roi label
@@ -208,7 +203,9 @@ sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
 sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
 
 #load atlas info
-atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
+#atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
+
+roi_name, roi_labels, template, template_name = params.load_roi_info(seed_atlas)
 
 #load target atlas info
 try:
@@ -230,7 +227,7 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
 
     
     #compute seed to roi correlations
-    #compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
+    compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
 
     #register correlations to template
     #register_to_template(sub, ses,analysis_name, template, template_name)
@@ -238,6 +235,6 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
 
 
 
-create_group_map(group, sub_list,  analysis_name, template_name,target_name)
+#create_group_map(group, sub_list,  analysis_name, template_name,target_name)
 
 

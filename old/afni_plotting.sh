@@ -1,5 +1,5 @@
 #set data path
-data_path=/mnt/e/vlad_test/
+data_path=/mnt/e/dhcp_analysis_full/
 
 sub=sub-CC00056XX07
 ses=ses-10700
