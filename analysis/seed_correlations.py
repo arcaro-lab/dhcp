@@ -161,11 +161,11 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         #save map
         nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
 
-def register_to_template(sub, ses,analysis_name, template,template_name):
+def register_max_to_template(sub, ses,analysis_name, template,template_name):
     '''
-    Use ANTS to register map to template
+    Register max map to template
     '''
-    print(f'Registering {sub} {analysis_name} to {template}')
+    print(f'Registering max map {sub} {analysis_name} to {template}')
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
 
@@ -187,6 +187,24 @@ def register_to_template(sub, ses,analysis_name, template,template_name):
         bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {out_dir}/templates/{template}.nii.gz -w {warp} -o {curr_map}_{template_name}.nii.gz'
         subprocess.run(bash_cmd, shell=True)
 
+def register_indiv_map_to_template(sub, ses,analysis_name, template,template_name):
+    '''
+    Loop through rois of atlas and register to template
+    
+    '''
+    print(f'Registering indiv maps {sub} {analysis_name} to {template}')
+    sub_dir = f'{out_dir}/{sub}/{ses}'
+    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
+
+    warp = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
+    for hemi in params.hemis:
+        for n, roi in enumerate(roi_labels['label']):
+            curr_map = f'{results_dir}/{hemi}_{roi}_corr'
+
+            
+            bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {out_dir}/templates/{template}.nii.gz -w {warp} -o {curr_map}_{template_name}.nii.gz'
+            subprocess.run(bash_cmd, shell=True)
+        
 
 
 def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
@@ -258,7 +276,8 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
 
     #register correlations to template
-    register_to_template(sub, ses,analysis_name, group_template, template_name)
+    #register_max_to_template(sub, ses,analysis_name, group_template, template_name)
+    register_indiv_map_to_template(sub, ses,analysis_name, group_template, template_name)
 
 
 

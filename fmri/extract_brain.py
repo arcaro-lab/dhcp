@@ -70,6 +70,10 @@ subprocess.run(bash_cmd, shell=True)
 bash_cmd = f'fslmaths {out_dir}/{brain_mask}_epi.nii.gz -fillh {out_dir}/{brain_mask}_epi.nii.gz'
 subprocess.run(bash_cmd, shell=True)
 
+#dilate mask
+bash_cmd = f'fslmaths {out_dir}/{brain_mask}_epi.nii.gz -dilM -dilM {out_dir}/{brain_mask}_epi.nii.gz'
+subprocess.run(bash_cmd, shell=True)
+
 #load brain mask
 #mask = nib.load(f'{out_dir}/{brain_mask}_epi.nii.gz')
 
