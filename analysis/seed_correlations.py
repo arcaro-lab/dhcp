@@ -1,10 +1,17 @@
 '''
 whole brain correlations between atlas and brain
 '''
-git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
+project_name = 'dhcp'
+import os
+#get current working directory
+cwd = os.getcwd()
+git_dir = cwd.split(project_name)[0] + project_name
 import sys
+
 #add git_dir to path
+
 sys.path.append(git_dir)
+
 import pandas as pd
 from nilearn import image, plotting, masking
 #from nilearn.glm import threshold_stats_img
@@ -18,13 +25,49 @@ import os
 import pdb
 
 import warnings
+warnings.filterwarnings("ignore")
+
 import dhcp_params as params
 import subprocess
 
+group = 'infant'
+
+raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params(group)
+
+
+analysis_name = 'whole_brain'
+seed_atlas = 'wang'
+target_roi = 'brain'
+
+#analysis_name = 'thalmocortical'
+#seed_atlas = 'wang'
+#target_roi = 'pulvinar'
+#load subject list
+#load subject list
+sub_list = pd.read_csv(f'{git_dir}/participants.csv')
+sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
+sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
+
+#load atlas info
+#atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
+
+roi_name, roi_labels = params.load_atlas_info(seed_atlas)
+'''
+#load target atlas info
+try:
+    target_name, target_labels = params.load_atlas_info(target_roi)
+    target_dir = f'atlas/{target_name}_epi.nii.gz'
+except:
+    target_name = target_roi
+    target_name = params.load_roi_info(target_roi)
+    target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz'
+'''
 #sub = sys.argv[1]
 #ses = sys.argv[2]
 #atlas = sys.argv[3]
 #target = sys.argv[4]
+target_name = target_roi
+target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz' #THIS NEEDS TO BE _epi EVENTUALLY!!
 
 
 
@@ -63,6 +106,10 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         #Extract brain data
         brain_time_series = brain_masker.fit_transform(func_img)
 
+
+        '''
+        Run correlations for individual ROI maps
+        '''
         all_maps = []
         for n, ts in enumerate(seed_ts):
             #get roi label
@@ -75,6 +122,9 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
             #save correlation map
             seed_to_voxel_correlations_img = brain_masker.inverse_transform(seed_to_voxel_correlations.T)
 
+            #set all 0s to nan
+            seed_to_voxel_correlations_img = image.math_img('np.where(img == 0, np.nan, img)', img = seed_to_voxel_correlations_img)
+
             #save correlation map
             seed_to_voxel_correlations_img.to_filename(f'{results_dir}/{analysis_name}/{hemi}_{roi}_corr.nii.gz')
 
@@ -84,7 +134,9 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
             all_maps.append(seed_to_voxel_correlations_img)
 
             
-
+        '''
+        Create single map with max val for each voxel
+        '''
         #create a zeros array with the same shape as the functional image
         zero_imgs = np.zeros(seed_to_voxel_correlations_img.shape)  
         #insert zeros array as the first element of the roi_imgs list
@@ -116,9 +168,11 @@ def register_to_template(sub, ses,analysis_name, template,template_name):
     print(f'Registering {sub} {analysis_name} to {template}')
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
+
+    warp = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
     for hemi in params.hemis:
         curr_map = f'{results_dir}/{hemi}_{analysis_name}_map'
-
+        '''
         #apply transformations to roi
         bash_cmd = f"antsApplyTransforms \
             -d 3 \
@@ -128,7 +182,11 @@ def register_to_template(sub, ses,analysis_name, template,template_name):
                             -t [{sub_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
                                 -o {curr_map}_{template_name}.nii.gz \
                                     -n NearestNeighbor"
+        
+        '''
+        bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {out_dir}/templates/{template}.nii.gz -w {warp} -o {curr_map}_{template_name}.nii.gz'
         subprocess.run(bash_cmd, shell=True)
+
 
 
 def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
@@ -137,7 +195,7 @@ def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
     '''
     print(f'Creating group map for {group}')
     #load template
-    template_file = f'{out_dir}/templates/{template}.nii.gz'
+    template_file = f'{out_dir}/templates/{group_template}.nii.gz'
     affine = image.load_img(template_file).affine
     header = image.load_img(template_file).header
 
@@ -184,37 +242,7 @@ def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
 
     
 
-group = 'infant'
 
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, template, template_name = params.load_group_params(group)
-
-
-analysis_name = 'pulvinar'
-seed_atlas = 'pulvinar'
-target_roi = 'wang'
-
-#analysis_name = 'thalmocortical'
-#seed_atlas = 'wang'
-#target_roi = 'pulvinar'
-#load subject list
-#load subject list
-sub_list = pd.read_csv(f'{git_dir}/participants.csv')
-sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
-sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
-
-#load atlas info
-#atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
-
-roi_name, roi_labels, template, template_name = params.load_roi_info(seed_atlas)
-
-#load target atlas info
-try:
-    target_name, target_labels = params.load_atlas_info(target_roi)
-    target_dir = f'atlas/{target_name}_epi.nii.gz'
-except:
-    target_name = target_roi
-    target_name = params.load_roi_info(target_roi)
-    target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz'
 
 
 
@@ -230,7 +258,7 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
 
     #register correlations to template
-    #register_to_template(sub, ses,analysis_name, template, template_name)
+    register_to_template(sub, ses,analysis_name, group_template, template_name)
 
 
 

@@ -8,12 +8,16 @@ Extracting timeseries data from each roi of an atlast
 
 
 
-git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
-
+project_name = 'dhcp'
 import os
+#get current working directory
+cwd = os.getcwd()
+git_dir = cwd.split(project_name)[0] + project_name
 import sys
-#add curr_dir to path
+
+#add git_dir to path
 sys.path.append(git_dir)
+
 
 import numpy as np  
 import pandas as pd
@@ -68,7 +72,7 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = False
+extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
 reg_phase1 = False
@@ -89,7 +93,7 @@ extract_ts_roi = False
 register_vol_roi = False
 
 #extract voxel-wise timeseries from rois
-extract_ts_voxel = True
+extract_ts_voxel = False
 
 def find_eligble_subs():
 
