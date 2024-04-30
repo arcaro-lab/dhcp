@@ -2,11 +2,15 @@
 Split atlas into ROIs
 '''
 
-git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
-
+project_name = 'dhcp'
 import os
+#get current working directory
+cwd = os.getcwd()
+git_dir = cwd.split(project_name)[0] + project_name
 import sys
+
 #add git_dir to path
+sys.path.append(git_dir)
 sys.path.append(git_dir)
 
 import subprocess

@@ -56,6 +56,7 @@ sub_list = full_sub_list[full_sub_list['to_run']==1]
 sub_list.reset_index(drop=True, inplace=True)
 
 
+
 #limit to first 30 subjects
 #sub_list = full_sub_list.head(200)
 
@@ -75,18 +76,18 @@ find_eligible_subs = False
 extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = False
-reg_phase2 = False
-reg_phase3 = False
-reg_phase4 = False
+reg_phase1 = True
+reg_phase2 = True
+reg_phase3 = True
+reg_phase4 = True
 
 #Registers atlas to individual anat
-register_atlas = False
+register_atlas = True
 #split atlas into individual rois
-split_atlas = False
+split_atlas = True
 
 #extracts mean timeseries from each roi of atlas
-extract_ts_roi = False
+extract_ts_roi = True
 
 
 #Register volumetric roi to individual anat
