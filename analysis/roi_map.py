@@ -71,6 +71,8 @@ target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz'
 
 template = '40wk'
 
+
+os.makedirs(f'{out_dir}/derivatives/{target_roi}', exist_ok = True)
 for hemi in params.hemis:
 
     
@@ -86,24 +88,32 @@ for hemi in params.hemis:
     #mask roi with hemi mask
     masked_roi = image.math_img('roi * mask', roi = roi, mask = hemi_mask)
 
-
+    
     #create a masker
-    masker = NiftiMasker(mask_img=masked_roi, standardize=True)
-    #loop through subjects
-    for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-        target_file = f'{out_dir}/{sub}/{ses}/{target_dir}'
-        source_dir = f'{out_dir}/{sub}/{ses}/derivatives/whole_brain'
-        results_dir = f'{out_dir}/{sub}/{ses}/derivatives/{target_roi}'
+    masker = NiftiMasker(mask_img=masked_roi)
+    for n, roi in enumerate(atlas_labels['label']):
+        print(f'Extracting map for {hemi} {roi}')
+        all_subs = []
+        #loop through subjects
+        for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+            target_file = f'{out_dir}/{sub}/{ses}/{target_dir}'
+            source_dir = f'{out_dir}/{sub}/{ses}/derivatives/whole_brain'
+            results_dir = f'{out_dir}/{sub}/{ses}/derivatives/{target_roi}'
 
-        os.makedirs(results_dir, exist_ok = True)
-        print(f'Extracting map for {sub} {ses}')
-
-        for n, roi in enumerate(atlas_labels['label']):
+            os.makedirs(results_dir, exist_ok = True)
+            
+            #check if file exists
+            if not os.path.exists(f'{source_dir}/{hemi}_{roi}_corr_{template}.nii.gz'):
+                print(f'File does not exist for {sub} {ses} {hemi} {roi}')
+                continue
             whole_brain_img = image.load_img(f'{source_dir}/{hemi}_{roi}_corr_{template}.nii.gz')
 
             #mask whole brain image with roi mask
             roi_vals = masker.fit_transform(whole_brain_img)
-
+            #standardize values
+            roi_vals = (roi_vals - roi_vals.mean()) / roi_vals.std()
+            
+            all_subs.append(roi_vals)
             #convert back to nifti
             roi_img = masker.inverse_transform(roi_vals)
 
@@ -112,6 +122,16 @@ for hemi in params.hemis:
 
             #save image
             roi_img.to_filename(f'{results_dir}/{hemi}_{roi}_corr_{template}.nii.gz')
+
+        #create group map
+        all_subs = np.array(all_subs)
+        group_map = np.median(all_subs, axis = 0)
+        group_map = masker.inverse_transform(group_map)
+
+        #replace 0s with nans
+        group_map = image.math_img('np.where(img == 0, np.nan, img)', img = group_map)
+
+        group_map.to_filename(f'{out_dir}/derivatives/{target_roi}/{hemi}_{roi}_{template}.nii.gz')
 
             
 

@@ -4,10 +4,17 @@ Compute second-order similarity for a region
 e.g., create a voxel x network map for the pulvinar of each subject
 '''
 
-git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
+project_name = 'dhcp'
+import os
+#get current working directory
+cwd = os.getcwd()
+git_dir = cwd.split(project_name)[0] + project_name
 import sys
+
 #add git_dir to path
+
 sys.path.append(git_dir)
+
 import pandas as pd
 from nilearn import image, plotting, masking
 #from nilearn.glm import threshold_stats_img
@@ -29,14 +36,14 @@ group = 'infant'
 
 raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, template, template_name = params.load_group_params(group)
 
-analysis_name = 'thalmocortical'
+analysis_name = 'pulvinar'
 seed_atlas = 'wang'
 target_roi = 'pulvinar'
 
 
-sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+sub_list = pd.read_csv(f'{git_dir}/participants.csv')
 sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
-sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
+#sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
 
 #load atlas info
 atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
@@ -50,15 +57,33 @@ except:
     target_name = params.load_roi_info(target_roi)
     target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz'
 
-def compute_indiv_correlations(sub, ses):
+
+
+def compute_indiv_correlations(sub, ses,img_space):
     print(f'Computing second order correlations for {sub}')
     sub_dir = f'{out_dir}/{sub}/{ses}'
-    data_dir = f'{sub_dir}/derivatives/{analysis_name}'
+    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
     timseries_dir = f'{sub_dir}/derivatives/timeseries'
-    roi_dir = f'{sub_dir}/rois'
+
+    #check if first roi exists
+
+    
     for hemi in params.hemis:
         #load roi mask
-        target_mask = image.load_img(f'{roi_dir}/{target_roi}/{hemi}_{target_roi}_epi.nii.gz')
+        if img_space == 'epi':
+            data_dir = f'{sub_dir}/derivatives/{analysis_name}'
+            roi_dir = f'{sub_dir}/rois'
+            target_mask = image.load_img(f'{roi_dir}/{target_roi}/{hemi}_{target_roi}_epi.nii.gz')
+            img_space=''
+        else:
+            data_dir = f'{sub_dir}/derivatives/whole_brain'
+            roi_dir = f'{out_dir}/atlases/rois/{target_roi}/{img_space}'
+            target_mask = image.load_img(f'{roi_dir}/{target_roi}_{hemi}.nii.gz')
+
+        if not os.path.exists(f'{data_dir}/{params.hemis[0]}_{roi_labels["label"][0]}_corr_{img_space}.nii.gz'):
+            print(f'No first order correlations found for {sub}')
+            return
+            
 
         #create masker object
         masker = NiftiMasker(mask_img=target_mask, standardize=False, detrend=False)  
@@ -81,7 +106,7 @@ def compute_indiv_correlations(sub, ses):
         all_rois = []
         for roi in roi_labels['label']:
             #load data for each ROI
-            roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr.nii.gz')
+            roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr_{img_space}.nii.gz')
 
             #extract data
             roi_data = masker.fit_transform(roi_img)
@@ -95,7 +120,7 @@ def compute_indiv_correlations(sub, ses):
 
         #convert to array
         all_rois = np.array(all_rois)
-
+        #pdb.set_trace()
         #fisher z transform
         all_rois = np.arctanh(all_rois)
 
@@ -124,14 +149,17 @@ def compute_indiv_correlations(sub, ses):
             #drop last dimension
             curr_roi = curr_roi.slicer[:,:,:,0]
             
+            #make 0s nans
+            curr_roi = image.math_img('np.where(img == 0, np.nan, img)', img = curr_roi)
+            
         
             #save it
-            curr_roi.to_filename(f'{data_dir}/{hemi}_{roi}_second_order.nii.gz')
+            curr_roi.to_filename(f'{results_dir}/{hemi}_{roi}_second_order{img_space}.nii.gz')
 
         #remove middle dimension
         second_order_rdm = second_order_rdm.squeeze()
         #save second order rdm
-        np.save(f'{data_dir}/{hemi}_second_order_rdm.npy', second_order_rdm)
+        np.save(f'{results_dir}/{hemi}_second_order_rdm.npy', second_order_rdm)
 
 def register_to_template(sub, ses):
     '''
@@ -187,9 +215,9 @@ def create_group_map():
 
         curr_target = curr_target.replace('hemi', hemi)
         #create masker
-        brain_masker = image.load_img(curr_target)
+        #brain_masker = image.load_img(curr_target)
         #binarize it
-        brain_masker = image.math_img('img > 0', img = brain_masker)
+        #brain_masker = image.math_img('img > 0', img = brain_masker)
         
 
         for roi in roi_labels['label']:
@@ -199,13 +227,18 @@ def create_group_map():
                 sub_dir = f'{out_dir}/{sub}/{ses}'
                 data_dir = f'{sub_dir}/derivatives/{analysis_name}'
 
-                curr_map = image.load_img(f'{data_dir}/{hemi}_{roi}_second_order_{template_name}.nii.gz')
+                #check if map exists
+                if not os.path.exists(f'{data_dir}/{hemi}_{roi}_second_order{template_name}.nii.gz'):
+                    print(f'No second order correlation found for {sub}')
+                    continue
+
+                curr_map = image.load_img(f'{data_dir}/{hemi}_{roi}_second_order{template_name}.nii.gz')
                 #apply mask
 
                 curr_map = curr_map.get_fdata()
 
                 #fisher z transform
-                curr_map = np.tanh(curr_map)
+                #curr_map = np.tanh(curr_map)
                 all_maps.append(curr_map)
 
             #convert to numpy array
@@ -217,11 +250,13 @@ def create_group_map():
             #take median across subjects
             group_map = np.median(all_maps, axis = 0)
 
-            #save
+            #convert to nifti
             group_map = nib.Nifti1Image(group_map, affine, header)
 
             #apply mask
-            group_map = image.math_img('img * mask', img = group_map, mask = brain_masker)
+            #group_map = image.math_img('img * mask', img = group_map, mask = brain_masker)
+            #make 0s nans
+            group_map = image.math_img('np.where(img == 0, np.nan, img)', img = group_map)
 
             #save
             group_map.to_filename(f'{results_dir}/{hemi}_{roi}_second_order_corrs_{template_name}.nii.gz')
@@ -230,7 +265,7 @@ def create_group_map():
 #loop through subjects
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     
-    #compute_indiv_correlations(sub, ses)
+    #compute_indiv_correlations(sub, ses,'40wk')
 
     #register_to_template(sub, ses)
     next
