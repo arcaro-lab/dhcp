@@ -47,8 +47,10 @@ func_suf = params.func_suf
 #directory with preprocessing scripts
 script_dir = f'{git_dir}/fmri'
 
+participants_file = 'participants_7T'
+
 #load subject list
-full_sub_list = pd.read_csv(f'{git_dir}/participants.csv')
+full_sub_list = pd.read_csv(f'{git_dir}/{participants_file}.csv')
 
 #limit to subs with 1 in to_run col
 sub_list = full_sub_list[full_sub_list['to_run']==1]
@@ -76,15 +78,15 @@ find_eligible_subs = False
 extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = True
-reg_phase2 = True
-reg_phase3 = True
-reg_phase4 = True
+reg_phase1 = False
+reg_phase2 = False
+reg_phase3 = False
+reg_phase4 = False
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
-split_atlas = True
+split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True
@@ -135,7 +137,7 @@ def find_eligble_subs():
     sub_list['phase_4'] = ''
 
     #save new list
-    sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+    sub_list.to_csv(f'{out_dir}/{participants_file}.csv', index=False)
 
     #print total number of subjects
     print(f'Total usable of participants: {len(sub_list)}')
@@ -174,7 +176,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #update the full_sub_list and save it
             #note: full_sub_list is kept outside of the function so its not overwritten
             full_sub_list.update(sub_list)
-            full_sub_list.to_csv(f'{git_dir}/participants.csv', index=False)
+            full_sub_list.to_csv(f'{git_dir}/{participants_file}.csv', index=False)
             
         except Exception as e:
             #open log file
@@ -224,12 +226,12 @@ if reg_phase2:
 
     #load updated sub list
     #this needs to be reloaded because matlab script updates it
-    full_sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+    full_sub_list = pd.read_csv(f'{out_dir}/{participants_file}.csv')
     
     #Matlab adds a bunch of nans to empty cells, so this deletes them
     full_sub_list.replace(np.nan,'',inplace=True)
     #save updated sub list
-    full_sub_list.to_csv(f'{out_dir}/participants.csv', index=False)
+    full_sub_list.to_csv(f'{out_dir}/{participants_file}.csv', index=False)
 
 
 

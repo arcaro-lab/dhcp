@@ -29,13 +29,15 @@ from nilearn import plotting, image
 sub = sys.argv[1]
 ses = sys.argv[2]
 
-xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-T2w_mode-image.mat'
+#xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-T2w_mode-image.mat'
 
 #invert xfm
-bash_cmd = f'convert_xfm -omat {params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat -inverse {xfm}'
-subprocess.run(bash_cmd, shell=True)
+#bash_cmd = f'convert_xfm -omat {params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat -inverse {xfm}'
+#subprocess.run(bash_cmd, shell=True)
 
-xfm_inverted = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat'
+#for infants
+#xfm_inverted = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat'
+xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/anat2func.mat'
 
 
 #set sub dir
@@ -63,9 +65,9 @@ subprocess.run(bash_cmd, shell=True)
 
 
 #create brain mask in epi space
-bash_cmd = f'flirt -in {out_dir}/{brain_mask}.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -out {out_dir}/{brain_mask}_epi.nii.gz -applyxfm -init {xfm_inverted} -interp nearestneighbour'
+bash_cmd = f'flirt -in {out_dir}/{brain_mask}.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -out {out_dir}/{brain_mask}_epi.nii.gz -init {xfm} -interp nearestneighbour'
 subprocess.run(bash_cmd, shell=True)
-
+#pdb.set_trace()
 #fill holes in brain mask
 bash_cmd = f'fslmaths {out_dir}/{brain_mask}_epi.nii.gz -fillh {out_dir}/{brain_mask}_epi.nii.gz'
 subprocess.run(bash_cmd, shell=True)
@@ -105,3 +107,8 @@ rh_mask = image.image.new_img_like(mask, rh_mask)
 
 nib.save(rh_mask, f'{out_dir}/rois/brain/rh_brain.nii.gz')
 
+#if its adults flip which is saved as left and right 
+if params.group == 'adult':
+    #flip left and right
+    nib.save(lh_mask, f'{out_dir}/rois/brain/rh_brain.nii.gz')
+    nib.save(rh_mask, f'{out_dir}/rois/brain/lh_brain.nii.gz')

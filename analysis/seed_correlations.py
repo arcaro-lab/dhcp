@@ -32,7 +32,7 @@ import subprocess
 
 group = 'infant'
 
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params(group)
+raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params('adult')
 
 
 analysis_name = 'whole_brain'
@@ -44,9 +44,9 @@ target_roi = 'brain'
 #target_roi = 'pulvinar'
 #load subject list
 #load subject list
-sub_list = pd.read_csv(f'{git_dir}/participants.csv')
+sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
 sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
-sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
+#sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
 
 #load atlas info
 #atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
@@ -114,7 +114,7 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         for n, ts in enumerate(seed_ts):
             #get roi label
             roi = roi_labels['label'][n]
-
+            pdb.set_trace()
             #compute correlation between seed and brain
             seed_to_voxel_correlations = (np.dot(brain_time_series.T, ts) /
                                         ts.shape[0])
@@ -277,7 +277,7 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
 
     #register correlations to template
     #register_max_to_template(sub, ses,analysis_name, group_template, template_name)
-    register_indiv_map_to_template(sub, ses,analysis_name, group_template, template_name)
+    #register_indiv_map_to_template(sub, ses,analysis_name, group_template, template_name)
 
 
 

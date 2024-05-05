@@ -14,7 +14,7 @@ import pandas as pd
 smooth_mm = 4
 vols = 2300
 
-group= 'infant'
+group= 'adult'
 
 results_dir = f'{git_dir}/results'
 fig_dir = f'{git_dir}/figures'
@@ -41,16 +41,18 @@ def load_group_params(group):
 
     elif group == 'adult':
         #7T hcp data directories
-        raw_data_dir = '/mnt/f/7T_HCP'
+        raw_data_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
         raw_anat_dir = f'{raw_data_dir}'
         raw_func_dir = f'{raw_data_dir}'
-        out_dir = '/mnt/f/7T_HCP'
+        out_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
         anat_suf = f'restore-1.60_T1w'
         func_suf = f'task-rest_run-01_preproc_bold'
 
-        brain_mask_suf = None
+        brain_mask_suf =anat_suf + '_mask'
         group_template = 'MNI152_2009_SurfVol'
         template_name = 'MNI152'
+
+        
 
 
     elif group == 'diffusion':
