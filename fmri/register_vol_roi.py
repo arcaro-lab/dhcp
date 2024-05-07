@@ -23,14 +23,17 @@ from nilearn import plotting, image
 import shutil
 import matplotlib
 matplotlib.use('Agg')
+import argparse
 
-#take subject and session as command line argument
 sub = sys.argv[1]
-ses = sys.argv[2] 
+ses = sys.argv[2]
 roi = sys.argv[3]
 
-roi_name, roi_labels, template, template_name = params.load_roi_info(roi)
 
+roi_name, roi_labels, template, template_name, xfm, method = params.load_roi_info(roi)
+
+xfm = xfm.replace('*SUB*', sub).replace('*SES*', ses)
+xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{xfm}.nii.gz'
 
 
 #set sub dir
@@ -60,30 +63,27 @@ os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
 fig, ax = plt.subplots(2, figsize = (4,6))
 
 
-#check if ants transformation already exists
-if os.path.exists(f'{data_dir}/xfm/{template_name}2anat1Warp.nii.gz') == False:
+def register_with_ants():
+    #check if ants transformation already exists
+    if os.path.exists(f'{data_dir}/xfm/{template_name}2anat1Warp.nii.gz') == False:
 
-    #create transformations from template to anat
-    bash_cmd =f'antsRegistrationSyN.sh -f {data_dir}/{anat}_brain.nii.gz -m {atlas_dir}/{template}.nii.gz -d 3 -o {data_dir}/xfm/{template_name}2anat -n 4'
+        #create transformations from template to anat
+        bash_cmd =f'antsRegistrationSyN.sh -f {data_dir}/{anat}_brain.nii.gz -m {atlas_dir}/{template}.nii.gz -d 3 -o {data_dir}/xfm/{template_name}2anat -n 4'
+        subprocess.run(bash_cmd, shell=True)
+
+    #apply inverse transform to anat
+    bash_cmd = f'antsApplyTransforms \
+        -d 3 \
+            -i {data_dir}/{anat}_brain.nii.gz \
+                -r {atlas_dir}/{template}.nii.gz \
+                    -t {data_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
+                        -t [{data_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
+                            -o {data_dir}/{anat}_brain_{template_name}.nii.gz \
+                                -n Linear'
+
     subprocess.run(bash_cmd, shell=True)
 
-#apply inverse transform to anat
-bash_cmd = f'antsApplyTransforms \
-    -d 3 \
-        -i {data_dir}/{anat}_brain.nii.gz \
-            -r {atlas_dir}/{template}.nii.gz \
-                -t {data_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
-                    -t [{data_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
-                        -o {data_dir}/{anat}_brain_{template_name}.nii.gz \
-                            -n Linear'
-
-subprocess.run(bash_cmd, shell=True)
-
-for hemi in params.hemis:
-    curr_roi = roi_name.replace('hemi', hemi)
-    
-
-    #apply transformations to roi
+        #apply transformations to roi
     bash_cmd = f"antsApplyTransforms \
         -d 3 \
             -i {atlas_dir}/{curr_roi}.nii.gz \
@@ -103,18 +103,52 @@ for hemi in params.hemis:
         shutil.copy(f'{data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz', f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz')
 
 
-    #binarize and fill holes in roi using fsl
+        #binarize and fill holes in roi using fsl
     bash_cmd = f'fslmaths {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -bin -fillh {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz'
     subprocess.run(bash_cmd.split(), check = True)
 
+def register_with_applywarp(curr_roi, xfm):
+
+    os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
+    
+    #check if inwarp already exists
+    if os.path.exists(f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz') == False:
+    
+        bash_cmd = f'invwarp -w {xfm} -o {data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz -r {data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz'
+        subprocess.run(bash_cmd, shell=True)
+
+    final_xfm = f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz'
+
+    bash_cmd = f'applywarp -i {params.atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz  -w {final_xfm} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
+    
+    subprocess.run(bash_cmd, shell=True)
+
+
+
+
+for hemi in params.hemis:
+    curr_roi = roi_name.replace('hemi', hemi)
+
+    if method == 'ants':
+        register_with_ants()
+
+    elif method == 'applywarp':
+        register_with_applywarp(curr_roi, xfm)
+    
+
+
+
+
+
+
 
     #plot atlas on subject's brain
-    plotting.plot_roi(f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {roi}',draw_cross=False) 
+    #plotting.plot_roi(f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {roi}',draw_cross=False) 
 
 
 #create qc folder for atlas and group
-os.makedirs(f'{git_dir}/fmri/qc/{roi}/{params.group}', exist_ok = True)
+#os.makedirs(f'{git_dir}/fmri/qc/{roi}/{params.group}', exist_ok = True)
 
 
 #save figure with tight layout
-plt.savefig(f'{git_dir}/fmri/qc/{roi}/{params.group}/{sub}_{roi}_epi.png', bbox_inches = 'tight')
+#plt.savefig(f'{git_dir}/fmri/qc/{roi}/{params.group}/{sub}_{roi}_epi.png', bbox_inches = 'tight')

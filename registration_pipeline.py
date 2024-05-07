@@ -47,7 +47,7 @@ func_suf = params.func_suf
 #directory with preprocessing scripts
 script_dir = f'{git_dir}/fmri'
 
-participants_file = 'participants_7T'
+participants_file = 'participants_dhcp'
 
 #load subject list
 full_sub_list = pd.read_csv(f'{git_dir}/{participants_file}.csv')
@@ -75,7 +75,7 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = True
+extract_brain = False
 
 #Reg-phase1-4 : Register individual anat to fsaverage
 reg_phase1 = False
@@ -89,11 +89,11 @@ register_atlas = False
 split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
-extract_ts_roi = True
+extract_ts_roi = False
 
 
 #Register volumetric roi to individual anat
-register_vol_roi = False
+register_vol_roi = True
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False

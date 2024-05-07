@@ -73,7 +73,7 @@ def load_group_params(group):
     return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
 
 
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = load_group_params(group)
+raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = load_group_params('infant')
 
 
 atlas_dir = f'{out_dir}/atlases'
@@ -109,11 +109,15 @@ def load_roi_info(roi):
     '''
 
     if roi == 'pulvinar':
-        roi_name = 'rois/pulvinar/40wk/pulvinar_hemi'
+        roi_name = 'rois/pulvinar/40wk/hemi_pulvinar'
         template = 'templates/week40_T2w'
         template_name = '40wk'
 
         roi_labels = pd.read_csv(f'{atlas_dir}/pulvinar_labels.csv')
+
+        xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
+        #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
+        method = 'applywarp'
         
         '''
         NEED TO MAKE THIS WORK FOR THE GROUP
@@ -129,4 +133,27 @@ def load_roi_info(roi):
         template = 'brain'
         template_name = 'brain'
 
-    return roi_name, roi_labels, template, template_name
+    return roi_name, roi_labels, template, template_name, xfm, method
+
+def transform_map(in_space,out_space):
+    if in_space == 'dchp_bold' and out_space == '40wk':
+        ref = 'templates/week40_T2w'
+        xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
+        method = 'applywarp'
+
+    elif in_space == '40wk' and out_space == 'dchp_bold':
+        ref = '*SUB*_*SES*_task-rest_desc-preproc_bold'
+        xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
+        method = 'applywarp'
+
+    elif in_space == '40wk' and out_space == 'MNI152':
+        ref = f'{atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
+        xfm = f'{atlas_dir}/templates/xfm/extdhcp40wk_to_MNI152NLin2009aAsym_warp'
+        method = 'applywarp'
+    
+    elif in_space == 'MNI152' and out_space == '40wk':
+        ref = f'{atlas_dir}/templates/week40_T2w'
+        xfm = f'{atlas_dir}/templates/xfm/extdhcp40wk_to_MNI152NLin2009aAsym_invwarp.nii.gz'
+        method = 'applywarp'
+
+    return ref, xfm, method

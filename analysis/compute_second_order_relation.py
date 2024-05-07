@@ -41,7 +41,7 @@ seed_atlas = 'wang'
 target_roi = 'pulvinar'
 
 
-sub_list = pd.read_csv(f'{git_dir}/participants.csv')
+sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
 sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
 #sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
 
@@ -71,20 +71,25 @@ def compute_indiv_correlations(sub, ses,img_space):
     for hemi in params.hemis:
         #load roi mask
         if img_space == 'epi':
-            data_dir = f'{sub_dir}/derivatives/{analysis_name}'
+            data_dir = f'{sub_dir}/derivatives/whole_brain'
             roi_dir = f'{sub_dir}/rois'
             target_mask = image.load_img(f'{roi_dir}/{target_roi}/{hemi}_{target_roi}_epi.nii.gz')
-            img_space=''
+            #img_space=''
         else:
             data_dir = f'{sub_dir}/derivatives/whole_brain'
             roi_dir = f'{out_dir}/atlases/rois/{target_roi}/{img_space}'
             target_mask = image.load_img(f'{roi_dir}/{target_roi}_{hemi}.nii.gz')
 
-        if not os.path.exists(f'{data_dir}/{params.hemis[0]}_{roi_labels["label"][0]}_corr_{img_space}.nii.gz'):
+        
+
+        #check if whole_brain image exists
+
+        
+        if not os.path.exists(f'{data_dir}/{params.hemis[0]}_{roi_labels["label"][0]}_corr.nii.gz'):
             print(f'No first order correlations found for {sub}')
             return
             
-
+        
         #create masker object
         masker = NiftiMasker(mask_img=target_mask, standardize=False, detrend=False)  
 
@@ -105,8 +110,12 @@ def compute_indiv_correlations(sub, ses,img_space):
         #loop through rois
         all_rois = []
         for roi in roi_labels['label']:
+            
             #load data for each ROI
-            roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr_{img_space}.nii.gz')
+            if img_space == 'epi':
+                roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr.nii.gz')
+            else:
+                roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr_{img_space}.nii.gz')
 
             #extract data
             roi_data = masker.fit_transform(roi_img)
@@ -152,43 +161,57 @@ def compute_indiv_correlations(sub, ses,img_space):
             #make 0s nans
             curr_roi = image.math_img('np.where(img == 0, np.nan, img)', img = curr_roi)
             
+
         
             #save it
-            curr_roi.to_filename(f'{results_dir}/{hemi}_{roi}_second_order{img_space}.nii.gz')
+            curr_roi.to_filename(f'{results_dir}/{hemi}_{roi}_second_order_{img_space}.nii.gz')
+            
 
         #remove middle dimension
         second_order_rdm = second_order_rdm.squeeze()
         #save second order rdm
         np.save(f'{results_dir}/{hemi}_second_order_rdm.npy', second_order_rdm)
 
-def register_to_template(sub, ses):
+def register_to_template(sub, ses, in_space, out_space):
     '''
     Use ANTS to register map to template
     '''
-    print(f'Registering {sub} {analysis_name} to {template}')
+    
     sub_dir = f'{out_dir}/{sub}/{ses}'
+    ref, warp, method = params.transform_map(in_space, out_space)
+    print(f'Registering {sub} {analysis_name} to {out_space}')
+
+    #warp = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{xfm.replace('*SUB*', sub).replace('*SES*', ses)}.nii.gz'
 
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
     for hemi in params.hemis:
         for roi in roi_labels['label']:
 
-            curr_map = f'{results_dir}/{hemi}_{roi}_second_order'
+            curr_map = f'{results_dir}/{hemi}_{roi}_second_order_epi_{in_space}'
 
-            #register to anat using flirt
-            bash_cmd = f'flirt -in {curr_map}.nii.gz -ref {sub_dir}/anat/{sub}_{ses}_{anat_suf}_brain.nii.gz -out {curr_map}_anat.nii.gz -applyxfm -init {sub_dir}/xfm/func2anat.mat -interp trilinear'
-            subprocess.run(bash_cmd, shell=True)
+            if method == 'ants':
+
+                #register to anat using flirt
+                bash_cmd = f'flirt -in {curr_map}.nii.gz -ref {sub_dir}/anat/{sub}_{ses}_{anat_suf}_brain.nii.gz -out {curr_map}_anat.nii.gz -applyxfm -init {sub_dir}/xfm/func2anat.mat -interp trilinear'
+                subprocess.run(bash_cmd, shell=True)
 
 
-            #apply transformations to roi
-            bash_cmd = f"antsApplyTransforms \
-                -d 3 \
-                    -i {curr_map}_anat.nii.gz \
-                        -r  {out_dir}/templates/{template}.nii.gz \
-                            -t {sub_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
-                                -t [{sub_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
-                                    -o {curr_map}_{template_name}.nii.gz \
-                                        -n Linear"
-            subprocess.run(bash_cmd, shell=True)  
+                #apply transformations to roi
+                bash_cmd = f"antsApplyTransforms \
+                    -d 3 \
+                        -i {curr_map}_anat.nii.gz \
+                            -r  {out_dir}/templates/{template}.nii.gz \
+                                -t {sub_dir}/xfm/{template_name}2anat1InverseWarp.nii.gz \
+                                    -t [{sub_dir}/xfm/{template_name}2anat0GenericAffine.mat, 1] \
+                                        -o {curr_map}_{template_name}.nii.gz \
+                                            -n Linear"
+                subprocess.run(bash_cmd, shell=True)  
+
+            elif method == 'applywarp':
+                
+                bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {ref}.nii.gz -w {warp} -o {curr_map.replace(in_space,out_space)}.nii.gz --interp=trilinear'
+                
+                subprocess.run(bash_cmd, shell=True)
 
 
         
@@ -265,9 +288,9 @@ def create_group_map():
 #loop through subjects
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     
-    #compute_indiv_correlations(sub, ses,'40wk')
+    #compute_indiv_correlations(sub, ses,'epi')
 
-    #register_to_template(sub, ses)
-    next
+    register_to_template(sub, ses,'40wk', 'MNI152')
+    
 
-create_group_map()
+#create_group_map()
