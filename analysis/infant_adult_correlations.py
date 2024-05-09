@@ -39,15 +39,23 @@ all_networks = []
 
 
 
-all_rois = []
-all_networks = []
-for roi in roi_labels['label']:
-    for hemi in params.hemis:
-        all_rois.append(f'{hemi}_{roi}')
-        all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
 
 
-summary_type = 'fc'
+
+summary_type = 'within_hemi_fc'
+
+if summary_type == 'fc':
+    all_rois = []
+    all_networks = []
+    for roi in roi_labels['label']:
+        for hemi in params.hemis:
+            all_rois.append(f'{hemi}_{roi}')
+            all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
+
+elif summary_type == 'within_hemi_fc' or summary_type == 'within_hemi_fc':
+    all_rois = list(roi_labels['label'])
+    all_networks = list(roi_labels['network'])
+    hemi = 'both'
 
 ''' 
 Load and organize group adult fc matrix
@@ -70,13 +78,13 @@ adult_df = adult_df.dropna()
 adult_df['network1'] = [all_networks[all_rois.index(roi)] for roi in adult_df['roi1']]
 adult_df['network2'] = [all_networks[all_rois.index(roi)] for roi in adult_df['roi2']]
 
+if summary_type == 'fc':
+    #split roi into hemi and roi
+    adult_df['hemi1'] = adult_df['roi1'].apply(lambda x: x.split('_')[0])
+    adult_df['roi1'] = adult_df['roi1'].apply(lambda x: x.split('_')[1])
 
-#split roi into hemi and roi
-adult_df['hemi1'] = adult_df['roi1'].apply(lambda x: x.split('_')[0])
-adult_df['roi1'] = adult_df['roi1'].apply(lambda x: x.split('_')[1])
-
-adult_df['hemi2'] = adult_df['roi2'].apply(lambda x: x.split('_')[0])
-adult_df['roi2'] = adult_df['roi2'].apply(lambda x: x.split('_')[1])
+    adult_df['hemi2'] = adult_df['roi2'].apply(lambda x: x.split('_')[0])
+    adult_df['roi2'] = adult_df['roi2'].apply(lambda x: x.split('_')[1])
 
 '''
 Calculate correlations for all rois
@@ -116,40 +124,43 @@ for i in range(infant_fc.shape[0]):
     curr_df['network2'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi2']]
 
     #split roi into hemi and roi
-    curr_df['hemi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[0])
-    curr_df['roi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[1])
-    curr_df['hemi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[0])
-    curr_df['roi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[1])
+    #curr_df['hemi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[0])
+    #curr_df['roi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[1])
+    #curr_df['hemi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[0])
+    #curr_df['roi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[1])
+
+    
 
 
-    for hemi in ['lh','rh']:
-        #loop through rois and calculate correlation
-        for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
-            infant_data = curr_df[(curr_df['hemi1'] == hemi) & (curr_df['roi1'] == infant_roi)]
+    #for hemi in ['lh','rh']:
+    #loop through rois and calculate correlation
+    for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
+        infant_data = curr_df[(curr_df['roi1'] == infant_roi)]
 
-            for adult_roi, adult_network in zip(roi_labels['label'], roi_labels['network']):
-                adult_data = adult_df[(adult_df['hemi1'] == hemi) & (adult_df['roi1'] == adult_roi)]
+        for adult_roi, adult_network in zip(roi_labels['label'], roi_labels['network']):
+            adult_data = adult_df[(adult_df['roi1'] == adult_roi)]
+            #pdb.set_trace()
 
-                #calculate correlation
-                corr = np.corrcoef(infant_data['fc'], adult_data['fc'])[0,1]
+            #calculate correlation
+            corr = np.corrcoef(infant_data['fc'], adult_data['fc'])[0,1]
 
-                if infant_roi == adult_roi:
-                    roi_sim = 'same'
-                else:
-                    roi_sim = 'diff'
+            if infant_roi == adult_roi:
+                roi_sim = 'same'
+            else:
+                roi_sim = 'diff'
 
-                if infant_network == adult_network:
-                    net_sim = 'same'
-                else:
-                    net_sim = 'diff'
+            if infant_network == adult_network:
+                net_sim = 'same'
+            else:
+                net_sim = 'diff'
 
 
-                #add to summary_df
-                curr_data = [sub, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network, roi_sim, net_sim, corr]
-                summary_df.loc[len(summary_df)] = curr_data
+            #add to summary_df
+            curr_data = [sub, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network, roi_sim, net_sim, corr]
+            summary_df.loc[len(summary_df)] = curr_data
 
         
 
 
 #save 
-summary_df.to_csv(f'{params.results_dir}/infant_adult_roi_similarity.csv', index = False)
+summary_df.to_csv(f'{params.results_dir}/infant_adult_roi_similarity_{summary_type}.csv', index = False)
