@@ -1,5 +1,7 @@
 '''
 compute split half
+
+*i think by splitting the TS
 '''
 
 git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'

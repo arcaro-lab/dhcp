@@ -19,89 +19,80 @@ group= 'adult'
 results_dir = f'{git_dir}/results'
 fig_dir = f'{git_dir}/figures'
 
-def load_group_params(group):
-    '''
-    Define directories based on age group
-    '''
-    if group == 'infant':
+class load_group_params():
+    def __init__(self,group):
+
+        '''
+        Define directories based on age group
+        '''
+        if group == 'infant':
+                
+            #dhcp data directories
+            self.raw_data_dir = '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw/'
+            self.raw_anat_dir = f'{self.raw_data_dir}/rel3_dhcp_anat_pipeline'
+            self.raw_func_dir = f'{self.raw_data_dir}/rel3_dhcp_fmri_pipeline'
+            self.out_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed'
+            self.anat_suf = f'desc-restore_T2w' 
+            self.func_suf = f'task-rest_desc-preproc_bold'
+
+            self.brain_mask_suf = 'desc-ribbon_dseg'
+            self.group_template = 'week40_T2w'
+            self.template_name = '40wk'
+
+
+            self.sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
             
-        #dhcp data directories
-        raw_data_dir = '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw/'
-        raw_anat_dir = f'{raw_data_dir}/rel3_dhcp_anat_pipeline'
-        raw_func_dir = f'{raw_data_dir}/rel3_dhcp_fmri_pipeline'
-        out_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed'
-        anat_suf = f'desc-restore_T2w' 
-        func_suf = f'task-rest_desc-preproc_bold'
 
-        brain_mask_suf = 'desc-ribbon_dseg'
-        group_template = 'week40_T2w'
-        template_name = '40wk'
+        elif group == 'adult':
+            #7T hcp data directories
+            self.raw_data_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
+            self.raw_anat_dir = f'{self.raw_data_dir}'
+            self.raw_func_dir = f'{self.raw_data_dir}'
+            self.out_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
+            self.anat_suf = f'restore-1.60_T1w'
+            self.func_suf = f'task-rest_run-01_preproc_bold'
 
-        
+            self.brain_mask_suf =self.anat_suf + '_mask'
+            self.group_template = 'MNI152_2009_SurfVol'
+            self.template_name = 'MNI152'
 
-    elif group == 'adult':
-        #7T hcp data directories
-        raw_data_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
-        raw_anat_dir = f'{raw_data_dir}'
-        raw_func_dir = f'{raw_data_dir}'
-        out_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
-        anat_suf = f'restore-1.60_T1w'
-        func_suf = f'task-rest_run-01_preproc_bold'
+            
 
-        brain_mask_suf =anat_suf + '_mask'
-        group_template = 'MNI152_2009_SurfVol'
-        template_name = 'MNI152'
-
-        
+            self.sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
 
 
-    elif group == 'diffusion':
-         #7T hcp data directories
-        raw_data_dir = '/mnt/e/diffusion/FinalData'
-        raw_anat_dir = f'{raw_data_dir}/rel3_dhcp_anat_pipeline'
-        raw_func_dir = f'{raw_data_dir}/rel3_dhcp_fmri_pipeline'
-        out_dir = {raw_data_dir}
-        anat_suf = f'desc-restore_T2w' 
-        func_suf = f'task-rest_desc-preproc_bold'
-
-        brain_mask_suf = 'desc-brain_mask'
-
-        group_template = 'MNI152_2009_SurfVol'
-        template_name = 'MNI152'
+    #return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
 
 
-    return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
+#raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = load_group_params('infant')
 
-
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = load_group_params('infant')
-
-
-atlas_dir = f'{out_dir}/atlases'
-derivatives_dir = f'{out_dir}/derivatives'
 
 hemis = ['lh','rh']
 
+class load_atlas_info():
+    def __init__(self,atlas):
 
-def load_atlas_info(atlas):
-    '''
-    Load atlas info 
-    '''
-    if atlas == 'wang':
-        atlas_name = f'Wang_maxprob_surf_hemi_edits'
-        roi_labels = pd.read_csv(f'{atlas_dir}/Wang_labels.csv')
+        atlas_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/atlases'
 
-        #remove FEF from roi_labels
-        roi_labels = roi_labels[roi_labels['label'] != 'FEF']
+        '''
+        Load atlas info 
+        '''
+        if atlas == 'wang':
+            self.atlas_name = f'Wang_maxprob_surf_hemi_edits'
+            self.roi_labels = pd.read_csv(f'{atlas_dir}/Wang_labels.csv')
 
-    elif atlas == 'object':
-        atlas_name  = 'objectareas_fullnode_hemi'
-        roi_labels = pd.read_csv(f'{atlas_dir}/object_labels.csv')
+            #remove FEF from roi_labels
+            self.roi_labels = self.roi_labels[self.roi_labels['label'] != 'FEF']
 
-    elif atlas == 'calcsulc':
-        atlas_name  = 'calcsulc_binnedroi_hemi'
-        roi_labels = pd.read_csv(f'{atlas_dir}/calcsulc_labels.csv')
+        elif atlas == 'object':
+            self.atlas_name  = 'objectareas_fullnode_hemi'
+            self.roi_labels = pd.read_csv(f'{atlas_dir}//object_labels.csv')
 
-    return atlas_name, roi_labels
+        elif atlas == 'calcsulc':
+            self.atlas_name  = 'calcsulc_binnedroi_hemi'
+            self.roi_labels = pd.read_csv(f'{atlas_dir}/calcsulc_labels.csv')
+
+
 
 def load_roi_info(roi):
     '''
@@ -113,7 +104,7 @@ def load_roi_info(roi):
         template = 'templates/week40_T2w'
         template_name = '40wk'
 
-        roi_labels = pd.read_csv(f'{atlas_dir}/pulvinar_labels.csv')
+        roi_labels = pd.read_csv(f'atlases/pulvinar_labels.csv')
 
         xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
         #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
