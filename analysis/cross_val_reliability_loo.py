@@ -267,7 +267,7 @@ for roi in roi_labels['label']:
         all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
 
 for group in age_groups:
-    print(f'Preprocessing {group} {summary_type} data...')
+    #print(f'Preprocessing {group} {summary_type} data...')
     #preprocess_data(group, summary_type, all_rois, all_networks)
     conduct_loo(group, summary_type, all_rois, all_networks)
 
