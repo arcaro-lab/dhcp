@@ -1,8 +1,11 @@
+%% THis needs to updated to work on other computers
+%% Ideally it will be converted to python
+
 
 %set data directory
-data_dir= 'E:\dhcp_analysis_full';
+data_dir= '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw';
 %data_dir= 'F:\7T_HCP';
-git_dir = 'C:\Users\ArcaroLab\Desktop\git_repos\dhcp';
+git_dir = '/mnt/DataDrive2/vlad/git_repos/dhcp';
 
 %load sub_list
 sub_list = readtable([data_dir,'/participants.csv']);

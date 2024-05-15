@@ -15,24 +15,29 @@ import subprocess
 import numpy as np
 import pandas as pd
 from glob import glob as glob
-import dhcp_params as params
+import dhcp_params
 import pdb
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
-ses = sys.argv[2]
+#take subjectand session as command line argument
+sub = sys.argv[1]
+group = sys.argv[2]
 
+group_info = dhcp_params.load_group_params(group)
+
+ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 #set sub dir
-input_dir = f'{params.raw_anat_dir}/{sub}/{ses}'
-out_dir = f'{params.out_dir}/{sub}/{ses}'
+input_dir = f'{group_info.raw_anat_dir}/{sub}/{ses}'
+out_dir = f'{group_info.out_dir}/{sub}/{ses}'
 
-anat_suf = params.anat_suf
+anat_suf = group_info.anat_suf
 
 
 freesurfer_dir = '/usr/local/freesurfer/7.4.1'
 
 
-for hemi in params.hemis:
+for hemi in group_info.hemis:
 
     #create freesurfer surfaces with curv info
     print(f'Creating {sub} {ses} {hemi} surfaces')

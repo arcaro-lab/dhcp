@@ -393,3 +393,5 @@
 15/05/2024 09:55:14: Error in extract_ts_roi.py for sub-100610: Command 'python /mnt/DataDrive2/vlad/git_repos/dhcp/fmri/extract_ts_roi.py sub-100610 adult wang' returned non-zero exit status 1.
 15/05/2024 10:20:48: Error in extract_ts_roi.py for sub-100610: 'load_group_params' object has no attribute 'participants_file'
 15/05/2024 10:45:43: Error in extract_ts_roi.py for sub-102311: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 11:20:23: Error in extract_ts_roi.py for sub-102816: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 11:54:39: Error in extract_ts_roi.py for sub-104416: 'load_group_params' object has no attribute 'participants_file'

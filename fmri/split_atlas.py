@@ -17,7 +17,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 from glob import glob as glob
-import dhcp_params as params
+import dhcp_params
 import pdb
 
 import matplotlib.pyplot as plt
@@ -30,18 +30,22 @@ matplotlib.use('Agg')
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
-ses = sys.argv[2]
+group = sys.argv[2]
+
+group_info = dhcp_params.load_group_params(group)
+
+ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 atlas = sys.argv[3]
 
 #set sub dir
-anat_dir = f'{params.out_dir}/{sub}/{ses}'
-func_dir = f'{params.raw_func_dir}/{sub}/{ses}'
-out_dir = f'{params.out_dir}/{sub}/{ses}'
-atlas_dir = params.atlas_dir
+anat_dir = f'{group_info.out_dir}/{sub}/{ses}'
+func_dir = f'{group_info.raw_func_dir}/{sub}/{ses}'
+out_dir = f'{group_info.out_dir}/{sub}/{ses}'
+atlas_dir = group_info.atlas_dir
 
 roi_dir = f'{out_dir}/rois'
 
-atlas_name, roi_labels = params.load_atlas_info(atlas)
+atlas_name, roi_labels = group_info.load_atlas_info(atlas)
 
 #if atlas dir exists, delete it
 if os.path.exists(f'{roi_dir}/{atlas}'):
@@ -49,11 +53,11 @@ if os.path.exists(f'{roi_dir}/{atlas}'):
 
 os.makedirs(f'{roi_dir}/{atlas}', exist_ok = True)
 
-anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{params.anat_suf}_brain.nii.gz')
+anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{group_info.anat_suf}_brain.nii.gz')
 anat_affine = anat_img.affine
 
 #load functional image
-func_img = image.load_img(f'{out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz')
+func_img = image.load_img(f'{out_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz')
 func_affine = func_img.affine
 
 #check if they are identical    
@@ -65,7 +69,7 @@ else:
 
 
 
-for hemi in params.hemis:
+for hemi in group_info.hemis:
     #replace hemi in atlas name with current hemi
     curr_atlas = atlas_name.replace('hemi', hemi)
     
@@ -89,7 +93,7 @@ for hemi in params.hemis:
         
         if same_affine == False: #check if anat and func already have the same affine
             #register atlas to func
-            bash_cmd = f'flirt -in {roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
+            bash_cmd = f'flirt -in {roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -out {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
             subprocess.run(bash_cmd.split(), check = True)
         elif same_affine == True:
             #copy atlas to roi dir
@@ -131,9 +135,9 @@ for hemi in ['lh','rh']:
 
 
     #plot atlas on subject's brain
-    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
+    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[group_info.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
-plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{params.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group_info.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
 
         
 

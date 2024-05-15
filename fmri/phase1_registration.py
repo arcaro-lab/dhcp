@@ -15,27 +15,31 @@ import subprocess
 import numpy as np
 import pandas as pd
 from glob import glob as glob
-import dhcp_params as params
+import dhcp_params
 import pdb
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
-ses = sys.argv[2]
+group = sys.argv[2]
+
+group_info = dhcp_params.load_group_params(group)
+
+ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 
 #create sub directories
-os.makedirs(f'{params.out_dir}/{sub}/{ses}/anat', exist_ok=True)
-os.makedirs(f'{params.out_dir}/{sub}/{ses}/func', exist_ok=True)
-os.makedirs(f'{params.out_dir}/{sub}/{ses}/surf', exist_ok=True)
-os.makedirs(f'{params.out_dir}/{sub}/{ses}/xfm', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/anat', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/func', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/surf', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/xfm', exist_ok=True)
 
 #set sub dir
-input_dir = f'{params.raw_anat_dir}/{sub}/{ses}'
-out_dir = f'{params.out_dir}/{sub}/{ses}'
+input_dir = f'{group_info.raw_anat_dir}/{sub}/{ses}'
+out_dir = f'{group_info.out_dir}/{sub}/{ses}'
 
 hemi_labels = ['left', 'right']
 
 
-for lrn,lr in enumerate(params.hemis):
+for lrn,lr in enumerate(group_info.hemis):
     #convert curv files to surf
     print(f'Converting {sub} {ses} {lr} curv and sulc to txt')
     bash_cmd = f'wb_command -gifti-convert ASCII {input_dir}/anat/{sub}_{ses}_hemi-{hemi_labels[lrn]}_curv.shape.gii {out_dir}/surf/{lr}.curv'

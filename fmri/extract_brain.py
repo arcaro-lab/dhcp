@@ -20,34 +20,38 @@ import subprocess
 import numpy as np
 import pandas as pd
 from glob import glob as glob
-import dhcp_params as params
+import dhcp_params
 import pdb
 import nibabel as nib
 from nilearn import plotting, image
 
-#take subject and session as command line argument
+#take subject and group as command line argument
 sub = sys.argv[1]
-ses = sys.argv[2]
+group = sys.argv[2]
 
-#xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-T2w_mode-image.mat'
+group_info = dhcp_params.load_group_params(group)
+
+ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
+
+#xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-T2w_mode-image.mat'
 
 #invert xfm
-#bash_cmd = f'convert_xfm -omat {params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat -inverse {xfm}'
+#bash_cmd = f'convert_xfm -omat {group_info.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat -inverse {xfm}'
 #subprocess.run(bash_cmd, shell=True)
 
 #for infants
-#xfm_inverted = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat'
-xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/anat2func.mat'
+#xfm_inverted = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat'
+xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/anat2func.mat'
 
 
 #set sub dir
-anat_input = f'{params.raw_anat_dir}/{sub}/{ses}'
-func_input = f'{params.raw_func_dir}/{sub}/{ses}'
-out_dir = f'{params.out_dir}/{sub}/{ses}'
+anat_input = f'{group_info.raw_anat_dir}/{sub}/{ses}'
+func_input = f'{group_info.raw_func_dir}/{sub}/{ses}'
+out_dir = f'{group_info.out_dir}/{sub}/{ses}'
 
-anat = f'anat/{sub}_{ses}_{params.anat_suf}' 
-func = f'func/{sub}_{ses}_{params.func_suf}'
-brain_mask = f'anat/{sub}_{ses}_{params.brain_mask_suf}'
+anat = f'anat/{sub}_{ses}_{group_info.anat_suf}' 
+func = f'func/{sub}_{ses}_{group_info.func_suf}'
+brain_mask = f'anat/{sub}_{ses}_{group_info.brain_mask_suf}'
 
 
 #binarize brain mask
@@ -62,6 +66,9 @@ subprocess.run(bash_cmd, shell=True)
 bash_cmd = f'fslmaths {anat_input}/{anat}.nii.gz -mas {out_dir}/{brain_mask}.nii.gz {out_dir}/{anat}_brain.nii.gz'
 subprocess.run(bash_cmd, shell=True)
 
+#create 1 volume version of func file
+bash_cmd = f'fslmaths {func_input}/{func}.nii.gz -Tmean {out_dir}/{func}_1vol.nii.gz'
+subprocess.run(bash_cmd.split(), check = True)
 
 
 #create brain mask in epi space
@@ -83,10 +90,10 @@ subprocess.run(bash_cmd, shell=True)
 
 os.makedirs(f'{out_dir}/rois/brain', exist_ok=True)
 #extract just left hemisphere
-mask = image.load_img(f'{params.out_dir}/{sub}/{ses}/{brain_mask}_epi.nii.gz')
+mask = image.load_img(f'{group_info.out_dir}/{sub}/{ses}/{brain_mask}_epi.nii.gz')
 lh_mask = mask.get_fdata()
 
- #create left and right hemi mask of the mni template
+#create left and right hemi mask of the mni template
 
 #set right side to 0
 lh_mask[(lh_mask.shape[0]//2):,:,:] = 0
@@ -98,7 +105,7 @@ lh_mask = image.image.new_img_like(mask, lh_mask)
 nib.save(lh_mask, f'{out_dir}/rois/brain/lh_brain.nii.gz')
 
 #set left side to 0
-mask = image.load_img(f'{params.out_dir}/{sub}/{ses}/{brain_mask}_epi.nii.gz')
+mask = image.load_img(f'{group_info.out_dir}/{sub}/{ses}/{brain_mask}_epi.nii.gz')
 rh_mask = mask.get_fdata()
 
 #set left side to 0
@@ -108,7 +115,7 @@ rh_mask = image.image.new_img_like(mask, rh_mask)
 nib.save(rh_mask, f'{out_dir}/rois/brain/rh_brain.nii.gz')
 
 #if its adults flip which is saved as left and right 
-if params.group == 'adult':
+if group_info.group == 'adult':
     #flip left and right
     nib.save(lh_mask, f'{out_dir}/rois/brain/rh_brain.nii.gz')
     nib.save(rh_mask, f'{out_dir}/rois/brain/lh_brain.nii.gz')

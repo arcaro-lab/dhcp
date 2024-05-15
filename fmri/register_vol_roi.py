@@ -16,7 +16,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 from glob import glob as glob
-import dhcp_params as params
+import dhcp_params
 import matplotlib.pyplot as plt
 import pdb
 from nilearn import plotting, image
@@ -26,29 +26,33 @@ matplotlib.use('Agg')
 import argparse
 
 sub = sys.argv[1]
-ses = sys.argv[2]
+group = sys.argv[2]
+
+group_info = dhcp_params.load_group_params(group)
+
+ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 roi = sys.argv[3]
 
 
-roi_name, roi_labels, template, template_name, xfm, method = params.load_roi_info(roi)
+roi_name, roi_labels, template, template_name, xfm, method = group_info.load_roi_info(roi)
 
 xfm = xfm.replace('*SUB*', sub).replace('*SES*', ses)
-xfm = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{xfm}.nii.gz'
+xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/{xfm}.nii.gz'
 
 
 #set sub dir
-anat_input = f'{params.raw_anat_dir}/{sub}/{ses}'
-func_input = f'{params.raw_func_dir}/{sub}/{ses}'
-data_dir = f'{params.out_dir}/{sub}/{ses}'
-atlas_dir = params.atlas_dir
+anat_input = f'{group_info.raw_anat_dir}/{sub}/{ses}'
+func_input = f'{group_info.raw_func_dir}/{sub}/{ses}'
+data_dir = f'{group_info.out_dir}/{sub}/{ses}'
+atlas_dir = group_info.atlas_dir
 
-anat = f'anat/{sub}_{ses}_{params.anat_suf}' 
+anat = f'anat/{sub}_{ses}_{group_info.anat_suf}' 
 
 anat_img = image.load_img(f'{data_dir}/{anat}_brain.nii.gz')
 anat_affine = anat_img.affine
 
 #load functional image
-func_img = image.load_img(f'{data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz')
+func_img = image.load_img(f'{data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz')
 func_affine = func_img.affine
 
 #check if they are identical    
@@ -96,7 +100,7 @@ def register_with_ants():
 
     if same_affine == False:
         #register anat roi to func space
-        bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -ref {data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {data_dir}/xfm/anat2func.mat -interp nearestneighbour'
+        bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -ref {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {data_dir}/xfm/anat2func.mat -interp nearestneighbour'
         subprocess.run(bash_cmd, shell=True)
     elif same_affine ==True:
         #copy atlas to roi dir
@@ -114,19 +118,19 @@ def register_with_applywarp(curr_roi, xfm):
     #check if inwarp already exists
     if os.path.exists(f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz') == False:
     
-        bash_cmd = f'invwarp -w {xfm} -o {data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz -r {data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz'
+        bash_cmd = f'invwarp -w {xfm} -o {data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz'
         subprocess.run(bash_cmd, shell=True)
 
     final_xfm = f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz'
 
-    bash_cmd = f'applywarp -i {params.atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{params.func_suf}_1vol.nii.gz  -w {final_xfm} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
+    bash_cmd = f'applywarp -i {group_info.atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz  -w {final_xfm} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
     
     subprocess.run(bash_cmd, shell=True)
 
 
 
 
-for hemi in params.hemis:
+for hemi in group_info.hemis:
     curr_roi = roi_name.replace('hemi', hemi)
 
     if method == 'ants':
@@ -143,12 +147,12 @@ for hemi in params.hemis:
 
 
     #plot atlas on subject's brain
-    #plotting.plot_roi(f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz', bg_img = func_img, axes = ax[params.hemis.index(hemi)], title = f'{sub} {hemi} {roi}',draw_cross=False) 
+    #plotting.plot_roi(f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz', bg_img = func_img, axes = ax[group_info.hemis.index(hemi)], title = f'{sub} {hemi} {roi}',draw_cross=False) 
 
 
 #create qc folder for atlas and group
-#os.makedirs(f'{git_dir}/fmri/qc/{roi}/{params.group}', exist_ok = True)
+#os.makedirs(f'{git_dir}/fmri/qc/{roi}/{group_info.group}', exist_ok = True)
 
 
 #save figure with tight layout
-#plt.savefig(f'{git_dir}/fmri/qc/{roi}/{params.group}/{sub}_{roi}_epi.png', bbox_inches = 'tight')
+#plt.savefig(f'{git_dir}/fmri/qc/{roi}/{group_info.group}/{sub}_{roi}_epi.png', bbox_inches = 'tight')
