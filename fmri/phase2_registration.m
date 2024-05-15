@@ -1,6 +1,7 @@
 %% THis needs to updated to work on other computers
 %% Ideally it will be converted to python
 
+%% Look at read_gifti in nibabel
 
 %set data directory
 data_dir= '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw';

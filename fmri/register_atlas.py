@@ -38,9 +38,9 @@ atlas = sys.argv[3]
 #set sub dir
 anat_dir = f'{group_info.out_dir}/{sub}/{ses}'
 out_dir = f'{group_info.out_dir}/{sub}/{ses}'
-atlas_dir = group_info.atlas_dir
+atlas_dir = dhcp_params.atlas_dir
 
-atlas_name, roi_labels = group_info.load_atlas_info(atlas)
+atlas_info = dhcp_params.load_atlas_info(atlas)
 
 
 #load anat
@@ -60,18 +60,19 @@ else:
 
 for hemi in ['lh','rh']:
     #replace hemi in atlas name with current hemi
-    curr_atlas = atlas_name.replace('hemi', hemi)
+    curr_atlas = atlas_info.atlas_name.replace('hemi', hemi)
+    
 
     #check if curr atlas exists
     #if it does, delete it
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz'):
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'):
         #delete atlas
-        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz')
+        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK')
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
 
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz'):
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK'):
         #delete atlas
-        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz')
+        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK')
         os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
     
     
@@ -90,9 +91,10 @@ for hemi in ['lh','rh']:
 
     
     #check if atlas has orgi or tlrc extension
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK.gz'): atlas_ext = '+orig'
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK.gz'): atlas_ext = '+tlrc'
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'): atlas_ext = '+orig'
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK'): atlas_ext = '+tlrc'
 
+    
     #convert to nifti
     bash_cmd = f'3dAFNItoNIFTI {out_dir}/atlas/{curr_atlas}_anat{atlas_ext} {curr_atlas}_anat.nii'
     subprocess.run(bash_cmd.split(), check = True)

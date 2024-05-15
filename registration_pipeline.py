@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'adult'
+group = 'infant'
 group_info = params.load_group_params(group)
 
 #set directories
@@ -78,18 +78,18 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = False
+extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = False
+reg_phase1 = True
 reg_phase2 = False
-reg_phase3 = False
-reg_phase4 = False
+reg_phase3 = True
+reg_phase4 = True
 
 #Registers atlas to individual anat
-register_atlas = False
+register_atlas = True
 #split atlas into individual rois
-split_atlas = False
+split_atlas = True
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True
@@ -151,7 +151,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
     '''
     Launches preprocessing script and checks for errors
     '''
-
+    
     
     #create new column if analysis_name doesn't exist
     if analysis_name not in sub_list.columns:
@@ -173,13 +173,16 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             bash_cmd = f'python {script_dir}/{script_name} {sub} {group} {atlas}'
             subprocess.run(bash_cmd, check=True, shell=True)
 
+            
             #set analysis_name to 1
             sub_list.loc[sub_list['participant_id']==sub, analysis_name] = 1
 
             #update the full_sub_list and save it
             #note: full_sub_list is kept outside of the function so its not overwritten
             full_sub_list.update(sub_list)
-            full_sub_list.to_csv(f'{git_dir}/{group_info.participants_file}.csv', index=False)
+            #reset index
+            full_sub_list.reset_index(drop=True, inplace=True)
+            full_sub_list.to_csv(f'{group_info.sub_file}', index=False)
             
         except Exception as e:
             #open log file
@@ -222,6 +225,8 @@ if reg_phase2:
 
     Note: subject loop and error logging is done in matlab script
     *If this crashes on a new dataset, check the directory in the matlab script
+
+    **MAYBE SKIPPING THIS
     '''
     print('Running phase 2 registration')
     bash_cmd = "matlab.exe -batch \"run('fmri/phase2_registration.m')\""
@@ -242,7 +247,7 @@ if reg_phase3:
     '''
     Phase 3 of registration pipeline: Creates final surfaces and registers to fsaverage
     '''
-    launch_script(sub_list = sub_list,script_name='phase3_registration.py',analysis_name='phase_3',pre_req='phase_2')
+    launch_script(sub_list = sub_list,script_name='phase3_registration.py',analysis_name='phase_3',pre_req='phase_1')
 
 if reg_phase4:
     '''

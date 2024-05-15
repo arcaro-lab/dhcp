@@ -29,7 +29,7 @@ class load_group_params():
         if group == 'infant':
                 
             #dhcp data directories
-            self.raw_data_dir = '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw/'
+            self.raw_data_dir = '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw'
             self.raw_anat_dir = f'{self.raw_data_dir}/rel3_dhcp_anat_pipeline'
             self.raw_func_dir = f'{self.raw_data_dir}/rel3_dhcp_fmri_pipeline'
             self.out_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed'
@@ -44,7 +44,12 @@ class load_group_params():
 
 
             self.sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
-            
+
+            self.func2anat_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-T2w_mode-image.mat'
+            self.anat2func_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-bold_mode-image.mat'
+
+            self.func240wk = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image.nii.gz'
+            self.anat240wk = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image.nii.gz'
 
         elif group == 'adult':
             #7T hcp data directories

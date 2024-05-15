@@ -39,7 +39,7 @@ out_dir = f'{group_info.out_dir}/{sub}/{ses}'
 hemi_labels = ['left', 'right']
 
 
-for lrn,lr in enumerate(group_info.hemis):
+for lrn,lr in enumerate(['lh','rh']):
     #convert curv files to surf
     print(f'Converting {sub} {ses} {lr} curv and sulc to txt')
     bash_cmd = f'wb_command -gifti-convert ASCII {input_dir}/anat/{sub}_{ses}_hemi-{hemi_labels[lrn]}_curv.shape.gii {out_dir}/surf/{lr}.curv'

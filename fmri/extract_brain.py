@@ -33,15 +33,20 @@ group_info = dhcp_params.load_group_params(group)
 
 ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 
-#xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-T2w_mode-image.mat'
+#create sub directories
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/anat', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/func', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/surf', exist_ok=True)
+os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/xfm', exist_ok=True)
 
-#invert xfm
-#bash_cmd = f'convert_xfm -omat {group_info.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat -inverse {xfm}'
-#subprocess.run(bash_cmd, shell=True)
+#invert xfm to make anatomical to functional
+if group == 'infant':
+    bash_cmd = f'convert_xfm -omat {group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)} -inverse {group_info.func2anat_xfm.replace('*SUB*',sub).replace('*SES*',ses)}'
+    subprocess.run(bash_cmd, shell=True)
 
 #for infants
-#xfm_inverted = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-T2w_to-bold_mode-image.mat'
-xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/anat2func.mat'
+xfm = group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)
+#xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/anat2func.mat'
 
 
 #set sub dir
@@ -53,8 +58,7 @@ anat = f'anat/{sub}_{ses}_{group_info.anat_suf}'
 func = f'func/{sub}_{ses}_{group_info.func_suf}'
 brain_mask = f'anat/{sub}_{ses}_{group_info.brain_mask_suf}'
 
-
-#binarize brain mask
+#binarize brain mask and output to preprocessing directory
 bash_cmd = f'fslmaths {anat_input}/{brain_mask}.nii.gz -bin {out_dir}/{brain_mask}.nii.gz'
 subprocess.run(bash_cmd, shell=True)
 
@@ -115,7 +119,7 @@ rh_mask = image.image.new_img_like(mask, rh_mask)
 nib.save(rh_mask, f'{out_dir}/rois/brain/rh_brain.nii.gz')
 
 #if its adults flip which is saved as left and right 
-if group_info.group == 'adult':
+if group == 'adult':
     #flip left and right
     nib.save(lh_mask, f'{out_dir}/rois/brain/rh_brain.nii.gz')
     nib.save(rh_mask, f'{out_dir}/rois/brain/lh_brain.nii.gz')

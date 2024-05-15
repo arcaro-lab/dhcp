@@ -37,7 +37,7 @@ anat_suf = group_info.anat_suf
 freesurfer_dir = '/usr/local/freesurfer/7.4.1'
 
 
-for hemi in group_info.hemis:
+for hemi in ['lh','rh']:
 
     #create freesurfer surfaces with curv info
     print(f'Creating {sub} {ses} {hemi} surfaces')

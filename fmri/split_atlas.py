@@ -41,11 +41,15 @@ atlas = sys.argv[3]
 anat_dir = f'{group_info.out_dir}/{sub}/{ses}'
 func_dir = f'{group_info.raw_func_dir}/{sub}/{ses}'
 out_dir = f'{group_info.out_dir}/{sub}/{ses}'
-atlas_dir = group_info.atlas_dir
+atlas_dir = dhcp_params.atlas_dir
 
 roi_dir = f'{out_dir}/rois'
 
-atlas_name, roi_labels = group_info.load_atlas_info(atlas)
+atlas_info = dhcp_params.load_atlas_info(atlas)
+atlas_name = atlas_info.atlas_name
+roi_labels = atlas_info.roi_labels
+
+anat2func_xfm = group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)
 
 #if atlas dir exists, delete it
 if os.path.exists(f'{roi_dir}/{atlas}'):
@@ -69,7 +73,7 @@ else:
 
 
 
-for hemi in group_info.hemis:
+for hemi in ['lh','rh']:
     #replace hemi in atlas name with current hemi
     curr_atlas = atlas_name.replace('hemi', hemi)
     
@@ -93,7 +97,7 @@ for hemi in group_info.hemis:
         
         if same_affine == False: #check if anat and func already have the same affine
             #register atlas to func
-            bash_cmd = f'flirt -in {roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -out {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {out_dir}/xfm/anat2func.mat -interp trilinear'
+            bash_cmd = f'flirt -in {roi_dir}/{atlas}/{hemi}_{roi}_anat.nii.gz -ref {out_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -out {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {anat2func_xfm} -interp trilinear'
             subprocess.run(bash_cmd.split(), check = True)
         elif same_affine == True:
             #copy atlas to roi dir
