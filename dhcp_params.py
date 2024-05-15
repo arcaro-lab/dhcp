@@ -11,13 +11,14 @@ import pandas as pd
 #set directories
 
 #how much to smooth functional data
-smooth_mm = 4
+smooth_mm = 0
 vols = 2300
 
 group= 'adult'
 
 results_dir = f'{git_dir}/results'
 fig_dir = f'{git_dir}/figures'
+atlas_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/atlases'
 
 class load_group_params():
     def __init__(self,group):
@@ -39,6 +40,8 @@ class load_group_params():
             self.group_template = 'week40_T2w'
             self.template_name = '40wk'
 
+            self.sub_file = f'{git_dir}/participants_dhcp.csv'
+
 
             self.sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
             
@@ -56,10 +59,10 @@ class load_group_params():
             self.group_template = 'MNI152_2009_SurfVol'
             self.template_name = 'MNI152'
 
+            self.sub_file = f'{git_dir}/participants_7T.csv'
+
             
-
-            self.sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
-
+        self.sub_list = pd.read_csv(self.sub_file)
 
     #return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
 
@@ -72,7 +75,7 @@ hemis = ['lh','rh']
 class load_atlas_info():
     def __init__(self,atlas):
 
-        atlas_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/atlases'
+        
 
         '''
         Load atlas info 

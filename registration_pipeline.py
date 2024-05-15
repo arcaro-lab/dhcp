@@ -30,27 +30,30 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-#set directories
-raw_data_dir = params.raw_data_dir
+group = 'adult'
+group_info = params.load_group_params(group)
 
-raw_anat_dir = params.raw_anat_dir
-raw_func_dir = params.raw_func_dir
-out_dir = params.out_dir
+#set directories
+raw_data_dir = group_info.raw_data_dir
+
+raw_anat_dir = group_info.raw_anat_dir
+raw_func_dir = group_info.raw_func_dir
+out_dir = group_info.out_dir
 
 
 #set suffixes for anat and func files
-anat_suf = params.anat_suf
-func_suf = params.func_suf
+anat_suf = group_info.anat_suf
+func_suf = group_info.func_suf
 
 
 
 #directory with preprocessing scripts
 script_dir = f'{git_dir}/fmri'
 
-participants_file = 'participants_dhcp'
+#participants_file = 'participants_dhcp'
 
 #load subject list
-full_sub_list = pd.read_csv(f'{git_dir}/{participants_file}.csv')
+full_sub_list = group_info.sub_list
 
 #limit to subs with 1 in to_run col
 sub_list = full_sub_list[full_sub_list['to_run']==1]
@@ -89,11 +92,11 @@ register_atlas = False
 split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
-extract_ts_roi = False
+extract_ts_roi = True
 
 
 #Register volumetric roi to individual anat
-register_vol_roi = True
+register_vol_roi = False
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False
@@ -137,7 +140,7 @@ def find_eligble_subs():
     sub_list['phase_4'] = ''
 
     #save new list
-    sub_list.to_csv(f'{out_dir}/{participants_file}.csv', index=False)
+    sub_list.to_csv(f'{out_dir}/{group_info.participants_file}.csv', index=False)
 
     #print total number of subjects
     print(f'Total usable of participants: {len(sub_list)}')
@@ -167,7 +170,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
 
         try:
             #run script
-            bash_cmd = f'python {script_dir}/{script_name} {sub} {ses} {atlas}'
+            bash_cmd = f'python {script_dir}/{script_name} {sub} {group} {atlas}'
             subprocess.run(bash_cmd, check=True, shell=True)
 
             #set analysis_name to 1
@@ -176,7 +179,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #update the full_sub_list and save it
             #note: full_sub_list is kept outside of the function so its not overwritten
             full_sub_list.update(sub_list)
-            full_sub_list.to_csv(f'{git_dir}/{participants_file}.csv', index=False)
+            full_sub_list.to_csv(f'{git_dir}/{group_info.participants_file}.csv', index=False)
             
         except Exception as e:
             #open log file

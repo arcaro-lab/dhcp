@@ -2,12 +2,16 @@
 Extract mean timeseries from a set of ROIs
 '''
 
-git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
-
+project_name = 'dhcp'
 import os
+#get current working directory
+cwd = os.getcwd()
+git_dir = cwd.split(project_name)[0] + project_name
 import sys
+
 #add git_dir to path
 sys.path.append(git_dir)
+
 
 import subprocess
 import numpy as np
@@ -30,28 +34,37 @@ warnings.filterwarnings("ignore")
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
-ses = sys.argv[2]
+group = sys.argv[2]
 atlas = sys.argv[3]
 
 #sub-CC00056XX07 ses-10700 wang
+group_info = params.load_group_params(group)
 
 
 #set sub dir
-anat_dir = f'{params.raw_anat_dir}/{sub}/{ses}'
-func_dir = f'{params.raw_func_dir}/{sub}/{ses}'
-out_dir = f'{params.out_dir}/{sub}/{ses}'
+anat_dir = glob(f'{group_info.raw_anat_dir}/{sub}/ses-*')[0]
+func_dir = glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0]
+out_dir = glob(f'{group_info.out_dir}/{sub}/ses-*')[0]
 atlas_dir = params.atlas_dir
+
+
+#extract ses 
+ses = 'ses-' + anat_dir.split('ses-')[1]
+
+
 
 results_dir = f'{out_dir}/derivatives/timeseries'
 os.makedirs(results_dir, exist_ok = True)
 
-os.makedirs(f'{params.out_dir}/derivatives/fc_matrix', exist_ok = True)
+os.makedirs(f'{group_info.out_dir}/derivatives/fc_matrix', exist_ok = True)
 
 
 roi_dir = f'{out_dir}/rois/{atlas}'
 
-atlas_name, roi_labels = params.load_atlas_info(atlas)
 
+atlas_info= params.load_atlas_info(atlas)
+
+atlas_name, roi_labels = atlas_info.atlas_name, atlas_info.roi_labels
 #glob all func files
 func_files = glob(f'{func_dir}/func/*_bold.nii.gz')
 
@@ -64,18 +77,19 @@ gc.collect()
 
 all_ts = []
 #loop through rois in labels file
-for hemi in params.hemis:
+for hemi in ['lh','rh']:
     print(f'Extracting {atlas} {hemi} timeseries for {sub}...')
 
     curr_atlas = atlas_name.replace('hemi', hemi)
+    
     #load roi
     atlas_dir = f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz'
     
     #extract roi timeseries
     masker = NiftiLabelsMasker(
         labels_img=atlas_dir,
-        standardize="zscore_sample",
-        standardize_confounds="zscore_sample",
+        standardize="zscore",
+        standardize_confounds="zscore",
         smoothing_fwhm=params.smooth_mm)    
 
     all_runs = []
@@ -127,5 +141,5 @@ all_ts = all_ts.T
 corr_mat = np.corrcoef(all_ts)
 
 #save
-np.save(f'{params.out_dir}/derivatives/fc_matrix/{sub}_{atlas}_fc.npy', corr_mat)
+np.save(f'{group_info.out_dir}/derivatives/fc_matrix/{sub}_{atlas}_fc.npy', corr_mat)
 

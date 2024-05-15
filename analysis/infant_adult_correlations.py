@@ -245,6 +245,11 @@ def both_hemi_comparisons(infant_fc, adult_df):
             
     return summary_df
 
+
+#summary_df = no_hemi_comparisons(infant_fc, adult_df)
+#summary_df.to_csv(f'{params.results_dir}/infant_adult_roi_similarity_{summary_type}.csv', index = False)
+
+
 summary_df = both_hemi_comparisons(infant_fc, adult_df)
 
 #save 

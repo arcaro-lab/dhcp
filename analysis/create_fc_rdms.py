@@ -25,7 +25,7 @@ roi_labels = atlas_info.roi_labels
 
 
 age_groups= ['infant', 'adult']
-#age_groups = ['infant']
+age_groups = ['infant']
 
 def create_indiv_rdm(group, sub_list, data_dir, atlas):
     
@@ -227,11 +227,11 @@ for group in age_groups:
     #compute median rdm
     median_fc = np.median(all_rdms, axis = 0)
 
-    '''
+    
     #save median rdm to results dir as csv
     median_fc = pd.DataFrame(median_fc)
     median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc.csv', header = False, index = False)
-
+    '''
     print(f'Extracting cross-hemi {group} RDMs ...')
     #compute cross hemi rdm
     cross_hemi_rdms = compute_cross_hemi_rdm(group, sub_list, out_dir, atlas)
