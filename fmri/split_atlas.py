@@ -37,6 +37,8 @@ group_info = dhcp_params.load_group_params(group)
 ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 atlas = sys.argv[3]
 
+hemis = ['lh','rh']
+
 #set sub dir
 anat_dir = f'{group_info.out_dir}/{sub}/{ses}'
 func_dir = f'{group_info.raw_func_dir}/{sub}/{ses}'

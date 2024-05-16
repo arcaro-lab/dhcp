@@ -433,3 +433,23 @@
 15/05/2024 16:37:22: Error in register_atlas.py for sub-CC00201XX03: Command 'python /mnt/DataDrive2/vlad/git_repos/dhcp/fmri/register_atlas.py sub-CC00201XX03 infant wang' returned non-zero exit status 1.
 15/05/2024 16:40:16: Error in register_atlas.py for sub-CC00201XX03: Command 'python /mnt/DataDrive2/vlad/git_repos/dhcp/fmri/register_atlas.py sub-CC00201XX03 infant wang' returned non-zero exit status 1.
 15/05/2024 16:40:28: Error in split_atlas.py for sub-CC00201XX03: Command 'python /mnt/DataDrive2/vlad/git_repos/dhcp/fmri/split_atlas.py sub-CC00201XX03 infant wang' returned non-zero exit status 1.
+15/05/2024 16:44:15: Error in split_atlas.py for sub-CC00201XX03: Command 'python /mnt/DataDrive2/vlad/git_repos/dhcp/fmri/split_atlas.py sub-CC00201XX03 infant wang' returned non-zero exit status 1.
+15/05/2024 16:49:00: Error in extract_ts_roi.py for sub-116726: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 17:22:36: Error in extract_ts_roi.py for sub-118225: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 18:06:26: Error in extract_ts_roi.py for sub-125525: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 18:55:55: Error in extract_ts_roi.py for sub-126426: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 20:01:24: Error in extract_ts_roi.py for sub-128935: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 20:54:26: Error in extract_ts_roi.py for sub-130114: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 21:52:21: Error in extract_ts_roi.py for sub-130518: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 22:53:50: Error in extract_ts_roi.py for sub-131722: 'load_group_params' object has no attribute 'participants_file'
+15/05/2024 23:38:54: Error in extract_ts_roi.py for sub-132118: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 00:17:23: Error in extract_ts_roi.py for sub-134627: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 01:10:54: Error in extract_ts_roi.py for sub-134829: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 01:48:23: Error in extract_ts_roi.py for sub-135124: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 02:25:24: Error in extract_ts_roi.py for sub-137128: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 03:03:02: Error in extract_ts_roi.py for sub-140117: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 03:41:32: Error in extract_ts_roi.py for sub-144226: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 04:18:52: Error in extract_ts_roi.py for sub-145834: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 04:57:39: Error in extract_ts_roi.py for sub-146129: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 05:34:57: Error in extract_ts_roi.py for sub-146432: 'load_group_params' object has no attribute 'participants_file'
+16/05/2024 12:20:56: Error in split_atlas.py for sub-CC00201XX03: Command 'python /mnt/DataDrive2/vlad/git_repos/dhcp/fmri/split_atlas.py sub-CC00201XX03 infant wang' returned non-zero exit status 1.

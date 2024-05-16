@@ -25,7 +25,7 @@ roi_labels = atlas_info.roi_labels
 
 
 age_groups= ['infant', 'adult']
-age_groups = ['infant']
+age_groups = ['adult']
 
 def create_indiv_rdm(group, sub_list, data_dir, atlas):
     
