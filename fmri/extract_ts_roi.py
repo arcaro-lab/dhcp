@@ -6,7 +6,7 @@ project_name = 'dhcp'
 import os
 #get current working directory
 cwd = os.getcwd()
-git_dir = cwd.split(project_name)[0] + project_name
+git_dir = os.path.join(cwd.split(project_name)[0], project_name)
 import sys
 
 #add git_dir to path

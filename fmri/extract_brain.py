@@ -8,7 +8,7 @@ project_name = 'dhcp'
 import os
 #get current working directory
 cwd = os.getcwd()
-git_dir = cwd.split(project_name)[0] + project_name
+git_dir = os.path.join(cwd.split(project_name)[0], project_name)
 import sys
 
 #add git_dir to path
@@ -41,7 +41,7 @@ os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/xfm', exist_ok=True)
 
 #invert xfm to make anatomical to functional
 if group == 'infant':
-    bash_cmd = f'convert_xfm -omat {group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)} -inverse {group_info.func2anat_xfm.replace('*SUB*',sub).replace('*SES*',ses)}'
+    bash_cmd = f'convert_xfm -omat {group_info.anat2func_xfm.replace("*SUB*", sub).replace("*SES*", ses)} -inverse {group_info.func2anat_xfm.replace("*SUB*", sub).replace("*SES*", ses)}'
     subprocess.run(bash_cmd, shell=True)
 
 #for infants
