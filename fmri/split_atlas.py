@@ -6,7 +6,7 @@ project_name = 'dhcp'
 import os
 #get current working directory
 cwd = os.getcwd()
-git_dir = cwd.split(project_name)[0] + project_name
+git_dir = cwd.split(project_name)[0] + '/' + project_name
 import sys
 
 #add git_dir to path
@@ -141,9 +141,9 @@ for hemi in ['lh','rh']:
 
 
     #plot atlas on subject's brain
-    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[group_info.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
+    plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
-plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group_info.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
 
         
 

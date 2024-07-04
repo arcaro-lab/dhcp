@@ -41,7 +41,7 @@ os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/xfm', exist_ok=True)
 
 #invert xfm to make anatomical to functional
 if group == 'infant':
-    bash_cmd = f'convert_xfm -omat {group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)} -inverse {group_info.func2anat_xfm.replace('*SUB*',sub).replace('*SES*',ses)}'
+    bash_cmd = f'convert_xfm -omat {group_info.anat2func_xfm.replace("*SUB*", sub).replace("*SES*", ses)} -inverse {group_info.func2anat_xfm.replace("*SUB*", sub).replace("*SES*", ses)}'
     subprocess.run(bash_cmd, shell=True)
 
 #for infants
