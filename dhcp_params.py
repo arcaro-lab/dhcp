@@ -30,8 +30,8 @@ class load_group_params():
                 
             #dhcp data directories
             self.raw_data_dir = '/mnt/DataDrive1/data_raw/human_mri/dhcp_raw'
-            self.raw_anat_dir = f'{self.raw_data_dir}/rel3_dhcp_anat_pipeline'
-            self.raw_func_dir = f'{self.raw_data_dir}/rel3_dhcp_fmri_pipeline'
+            self.raw_anat_dir = f'{self.raw_data_dir}/dhcp_anat_pipeline'
+            self.raw_func_dir = f'{self.raw_data_dir}/dhcp_fmri_pipeline'
             self.out_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed'
             self.anat_suf = f'desc-restore_T2w' 
             self.func_suf = f'task-rest_desc-preproc_bold'
@@ -99,6 +99,8 @@ class load_atlas_info():
         elif atlas == 'calcsulc':
             self.atlas_name  = 'calcsulc_binnedroi_hemi'
             self.roi_labels = pd.read_csv(f'{atlas_dir}/calcsulc_labels.csv')
+
+            
 
 
 

@@ -23,8 +23,8 @@ import numpy as np
 import pandas as pd
 from glob import glob as glob
 import pdb
-import dhcp_params as params
-import subprocess
+import dhcp_params as params #loads group parameters
+import subprocess #used to run individual phases
 import time
 
 #print date and time
