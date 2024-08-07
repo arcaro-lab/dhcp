@@ -25,6 +25,7 @@ import nibabel as nib
 import shutil
 import matplotlib
 matplotlib.use('Agg')
+import pdb
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
@@ -84,7 +85,7 @@ for hemi in ['lh','rh']:
                     -grid_parent {out_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol_reg.nii.gz \
                         -sdata {atlas_dir}/{curr_atlas}.1D.dset \
                             -map_func mode \
-                                    -prefix {out_dir}/atlas/{curr_atlas}_anat"""
+                                -prefix {out_dir}/atlas/{curr_atlas}_anat"""
     
     
     subprocess.run(bash_cmd.split(), check = True)

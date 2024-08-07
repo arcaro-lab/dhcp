@@ -62,6 +62,8 @@ sub_list.reset_index(drop=True, inplace=True)
 
 
 
+
+
 #limit to first 30 subjects
 #sub_list = full_sub_list.head(200)
 
@@ -78,16 +80,16 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = True
+extract_brain = False
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = True
+reg_phase1 = False
 reg_phase2 = False
-reg_phase3 = True
-reg_phase4 = True
+reg_phase3 = False
+reg_phase4 = False
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
 split_atlas = True
 
@@ -172,6 +174,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #run script
             bash_cmd = f'python {script_dir}/{script_name} {sub} {group} {atlas}'
             subprocess.run(bash_cmd, check=True, shell=True)
+            
 
             
             #set analysis_name to 1

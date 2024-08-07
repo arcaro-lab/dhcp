@@ -37,7 +37,7 @@ group_info = dhcp_params.load_group_params(group)
 ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
 atlas = sys.argv[3]
 
-hemis = ['lh','rh']
+#hemis = ['lh','rh']
 
 #set sub dir
 anat_dir = f'{group_info.out_dir}/{sub}/{ses}'
@@ -75,7 +75,7 @@ else:
 
 
 
-for hemi in ['lh','rh']:
+for hemi in group_info.hemis:
     #replace hemi in atlas name with current hemi
     curr_atlas = atlas_name.replace('hemi', hemi)
     
@@ -112,7 +112,7 @@ fig, ax = plt.subplots(2, figsize = (4,6))
 '''
 Create new atlas with max probability roi
 '''
-for hemi in ['lh','rh']:
+for hemi in group_info.hemis:
     curr_atlas = atlas_name.replace('hemi', hemi)
     roi_imgs = []
 
@@ -143,7 +143,7 @@ for hemi in ['lh','rh']:
     #plot atlas on subject's brain
     plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[group_info.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
-plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group_info.group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
 
         
 

@@ -23,6 +23,8 @@ atlas_dir = '/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/atlases'
 class load_group_params():
     def __init__(self,group):
 
+        self.hemis = ['lh','rh']
+
         '''
         Define directories based on age group
         '''
