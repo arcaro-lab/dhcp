@@ -25,9 +25,18 @@ roi_labels = atlas_info.roi_labels
 
 
 age_groups= ['infant', 'adult']
-age_groups = ['adult']
 
-def create_indiv_rdm(group, sub_list, data_dir, atlas):
+extract_group = False
+extract_by_age = True
+
+extract_indiv = True
+extract_cross_hemi = True
+extract_within_hemi = True
+
+
+#age_groups = ['adult']
+
+def create_indiv_rdm(group, sub_list, data_dir, atlas,suffix = ''):
     
     atlas_info = params.load_atlas_info(atlas)
     roi_labels = atlas_info.roi_labels
@@ -40,41 +49,52 @@ def create_indiv_rdm(group, sub_list, data_dir, atlas):
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         all_ts = []
 
-        for hemi in params.hemis:
-            #load timeseries
-            #this is all ROIs for a given hemisphere
-            ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_{hemi}_ts.npy')
-
-            
-            #if ts is longer than params.vols, truncate
-            #this is to equalize the number of volumes across groups
-            if ts.shape[0] > params.vols:
-                ts = ts[:params.vols,:]
-
-            #append to all_ts
-            all_ts.append(ts)
-            
         
-        #intersperse hemis so it goes lh->rh->lh->rh for each rois
-        full_ts = np.zeros((all_ts[0].shape[1] * 2, all_ts[0].shape[0]))
-        full_ts[0::2] = all_ts[0].T
-        full_ts[1::2] = all_ts[1].T
-       
+        #check if file exists
+        #if not, skip
+        if os.path.exists(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy'):
 
-        #compute correlation matrix across all rois
-        corr_mat = np.corrcoef(full_ts)
+            for hemi in params.hemis:
+                #load timeseries
+                #this is all ROIs for a given hemisphere
 
-        all_subs.append(corr_mat)
+                #check if file exists
+                
+                ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_{hemi}_ts.npy')
 
-        #save
-        np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_fc.npy', corr_mat)
+                
+                #if ts is longer than params.vols, truncate
+                #this is to equalize the number of volumes across groups
+                if ts.shape[0] > params.vols:
+                    ts = ts[:params.vols,:]
+
+                #append to all_ts
+                all_ts.append(ts)
+                
+            
+            #intersperse hemis so it goes lh->rh->lh->rh for each rois
+            full_ts = np.zeros((all_ts[0].shape[1] * 2, all_ts[0].shape[0]))
+            full_ts[0::2] = all_ts[0].T
+            full_ts[1::2] = all_ts[1].T
+        
+
+            #compute correlation matrix across all rois
+            corr_mat = np.corrcoef(full_ts)
+
+            all_subs.append(corr_mat)
+
+            #save
+            np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_fc.npy', corr_mat)
+
+        #else:
+        #    print(f'{sub} does not have timeseries file')
 
     #convert to numpy array
     all_subs = np.array(all_subs)
 
     
 
-    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_fc.npy', all_subs)
+    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_fc{suffix}.npy', all_subs)
     
     
 
@@ -84,57 +104,58 @@ def create_indiv_rdm(group, sub_list, data_dir, atlas):
 
 
 
-def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas):
+def compute_cross_hemi_rdm(group, sub_list, data_dir, atlas, suffix = ''):
 
     ''' 
     create assymmetric RDM by correlating timeseries from one hemisphere with the other hemisphere
     '''
-    atlas_name, roi_labels = params.load_atlas_info(atlas)
-
+    atlas_info = params.load_atlas_info(atlas)
+    roi_labels = atlas_info.roi_labels
     
 
     all_rdms = []
     #for each subject looop through wang labels and load timeseries
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-        #create empty RDM size of number of rois
-        rdm = np.zeros((len(roi_labels), len(roi_labels)))
+        if os.path.exists(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy'):
+            #create empty RDM size of number of rois
+            rdm = np.zeros((len(roi_labels), len(roi_labels)))
+            
         
+            #load timeseries
+            #this is all ROIs for a given hemisphere
+            lh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy')
+            rh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_rh_ts.npy')
+
+            
+            #if ts is longer than params.vols, truncate
+            if lh_ts.shape[0] > params.vols:
+                lh_ts = lh_ts[:params.vols,:]
+                rh_ts = rh_ts[:params.vols,:]
+
+            #correlate each roi in lh with each roi in rh
+            for x, ts1 in enumerate(lh_ts.T):
+                for y, ts2 in enumerate(rh_ts.T):
+                    
+                    r = np.corrcoef(ts1,ts2)[0,1]
+                    rdm[x,y] = r
+
     
-        #load timeseries
-        #this is all ROIs for a given hemisphere
-        lh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy')
-        rh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_rh_ts.npy')
+                    #append to all_ts
+            all_rdms.append(rdm)
 
-        
-        #if ts is longer than params.vols, truncate
-        if lh_ts.shape[0] > params.vols:
-            lh_ts = lh_ts[:params.vols,:]
-            rh_ts = rh_ts[:params.vols,:]
-
-        #correlate each roi in lh with each roi in rh
-        for x, ts1 in enumerate(lh_ts.T):
-            for y, ts2 in enumerate(rh_ts.T):
-                
-                r = np.corrcoef(ts1,ts2)[0,1]
-                rdm[x,y] = r
-
-  
-                #append to all_ts
-        all_rdms.append(rdm)
-
-        #save 
-        np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_cross_hemi_fc.npy', rdm)
+            #save 
+            np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_cross_hemi_fc.npy', rdm)
 
     #convert to numpy array
     all_rdms = np.array(all_rdms)
     #save all subs
-    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_cross_hemi_fc.npy', all_rdms)
+    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_cross_hemi_fc.npy{suffix}', all_rdms)
 
     
     return all_rdms
             
 
-def compute_within_hemi_rdm(group, sub_list, data_dir, atlas):
+def compute_within_hemi_rdm(group, sub_list, data_dir, atlas, suffix = ''):
 
     ''' 
     create symmetric RDM by correlating timeseries only within hemisphere
@@ -148,48 +169,46 @@ def compute_within_hemi_rdm(group, sub_list, data_dir, atlas):
     all_rh_rdms = []
     #for each subject looop through wang labels and load timeseries
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-        #create empty RDM size of number of rois
-        rdm = np.zeros((len(roi_labels), len(roi_labels)))
-        lh_rdm = rdm
-        rh_rdm = rdm
-        
-    
-        #load timeseries
-        #this is all ROIs for a given hemisphere
-        lh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy')
-        rh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_rh_ts.npy')
-
-        
-        #if ts is longer than params.vols, truncate
-        if lh_ts.shape[0] > params.vols:
-            lh_ts = lh_ts[:params.vols,:]
-            rh_ts = rh_ts[:params.vols,:]
-
-        
-        #correlate each roi in lh with each roi in rh
-        for (x, lh_ts1), (_, rh_ts1) in zip(enumerate(lh_ts.T), enumerate(rh_ts.T)):
+        if os.path.exists(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy'):
+            #create empty RDM size of number of rois
+            rdm = np.zeros((len(roi_labels), len(roi_labels)))
+            lh_rdm = rdm
+            rh_rdm = rdm
             
-            for (y, lh_ts2), (_,rh_ts2) in zip(enumerate(lh_ts.T), enumerate(rh_ts.T)):
-                
-                lh_r = np.corrcoef(lh_ts1,lh_ts2)[0,1]
-                rh_r = np.corrcoef(rh_ts1,rh_ts2)[0,1]
-                rdm[x,y] = np.mean([lh_r, rh_r]).round(4)
-
-                lh_rdm[x,y] = lh_r
-                rh_rdm[x,y] = rh_r
-
-
-
-
         
-  
-                #append to all_ts
-        all_rdms.append(rdm)
-        all_lh_rdms.append(lh_rdm)
-        all_rh_rdms.append(rh_rdm)
+            #load timeseries
+            #this is all ROIs for a given hemisphere
+            lh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_lh_ts.npy')
+            rh_ts = np.load(f'{data_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_rh_ts.npy')
 
-        #save 
-        #np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_within_hemi_fc.npy', rdm)
+            
+            #if ts is longer than params.vols, truncate
+            if lh_ts.shape[0] > params.vols:
+                lh_ts = lh_ts[:params.vols,:]
+                rh_ts = rh_ts[:params.vols,:]
+
+            
+            #correlate each roi in lh with each roi in rh
+            for (x, lh_ts1), (_, rh_ts1) in zip(enumerate(lh_ts.T), enumerate(rh_ts.T)):
+                
+                for (y, lh_ts2), (_,rh_ts2) in zip(enumerate(lh_ts.T), enumerate(rh_ts.T)):
+                    
+                    lh_r = np.corrcoef(lh_ts1,lh_ts2)[0,1]
+                    rh_r = np.corrcoef(rh_ts1,rh_ts2)[0,1]
+                    rdm[x,y] = np.mean([lh_r, rh_r]).round(4)
+
+                    lh_rdm[x,y] = lh_r
+                    rh_rdm[x,y] = rh_r
+
+            
+            
+            #append to all_ts
+            all_rdms.append(rdm)
+            all_lh_rdms.append(lh_rdm)
+            all_rh_rdms.append(rh_rdm)
+
+            #save 
+            #np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_within_hemi_fc.npy', rdm)
 
     #convert to numpy array
     all_rdms = np.array(all_rdms)
@@ -199,17 +218,73 @@ def compute_within_hemi_rdm(group, sub_list, data_dir, atlas):
 
 
     #save all subs
-    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_within_hemi_fc.npy', all_rdms)
+    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_within_hemi_fc{suffix}.npy', all_rdms)
 
-    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_lh_within_hemi_fc.npy', all_lh_rdms)
-    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_rh_within_hemi_fc.npy', all_rh_rdms)
+    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_lh_within_hemi_fc{suffix}.npy', all_lh_rdms)
+    np.save(f'{data_dir}/derivatives/fc_matrix/{group}_{atlas}_rh_within_hemi_fc{suffix}.npy', all_rh_rdms)
 
     
     return all_rdms
 
+if extract_group == True:
+    print('Extracting group RDMs...')
+    #create indiv rdm for each subject
+    for group in age_groups:
+        #extract group data
+        group_info = params.load_group_params(group)
+
+        #load subject list
+        sub_list= group_info.sub_list
+        sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
+
+        
+        
+
+        if extract_indiv == True:
+            print(f'Extracting individual {group} RDMs...', len(sub_list)) 
+            #create indiv rdm
+            all_rdms = create_indiv_rdm(group, sub_list, group_info.out_dir, atlas)
+            out_dir = group_info.out_dir
+
+            #compute median rdm
+            median_fc = np.median(all_rdms, axis = 0)
+
+            
+            #save median rdm to results dir as csv
+            median_fc = pd.DataFrame(median_fc)
+            median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc.csv', header = False, index = False)
+        
+
+        if extract_cross_hemi == True:
+            print(f'Extracting cross-hemi {group} RDMs ...')
+            #compute cross hemi rdm
+            cross_hemi_rdms = compute_cross_hemi_rdm(group, sub_list, out_dir, atlas)
+
+            #compute median cross hemi rdm
+            median_cross_hemi_fc = np.median(cross_hemi_rdms, axis = 0)
+
+            #save median rdm to results dir as csv
+            median_cross_hemi_fc = pd.DataFrame(median_cross_hemi_fc)
+            median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc.csv', header = False, index = False)
+
+        if extract_within_hemi == True:
+            
+            print(f'Extracting within-hemi {group} RDMs ...')
+            #compute within hemi rdm
+            within_hemi_rdms = compute_within_hemi_rdm(group, sub_list, group_info.out_dir, atlas)
+
+            #compute median within hemi rdm
+            median_within_hemi_fc = np.median(within_hemi_rdms, axis = 0)
+
+            #save median rdm to results dir as csv
+            median_within_hemi_fc = pd.DataFrame(median_within_hemi_fc)
+            median_within_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_within_hemi_fc.csv', header = False, index = False)
+
+
     
-#create indiv rdm for each subject
-for group in age_groups:
+if extract_by_age == True:
+    print('Extracting by age group...')
+    group = 'infant'
     #extract group data
     group_info = params.load_group_params(group)
 
@@ -217,43 +292,58 @@ for group in age_groups:
     sub_list= group_info.sub_list
     sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
 
-    
+    age_bins = [26, 38,44]
 
-   
-    print(f'Extracting individual {group} RDMs...', len(sub_list)) 
-    #create indiv rdm
-    all_rdms = create_indiv_rdm(group, sub_list, group_info.out_dir, atlas)
+    #loop through and bin subs based on whether they are in the first, second, or third age bin
+    for i in range(len(age_bins)-1):
+        sub_list.loc[(sub_list.scan_age > age_bins[i]) & (sub_list.scan_age < age_bins[i+1]), 'age_bin'] = i
+        
 
-    #compute median rdm
-    median_fc = np.median(all_rdms, axis = 0)
+    for group_bin in range(len(age_bins)-1):
+        #filter sub_list
+        sub_list_age = sub_list[sub_list.age_bin == group_bin]
 
-    
-    #save median rdm to results dir as csv
-    median_fc = pd.DataFrame(median_fc)
-    median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc.csv', header = False, index = False)
-    '''
-    print(f'Extracting cross-hemi {group} RDMs ...')
-    #compute cross hemi rdm
-    cross_hemi_rdms = compute_cross_hemi_rdm(group, sub_list, out_dir, atlas)
+        
 
-    #compute median cross hemi rdm
-    median_cross_hemi_fc = np.median(cross_hemi_rdms, axis = 0)
+        if extract_indiv == True:
+            print(f'Extracting individual {group_bin} RDMs...', len(sub_list_age)) 
 
-    #save median rdm to results dir as csv
-    median_cross_hemi_fc = pd.DataFrame(median_cross_hemi_fc)
-    median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc.csv', header = False, index = False)
-    '''
-    print(f'Extracting within-hemi {group} RDMs ...')
-    #compute within hemi rdm
-    within_hemi_rdms = compute_within_hemi_rdm(group, sub_list, group_info.out_dir, atlas)
+            
+            #create indiv rdm
+            all_rdms = create_indiv_rdm(group, sub_list_age, group_info.out_dir, atlas, suffix=f'_age_group_{group_bin}')
+            out_dir = group_info.out_dir
 
-    #compute median within hemi rdm
-    median_within_hemi_fc = np.median(within_hemi_rdms, axis = 0)
+            #compute median rdm
+            median_fc = np.median(all_rdms, axis = 0)
+            
 
-    #save median rdm to results dir as csv
-    median_within_hemi_fc = pd.DataFrame(median_within_hemi_fc)
-    median_within_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_within_hemi_fc.csv', header = False, index = False)
+            
+            #save median rdm to results dir as csv
+            median_fc = pd.DataFrame(median_fc)
+            median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc_age_group_{group_bin}.csv', header = False, index = False)
+        
 
+        if extract_cross_hemi == True:
+            print(f'Extracting cross-hemi {group_bin} RDMs ...')
+            #compute cross hemi rdm
+            cross_hemi_rdms = compute_cross_hemi_rdm(group, sub_list_age, out_dir, atlas, suffix=f'_age_group_{group_bin}')
 
-    
-    
+            #compute median cross hemi rdm
+            median_cross_hemi_fc = np.median(cross_hemi_rdms, axis = 0)
+
+            #save median rdm to results dir as csv
+            median_cross_hemi_fc = pd.DataFrame(median_cross_hemi_fc)
+            median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc_age_group_{group_bin}.csv', header = False, index = False)
+
+        if extract_within_hemi == True:
+            
+            print(f'Extracting within-hemi {group_bin} RDMs ...')
+            #compute within hemi rdm
+            within_hemi_rdms = compute_within_hemi_rdm(group, sub_list_age, group_info.out_dir, atlas, suffix=f'_age_group_{group_bin}')
+
+            #compute median within hemi rdm
+            median_within_hemi_fc = np.median(within_hemi_rdms, axis = 0)
+
+            #save median rdm to results dir as csv
+            median_within_hemi_fc = pd.DataFrame(median_within_hemi_fc)
+            median_within_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_within_hemi_fc_age_group_{group_bin}.csv', header = False, index = False)

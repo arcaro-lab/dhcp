@@ -103,49 +103,6 @@ register_vol_roi = False
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False
 
-def find_eligble_subs():
-
-    '''
-    Pre-registration phase: Check which subjects have all scans
-
-    Create new participant list with eligible subjects
-    '''
-    raw_sub_list = pd.read_csv(f'{raw_func_dir}/participants.tsv', sep='\t')
-    #create new sub list
-    sub_list = pd.DataFrame(columns=raw_sub_list.columns.to_list() + ['ses'])
-
-    for sub in raw_sub_list['participant_id']:
-        #check if subject has all scans
-        anat_files = glob(f'{raw_anat_dir}/sub-{sub}/*/anat/*{anat_suf}.nii.gz')
-        func_files = glob(f'{raw_func_dir}/sub-{sub}/*/func/*{func_suf}.nii.gz')
-
-        #determine session number
-        ses = glob(f'{raw_anat_dir}/sub-{sub}/ses-*')
-        ses = ses[0].split('/')[-1]
-
-        
-        #if subject has all scans, add to new list
-        if len(anat_files) > 0 and len(func_files) > 0:
-            #add subject and ses to new final_sub_list
-            sub_list = pd.concat([sub_list, raw_sub_list[raw_sub_list['participant_id']==sub]], ignore_index=True)
-            sub_list.loc[sub_list['participant_id']==sub, 'ses'] = ses
-
-            
-        
-    #append sub- to participant_id
-    sub_list['participant_id'] = 'sub-' + sub_list['participant_id']
-
-    #add columns for phase 1-4 as empty
-    sub_list['phase_1'] = ''
-    sub_list['phase_2'] = ''
-    sub_list['phase_3'] = ''
-    sub_list['phase_4'] = ''
-
-    #save new list
-    sub_list.to_csv(f'{out_dir}/{group_info.participants_file}.csv', index=False)
-
-    #print total number of subjects
-    print(f'Total usable of participants: {len(sub_list)}')
 
 
 
