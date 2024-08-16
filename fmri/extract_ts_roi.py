@@ -34,29 +34,27 @@ warnings.filterwarnings("ignore")
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
-group = sys.argv[2]
-atlas = sys.argv[3]
+ses = sys.argv[2]
+group = sys.argv[3]
+atlas = sys.argv[4]
 
 #sub-CC00056XX07 ses-10700 wang
 group_info = params.load_group_params(group)
 
 
 #set sub dir
-anat_dir = glob(f'{group_info.raw_anat_dir}/{sub}/ses-*')[0]
-func_dir = glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0]
-out_dir = glob(f'{group_info.out_dir}/{sub}/ses-*')[0]
+anat_dir = glob(f'{group_info.raw_anat_dir}/{sub}/{ses}')
+func_dir = glob(f'{group_info.raw_func_dir}/{sub}/{ses}')
+out_dir = glob(f'{group_info.out_dir}/{sub}/{ses}')
 atlas_dir = params.atlas_dir
 
-
-#extract ses 
-ses = 'ses-' + anat_dir.split('ses-')[1]
 
 
 
 results_dir = f'{out_dir}/derivatives/timeseries'
 os.makedirs(results_dir, exist_ok = True)
 
-os.makedirs(f'{group_info.out_dir}/derivatives/fc_matrix', exist_ok = True)
+os.makedirs(f'{out_dir}/derivatives/fc_matrix', exist_ok = True)
 
 
 roi_dir = f'{out_dir}/rois/{atlas}'
@@ -141,5 +139,5 @@ all_ts = all_ts.T
 corr_mat = np.corrcoef(all_ts)
 
 #save
-np.save(f'{group_info.out_dir}/derivatives/fc_matrix/{sub}_{atlas}_fc.npy', corr_mat)
+np.save(f'{out_dir}/derivatives/fc_matrix/{sub}_{ses}_{atlas}_fc.npy', corr_mat)
 

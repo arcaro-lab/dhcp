@@ -20,11 +20,12 @@ import pdb
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
-group = sys.argv[2]
+ses = sys.argv[2]
+group = sys.argv[3]
 
 group_info = dhcp_params.load_group_params(group)
 
-ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
+
 
 #create sub directories
 os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/anat', exist_ok=True)

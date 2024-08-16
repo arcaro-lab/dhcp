@@ -80,16 +80,16 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = False
+extract_brain = True
 
 #Reg-phase1-4 : Register individual anat to fsaverage
-reg_phase1 = False
+reg_phase1 = True
 reg_phase2 = False
-reg_phase3 = False
-reg_phase4 = False
+reg_phase3 = True
+reg_phase4 = True
 
 #Registers atlas to individual anat
-register_atlas = False
+register_atlas = True
 #split atlas into individual rois
 split_atlas = True
 
@@ -129,13 +129,13 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
 
         try:
             #run script
-            bash_cmd = f'python {script_dir}/{script_name} {sub} {group} {atlas}'
+            bash_cmd = f'python {script_dir}/{script_name} {sub} {ses} {group} {atlas}'
             subprocess.run(bash_cmd, check=True, shell=True)
             
 
             
             #set analysis_name to 1
-            sub_list.loc[sub_list['participant_id']==sub, analysis_name] = 1
+            sub_list.loc[(sub_list['participant_id']==sub) & (sub_list['ses'] == ses), analysis_name] = 1
 
             #update the full_sub_list and save it
             #note: full_sub_list is kept outside of the function so its not overwritten
@@ -179,41 +179,18 @@ if reg_phase1:
     
     launch_script(sub_list = sub_list,script_name='phase1_registration.py',analysis_name='phase_1',pre_req='extract_brain')
 
+
 if reg_phase2:
-    '''
-    Phase 2: Write curv and sulc data to txt in matlab
-
-    Note: subject loop and error logging is done in matlab script
-    *If this crashes on a new dataset, check the directory in the matlab script
-
-    **MAYBE SKIPPING THIS
-    '''
-    print('Running phase 2 registration')
-    bash_cmd = "matlab.exe -batch \"run('fmri/phase2_registration.m')\""
-    subprocess.run(bash_cmd, check=True, shell=True)
-
-    #load updated sub list
-    #this needs to be reloaded because matlab script updates it
-    full_sub_list = pd.read_csv(f'{out_dir}/{participants_file}.csv')
-    
-    #Matlab adds a bunch of nans to empty cells, so this deletes them
-    full_sub_list.replace(np.nan,'',inplace=True)
-    #save updated sub list
-    full_sub_list.to_csv(f'{out_dir}/{participants_file}.csv', index=False)
-
-
-
-if reg_phase3:
     '''
     Phase 3 of registration pipeline: Creates final surfaces and registers to fsaverage
     '''
-    launch_script(sub_list = sub_list,script_name='phase3_registration.py',analysis_name='phase_3',pre_req='phase_1')
+    launch_script(sub_list = sub_list,script_name='phase3_registration.py',analysis_name='phase_2',pre_req='phase_1')
 
-if reg_phase4:
+if reg_phase3:
     '''
     Phase 4 of registration pipeline: Registers anat to EPI
     '''
-    launch_script(sub_list = sub_list,script_name='phase4_registration.py',analysis_name='phase_4',pre_req='phase_3')
+    launch_script(sub_list = sub_list,script_name='phase4_registration.py',analysis_name='phase_3',pre_req='phase_2')
 
 if register_atlas:
     '''

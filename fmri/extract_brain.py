@@ -58,8 +58,16 @@ anat = f'anat/{sub}_{ses}_{group_info.anat_suf}'
 func = f'func/{sub}_{ses}_{group_info.func_suf}'
 brain_mask = f'anat/{sub}_{ses}_{group_info.brain_mask_suf}'
 
-#binarize brain mask and output to preprocessing directory
-bash_cmd = f'fslmaths {anat_input}/{brain_mask}.nii.gz -bin {out_dir}/{brain_mask}.nii.gz'
+#check if brain mask exists
+if os.path.isfile(f'{out_dir}/{brain_mask}.nii.gz'):
+
+    #binarize brain mask and output to preprocessing directory
+    bash_cmd = f'fslmaths {anat_input}/{brain_mask}.nii.gz -bin {out_dir}/{brain_mask}.nii.gz'
+
+else:
+    
+    bash_cmd = f'fslmaths {anat_input}/anat/{sub}_{ses}_desc-brain_mask.nii.gz -bin {out_dir}/{brain_mask}.nii.gz'
+
 subprocess.run(bash_cmd, shell=True)
 
 #check if file exists
