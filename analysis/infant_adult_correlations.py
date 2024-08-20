@@ -37,7 +37,7 @@ roi_labels = atlas_info.roi_labels
 group= 'infant'
 group_params = params.load_group_params(group)
 #load individual infant data
-infant_fc = np.load(f'{group_params.out_dir}/derivatives/fc_matrix/{group}_{atlas}_{summary_type}.npy')
+
 
 #infant_fc = infant_fc[0:30,:,:]
 
@@ -53,8 +53,8 @@ networks = ['Occipital', 'Ventral', 'Lateral', 'Dorsal']
 all_rois = []
 all_networks = []
 
-
-
+#flag whether to rerun correlations
+re_run = True
 
 
 if summary_type == 'fc':
@@ -85,7 +85,7 @@ adult_df = pd.DataFrame(adult_fc, index = all_rois, columns = all_rois)
 
 #melt so that you have an roi1 and roi1 column
 adult_df = adult_df.melt(var_name = 'roi2', value_name = 'fc', ignore_index = False).reset_index().rename(columns = {'index':'roi1'})
-#adult_df = adult_df.dropna()
+adult_df = adult_df.dropna()
 
 #add network labels
 adult_df['network1'] = [all_networks[all_rois.index(roi)] for roi in adult_df['roi1']]
@@ -103,129 +103,90 @@ if summary_type == 'fc':
 
 
 
+'''Compare all ROIs between infants and adults'''
 
-
-def no_hemi_comparisons(infant_fc, adult_df):
-    '''collapse across hemis and compare all rois'''
-
-    summary_df = pd.DataFrame(columns = ['sub', 'sex','birth_age', 'scan_age', 'hemi', 'infant_roi','infant_network','adult_roi','adult_network', 'roi_similarity','network_similarity','corr' ])
-
-    for i in range(infant_fc.shape[0]):
-        print(i + 1, '/',infant_fc.shape[0])
-        sub = sub_info['participant_id'][i]
-        sex = sub_info['sex'][i]
-        birth_age = sub_info['birth_age'][i]
-        scan_age = sub_info['scan_age'][i]
-
-        curr_fc = infant_fc[i,:,:]
-        #set diagonal to nan
-        np.fill_diagonal(curr_fc, np.nan)
-
-        #melt so that you have an roi1 and roi1 column
-        curr_df = pd.DataFrame(curr_fc, index = all_rois, columns = all_rois)
-        curr_df = curr_df.melt(var_name = 'roi2', value_name = 'fc', ignore_index = False).reset_index().rename(columns = {'index':'roi1'})
-        curr_df = curr_df.dropna()
-        
-        #add network labels
-        curr_df['network1'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi1']]
-        curr_df['network2'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi2']]
-
-        #split roi into hemi and roi
-        #curr_df['hemi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[0])
-        #curr_df['roi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[1])
-        #curr_df['hemi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[0])
-        #curr_df['roi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[1])
-
-        
-
-
-        #for hemi in ['lh','rh']:
-        #loop through rois and calculate correlation
-        for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
-            infant_data = curr_df[(curr_df['roi1'] == infant_roi)]
-
-            for adult_roi, adult_network in zip(roi_labels['label'], roi_labels['network']):
-                adult_data = adult_df[(adult_df['roi1'] == adult_roi)]
-                #pdb.set_trace()
-
-                #calculate correlation
-                corr = np.corrcoef(infant_data['fc'], adult_data['fc'])[0,1]
-
-                if infant_roi == adult_roi:
-                    roi_sim = 'same'
-                else:
-                    roi_sim = 'diff'
-
-                if infant_network == adult_network:
-                    net_sim = 'same'
-                else:
-                    net_sim = 'diff'
-
-
-                #add to summary_df
-                curr_data = [sub, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network, roi_sim, net_sim, corr]
-                summary_df.loc[len(summary_df)] = curr_data
-
-    return summary_df
-        
-def both_hemi_comparisons(infant_fc, adult_df):
-
-    '''
-    Compare ROIs in each hemi seperately
-    '''
-
-    print('Comparing ROIs in each hemi seperately')
+summary_df = pd.DataFrame(columns = ['sub', 'sex','birth_age', 'scan_age', 'hemi', 'infant_roi','infant_network','adult_roi','adult_network', 'hemi_similarity', 'roi_similarity','network_similarity','corr' ])
+n=1
+for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
+    print(n , f'of {len(sub_info)}')
+    n +=1
     
 
-    summary_df = pd.DataFrame(columns = ['sub', 'sex','birth_age', 'scan_age', 'hemi', 'infant_roi','infant_network','adult_roi','adult_network', 'roi_similarity','network_similarity','corr' ])
-    for i in range(infant_fc.shape[0]):
-        print(i + 1, '/',infant_fc.shape[0])
-        sub = sub_info['participant_id'][i]
-        sex = sub_info['sex'][i]
-        birth_age = sub_info['birth_age'][i]
-        scan_age = sub_info['scan_age'][i]
+    sex = sub_info.loc[(sub_info['participant_id'] == sub) & (sub_info['ses'] == ses), 'sex'].values[0]
+    birth_age = sub_info.loc[(sub_info['participant_id'] == sub) & (sub_info['ses'] == ses), 'birth_age'].values[0]
+    scan_age = sub_info.loc[(sub_info['participant_id'] == sub) & (sub_info['ses'] == ses), 'scan_age'].values[0]
+    
+    #set sub directory
+    sub_dir = f'{group_params.out_dir}/{sub}/{ses}'
 
-        curr_fc = infant_fc[i,:,:]
-        #set diagonal to nan
-        np.fill_diagonal(curr_fc, np.nan)
+    #make correlation_dir 
+    os.makedirs(f'{sub_dir}/derivatives/infant_adult_correlations', exist_ok=True)
+    
 
-        #melt so that you have an roi1 and roi1 column
-        curr_df = pd.DataFrame(curr_fc, index = all_rois, columns = all_rois)
-        curr_df = curr_df.melt(var_name = 'roi2', value_name = 'fc', ignore_index = False).reset_index().rename(columns = {'index':'roi1'})
-        #curr_df = curr_df.dropna()
+
+    #check if file exists; skip if not
+    if not os.path.isfile(f'{sub_dir}//derivatives/fc_matrix/{sub}_{ses}_{atlas}_fc.npy'):
+        continue
+
+    #check if final file already exists and you dont want to overwrite it 
+    if os.path.isfile(f'{sub_dir}/derivatives/{sub}_adult_correlations.csv') and re_run == False:
+        sub_df = pd.read_csv(f'{sub_dir}/derivatives/{sub}_adult_correlations.csv')
+        #add to summary_df
+        summary_df = pd.concat(summary_df, sub_df)
+        continue
+
+    
+    curr_fc = np.load(f'{sub_dir}//derivatives/fc_matrix/{sub}_{ses}_{atlas}_fc.npy')
+    np.fill_diagonal(curr_fc, np.nan)
+
+    #melt so that you have an roi1 and roi1 column
+    curr_df = pd.DataFrame(curr_fc, index = all_rois, columns = all_rois)
+    curr_df = curr_df.melt(var_name = 'roi2', value_name = 'fc', ignore_index = False).reset_index().rename(columns = {'index':'roi1'})
+    curr_df = curr_df.dropna()
+    
+    #add network labels
+    curr_df['network1'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi1']]
+    curr_df['network2'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi2']]
+
+    #split roi1 
+    curr_df[['roi1','hemi1']] = curr_df.split('_',expand = True)
+    curr_df[['roi2','hemi2']] = curr_df.split('_',expand = True)
+
+    #loop through and mark if rois and networks are the same
+    def hemi_compare(row):
+        if curr_df['hemi1'] == curr_df['hemi2']:
+            return 'same'
+        else:
+            return 'diff'
+    
+    def roi_compare(row):
+        if curr_df['roi1'] == curr_df['roi2']:
+            return 'same'
+        else:
+            return 'diff'
         
-        #add network labels
-        curr_df['network1'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi1']]
-        curr_df['network2'] = [all_networks[all_rois.index(roi)] for roi in curr_df['roi2']]
-
-        #split roi into hemi and roi
-        curr_df['hemi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[0])
-        curr_df['roi1'] = curr_df['roi1'].apply(lambda x: x.split('_')[1])
-        curr_df['hemi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[0])
-        curr_df['roi2'] = curr_df['roi2'].apply(lambda x: x.split('_')[1])
-
+    def network_compare(row):
+        if curr_df['network1'] == curr_df['network2']:
+            return 'same'
+        else:
+            return 'diff'
         
+    curr_df['hemi_similarity'] = curr_df.apply(hemi_compare, axis =1)
+    curr_df['roi_similarity'] = curr_df.apply(roi_compare, axis =1)
+    curr_df['network_similarity'] = curr_df.apply(network_compare, axis =1)
 
-
-        for hemi in ['lh','rh']:
-            #loop through rois and calculate correlation
-            for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
-                infant_data = curr_df[(curr_df['hemi1'] == hemi) & (curr_df['roi1'] == infant_roi)]
-                infant_vals = infant_data['fc'].values
-
+    sub_df = pd.DataFrame(columns=summary_df.columns)
+    for infant_hemi in ['lh','rh']:
+        #loop through rois and calculate correlation
+        for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
+            infant_data = curr_df[(curr_df['roi1'] == infant_roi) & + (curr_df['hemi1'] == infant_hemi)]
+            for adult_hemi in ['lh','rh']:
                 for adult_roi, adult_network in zip(roi_labels['label'], roi_labels['network']):
-                    adult_data = adult_df[(adult_df['hemi1'] == hemi) & (adult_df['roi1'] == adult_roi)]
-                    adult_vals = adult_data['fc'].values
+                    adult_data = adult_df[(adult_df['roi1'] == adult_roi) & (adult_df['hemi1'] == adult_hemi)]
+                    
 
-                    #find rows that are nans in both datasets
-                    #nans here are the diagonal
-                    #effectively this removes diagnols from both datasets, 
-                    #and only compares values for which both have pairwise corrs with
-                    nan_idx = np.isnan(infant_vals) | np.isnan(adult_vals)
-
-
-                    #calculate correlation exclu
-                    corr = np.corrcoef(infant_vals[~nan_idx], adult_vals[~nan_idx])[0,1]
+                    #calculate correlation
+                    corr = np.corrcoef(infant_data['fc'], adult_data['fc'])[0,1]
 
                     if infant_roi == adult_roi:
                         roi_sim = 'same'
@@ -237,20 +198,21 @@ def both_hemi_comparisons(infant_fc, adult_df):
                     else:
                         net_sim = 'diff'
 
+                    if infant_hemi == adult_hemi:
+                        hemi_sim = 'same'
+                    else:
+                        hemi_sim = 'diff'
 
-                    #add to summary_df
-                    curr_data = [sub, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network, roi_sim, net_sim, corr]
-                    summary_df.loc[len(summary_df)] = curr_data
+                    pdb.set_trace()
+                    #add to sub_df
+                    curr_data = [sub, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network,hemi_sim, roi_sim, net_sim, corr]
+                    sub_df.loc[len(sub_df)] = curr_data
 
-            
-    return summary_df
+    #save sub_df
+    sub_df.to_csv(f'{sub_dir}/derivatives/{sub}_adult_correlations.csv', index=False)
+    
+    #add to summary_df
+    summary_df = pd.concat(summary_df, sub_df)
 
+summary_df.to_csv(f'{params.results_dir}/infant_adult_roi_similarity_all.csv', index = False)
 
-#summary_df = no_hemi_comparisons(infant_fc, adult_df)
-#summary_df.to_csv(f'{params.results_dir}/infant_adult_roi_similarity_{summary_type}.csv', index = False)
-
-
-summary_df = both_hemi_comparisons(infant_fc, adult_df)
-
-#save 
-summary_df.to_csv(f'{params.results_dir}/infant_adult_roi_similarity_{summary_type}.csv', index = False)

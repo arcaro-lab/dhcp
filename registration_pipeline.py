@@ -82,11 +82,11 @@ find_eligible_subs = False
 #extract brain
 extract_brain = True
 
-#Reg-phase1-4 : Register individual anat to fsaverage
+#Reg-phase1-3 : Register individual anat to fsaverage
 reg_phase1 = True
-reg_phase2 = False
+reg_phase2 = True
 reg_phase3 = True
-reg_phase4 = True
+
 
 #Registers atlas to individual anat
 register_atlas = True
@@ -137,9 +137,9 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #set analysis_name to 1
             sub_list.loc[(sub_list['participant_id']==sub) & (sub_list['ses'] == ses), analysis_name] = 1
 
-            #update the full_sub_list and save it
-            #note: full_sub_list is kept outside of the function so its not overwritten
-            full_sub_list.update(sub_list)
+            #update the full_sub_list for this participant and ses
+            full_sub_list.loc[(full_sub_list['participant_id']==sub) & (full_sub_list['ses'] == ses), analysis_name] = 1
+            
             #reset index
             full_sub_list.reset_index(drop=True, inplace=True)
             full_sub_list.to_csv(f'{group_info.sub_file}', index=False)
@@ -184,19 +184,19 @@ if reg_phase2:
     '''
     Phase 3 of registration pipeline: Creates final surfaces and registers to fsaverage
     '''
-    launch_script(sub_list = sub_list,script_name='phase3_registration.py',analysis_name='phase_2',pre_req='phase_1')
+    launch_script(sub_list = sub_list,script_name='phase2_registration.py',analysis_name='phase_2',pre_req='phase_1')
 
 if reg_phase3:
     '''
     Phase 4 of registration pipeline: Registers anat to EPI
     '''
-    launch_script(sub_list = sub_list,script_name='phase4_registration.py',analysis_name='phase_3',pre_req='phase_2')
+    launch_script(sub_list = sub_list,script_name='phase3_registration.py',analysis_name='phase_3',pre_req='phase_2')
 
 if register_atlas:
     '''
     Register atlas to individual anat
     '''
-    launch_script(sub_list = sub_list,script_name='register_atlas.py',analysis_name=f'{atlas}_reg',pre_req='phase_4', atlas = atlas)
+    launch_script(sub_list = sub_list,script_name='register_atlas.py',analysis_name=f'{atlas}_reg',pre_req='phase_3', atlas = atlas)
 
 if split_atlas:
     '''

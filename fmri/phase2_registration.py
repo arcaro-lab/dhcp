@@ -17,6 +17,7 @@ import pandas as pd
 from glob import glob as glob
 import dhcp_params
 import pdb
+import shutil
 
 #take subjectand session as command line argument
 sub = sys.argv[1]
@@ -67,6 +68,15 @@ for hemi in ['lh','rh']:
 #convert anat to mgz and afni formats
 print(f'Converting {sub} {ses} anat to mgz and afni formats')
 
+
+
+if os.path.isfile(f'{out_dir}/anat/{sub}_{ses}_{anat_suf}+orig.BRIK'):
+    os.remove(f'{out_dir}/anat/{sub}_{ses}_{anat_suf}+orig.BRIK')
+    os.remove(f'{out_dir}/anat/{sub}_{ses}_{anat_suf}+orig.HEAD')
+ 
+
+    
+
 bash_cmd = f'mri_convert {input_dir}/anat/{sub}_{ses}_{anat_suf}.nii.gz {out_dir}/surf/orig.mgz'
 subprocess.run(bash_cmd, check=True, shell = True)
 
@@ -79,6 +89,10 @@ os.makedirs(f'{out_dir}/surf/orig', exist_ok=True)
 
 
 #run suma make spec
+if os.path.isdir(f'{out_dir}/SUMA'):
+   shutil.rmtree(f'{out_dir}/SUMA')
+    
+
 print(f'Running SUMA_Make_Spec_FS for {sub}')
 bash_cmd = f'@SUMA_Make_Spec_FS -fspath {out_dir} -sid {sub}'
 subprocess.run(bash_cmd, check=True, shell = True)

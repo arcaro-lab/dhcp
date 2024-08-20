@@ -43,9 +43,9 @@ group_info = params.load_group_params(group)
 
 
 #set sub dir
-anat_dir = glob(f'{group_info.raw_anat_dir}/{sub}/{ses}')
-func_dir = glob(f'{group_info.raw_func_dir}/{sub}/{ses}')
-out_dir = glob(f'{group_info.out_dir}/{sub}/{ses}')
+anat_dir = f'{group_info.raw_anat_dir}/{sub}/{ses}'
+func_dir = f'{group_info.raw_func_dir}/{sub}/{ses}'
+out_dir = f'{group_info.out_dir}/{sub}/{ses}'
 atlas_dir = params.atlas_dir
 
 
@@ -82,6 +82,8 @@ for hemi in ['lh','rh']:
     
     #load roi
     atlas_dir = f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz'
+
+    
     
     #extract roi timeseries
     masker = NiftiLabelsMasker(
