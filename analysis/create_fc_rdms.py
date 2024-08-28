@@ -25,13 +25,14 @@ roi_labels = atlas_info.roi_labels
 
 
 age_groups= ['infant', 'adult']
+age_groups= ['infant']
 
-extract_group = False
-extract_by_age = True
+extract_group = True
+extract_by_age = False
 
 extract_indiv = True
-extract_cross_hemi = True
-extract_within_hemi = True
+extract_cross_hemi = False
+extract_within_hemi = False
 
 
 #age_groups = ['adult']
@@ -65,8 +66,8 @@ def create_indiv_rdm(group, sub_list, data_dir, atlas,suffix = ''):
                 
                 #if ts is longer than params.vols, truncate
                 #this is to equalize the number of volumes across groups
-                if ts.shape[0] > params.vols:
-                    ts = ts[:params.vols,:]
+                if ts.shape[0] > group_info.vols:
+                    ts = ts[:group_info.vols,:]
 
                 #append to all_ts
                 all_ts.append(ts)
@@ -84,7 +85,7 @@ def create_indiv_rdm(group, sub_list, data_dir, atlas,suffix = ''):
             all_subs.append(corr_mat)
 
             #save
-            np.save(f'{data_dir}/derivatives/fc_matrix/{sub}_{atlas}_fc.npy', corr_mat)
+            np.save(f'{data_dir}/{sub}/{ses}/derivatives/fc_matrix/{sub}_{ses}_{atlas}_fc.npy', corr_mat)
 
         #else:
         #    print(f'{sub} does not have timeseries file')
@@ -237,6 +238,12 @@ if extract_group == True:
         sub_list= group_info.sub_list
         sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
 
+        #sort by participant_id
+        sub_list = sub_list.sort_values(by = 'participant_id')
+        #select top 100
+        #sub_list = sub_list.head(100)
+
+        suf = ''
         
         
 
@@ -252,7 +259,7 @@ if extract_group == True:
             
             #save median rdm to results dir as csv
             median_fc = pd.DataFrame(median_fc)
-            median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc.csv', header = False, index = False)
+            median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc{suf}.csv', header = False, index = False)
         
 
         if extract_cross_hemi == True:
@@ -265,7 +272,7 @@ if extract_group == True:
 
             #save median rdm to results dir as csv
             median_cross_hemi_fc = pd.DataFrame(median_cross_hemi_fc)
-            median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc.csv', header = False, index = False)
+            median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc{suf}.csv', header = False, index = False)
 
         if extract_within_hemi == True:
             
@@ -278,72 +285,5 @@ if extract_group == True:
 
             #save median rdm to results dir as csv
             median_within_hemi_fc = pd.DataFrame(median_within_hemi_fc)
-            median_within_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_within_hemi_fc.csv', header = False, index = False)
+            median_within_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_within_hemi_fc{suf}.csv', header = False, index = False)
 
-
-    
-if extract_by_age == True:
-    print('Extracting by age group...')
-    group = 'infant'
-    #extract group data
-    group_info = params.load_group_params(group)
-
-    #load subject list
-    sub_list= group_info.sub_list
-    sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
-
-    age_bins = [26, 38,44]
-
-    #loop through and bin subs based on whether they are in the first, second, or third age bin
-    for i in range(len(age_bins)-1):
-        sub_list.loc[(sub_list.scan_age > age_bins[i]) & (sub_list.scan_age < age_bins[i+1]), 'age_bin'] = i
-        
-
-    for group_bin in range(len(age_bins)-1):
-        #filter sub_list
-        sub_list_age = sub_list[sub_list.age_bin == group_bin]
-
-        
-
-        if extract_indiv == True:
-            print(f'Extracting individual {group_bin} RDMs...', len(sub_list_age)) 
-
-            
-            #create indiv rdm
-            all_rdms = create_indiv_rdm(group, sub_list_age, group_info.out_dir, atlas, suffix=f'_age_group_{group_bin}')
-            out_dir = group_info.out_dir
-
-            #compute median rdm
-            median_fc = np.median(all_rdms, axis = 0)
-            
-
-            
-            #save median rdm to results dir as csv
-            median_fc = pd.DataFrame(median_fc)
-            median_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_fc_age_group_{group_bin}.csv', header = False, index = False)
-        
-
-        if extract_cross_hemi == True:
-            print(f'Extracting cross-hemi {group_bin} RDMs ...')
-            #compute cross hemi rdm
-            cross_hemi_rdms = compute_cross_hemi_rdm(group, sub_list_age, out_dir, atlas, suffix=f'_age_group_{group_bin}')
-
-            #compute median cross hemi rdm
-            median_cross_hemi_fc = np.median(cross_hemi_rdms, axis = 0)
-
-            #save median rdm to results dir as csv
-            median_cross_hemi_fc = pd.DataFrame(median_cross_hemi_fc)
-            median_cross_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_cross_hemi_fc_age_group_{group_bin}.csv', header = False, index = False)
-
-        if extract_within_hemi == True:
-            
-            print(f'Extracting within-hemi {group_bin} RDMs ...')
-            #compute within hemi rdm
-            within_hemi_rdms = compute_within_hemi_rdm(group, sub_list_age, group_info.out_dir, atlas, suffix=f'_age_group_{group_bin}')
-
-            #compute median within hemi rdm
-            median_within_hemi_fc = np.median(within_hemi_rdms, axis = 0)
-
-            #save median rdm to results dir as csv
-            median_within_hemi_fc = pd.DataFrame(median_within_hemi_fc)
-            median_within_hemi_fc.to_csv(f'{params.results_dir}/group_fc/{group}_{atlas}_median_within_hemi_fc_age_group_{group_bin}.csv', header = False, index = False)

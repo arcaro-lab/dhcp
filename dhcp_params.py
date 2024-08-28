@@ -12,9 +12,9 @@ import pandas as pd
 
 #how much to smooth functional data
 smooth_mm = 0
-vols = 2300
 
-group= 'adult'
+
+group= 'infant'
 
 results_dir = f'{git_dir}/results'
 fig_dir = f'{git_dir}/figures'
@@ -41,7 +41,7 @@ class load_group_params():
             self.brain_mask_suf = 'desc-ribbon_dseg'
             self.group_template = 'week40_T2w'
             self.template_name = '40wk'
-
+            self.vols = 2300
             self.sub_file = f'{git_dir}/participants_dhcp.csv'
 
 

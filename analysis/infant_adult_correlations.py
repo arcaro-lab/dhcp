@@ -38,6 +38,7 @@ group= 'infant'
 group_params = params.load_group_params(group)
 #load individual infant data
 
+os.makedirs(f'{group_params.out_dir}/derivatives/{atlas}', exist_ok=True)
 
 #infant_fc = infant_fc[0:30,:,:]
 
@@ -54,21 +55,18 @@ all_rois = []
 all_networks = []
 
 #flag whether to rerun correlations
-re_run = False
+re_run = True
 
 
-if summary_type == 'fc':
-    all_rois = []
-    all_networks = []
-    for roi in roi_labels['label']:
-        for hemi in params.hemis:
-            all_rois.append(f'{hemi}_{roi}')
-            all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
 
-elif summary_type == 'within_hemi_fc' or summary_type == 'between_hemi_fc':
-    all_rois = list(roi_labels['label'])
-    all_networks = list(roi_labels['network'])
-    hemi = 'both'
+all_rois = []
+all_networks = []
+for roi in roi_labels['label']:
+    for hemi in params.hemis:
+        all_rois.append(f'{hemi}_{roi}')
+        all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
+
+
 
 ''' 
 Load and organize group adult fc matrix
@@ -106,10 +104,10 @@ if summary_type == 'fc':
 '''Compare all ROIs between infants and adults'''
 
 summary_df = pd.DataFrame(columns = ['sub', 'ses','sex','birth_age', 'scan_age', 'hemi', 'infant_roi','infant_network','adult_roi','adult_network', 'hemi_similarity', 'roi_similarity','network_similarity','corr' ])
-all_sub_df = pd.DataFrame(columns = ['sub', 'ses','sex','birth_age', 'scan_age', 'hemi1', 'roi1','network1','hemi2','roi2','network2', 'hemi_similarity', 'roi_similarity','network_similarity','corr' ])
+all_sub_df = pd.DataFrame(columns = ['sub', 'ses','sex','birth_age', 'scan_age', 'hemi1', 'roi1','network1','hemi2','roi2','network2', 'hemi_similarity', 'roi_similarity','network_similarity','fc' ])
 n=1
 for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
-    print(n , f'of {len(sub_info)}')
+    print(sub, n , f'of {len(sub_info)}')
     n +=1
     
 
@@ -148,7 +146,7 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
 
     #melt so that you have an roi1 and roi1 column
     curr_df = pd.DataFrame(curr_fc, index = all_rois, columns = all_rois)
-    curr_df = curr_df.melt(var_name = 'roi2', value_name = 'corr', ignore_index = False).reset_index().rename(columns = {'index':'roi1'})
+    curr_df = curr_df.melt(var_name = 'roi2', value_name = 'fc', ignore_index = False).reset_index().rename(columns = {'index':'roi1'})
     curr_df = curr_df.dropna()
     
     #add network labels
@@ -179,49 +177,51 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
     #add to all_sub_df
     all_sub_df = pd.concat([all_sub_df,curr_df])
     
+    try: 
+            
+        sub_df = pd.DataFrame(columns=summary_df.columns)
+        for infant_hemi in ['lh','rh']:
+            #loop through rois and calculate correlation
+            for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
+                infant_data = curr_df[(curr_df['roi1'] == infant_roi) & + (curr_df['hemi1'] == infant_hemi)]
+                for adult_hemi in ['lh','rh']:
+                    for adult_roi, adult_network in zip(roi_labels['label'], roi_labels['network']):
+                        adult_data = adult_df[(adult_df['roi1'] == adult_roi) & (adult_df['hemi1'] == adult_hemi)]
+                        
+
+                        #calculate correlation
+                        corr = np.corrcoef(infant_data['fc'], adult_data['fc'])[0,1]
+
+                        if infant_roi == adult_roi:
+                            roi_sim = 'same'
+                        else:
+                            roi_sim = 'diff'
+
+                        if infant_network == adult_network:
+                            net_sim = 'same'
+                        else:
+                            net_sim = 'diff'
+
+                        if infant_hemi == adult_hemi:
+                            hemi_sim = 'same'
+                        else:
+                            hemi_sim = 'diff'
+
+                        
+                        #add to sub_df
+                        curr_data = [sub, ses, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network,hemi_sim, roi_sim, net_sim, corr]
+                        
+                        sub_df.loc[len(sub_df)] = curr_data
+
+        #save sub_df
+        sub_df.to_csv(f'{sub_dir}/derivatives/{sub}_adult_{atlas}_correlations.csv', index=False)
+        
+        #add to summary_df
+        summary_df = pd.concat([summary_df, sub_df])
+    except:
+        print('error', sub, ses)
     
-    sub_df = pd.DataFrame(columns=summary_df.columns)
-    for infant_hemi in ['lh','rh']:
-        #loop through rois and calculate correlation
-        for infant_roi, infant_network in zip(roi_labels['label'], roi_labels['network']):
-            infant_data = curr_df[(curr_df['roi1'] == infant_roi) & + (curr_df['hemi1'] == infant_hemi)]
-            for adult_hemi in ['lh','rh']:
-                for adult_roi, adult_network in zip(roi_labels['label'], roi_labels['network']):
-                    adult_data = adult_df[(adult_df['roi1'] == adult_roi) & (adult_df['hemi1'] == adult_hemi)]
-                    
 
-                    #calculate correlation
-                    corr = np.corrcoef(infant_data['corr'], adult_data['fc'])[0,1]
-
-                    if infant_roi == adult_roi:
-                        roi_sim = 'same'
-                    else:
-                        roi_sim = 'diff'
-
-                    if infant_network == adult_network:
-                        net_sim = 'same'
-                    else:
-                        net_sim = 'diff'
-
-                    if infant_hemi == adult_hemi:
-                        hemi_sim = 'same'
-                    else:
-                        hemi_sim = 'diff'
-
-                    
-                    #add to sub_df
-                    curr_data = [sub, ses, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network,hemi_sim, roi_sim, net_sim, corr]
-                    
-                    sub_df.loc[len(sub_df)] = curr_data
-
-    #save sub_df
-    sub_df.to_csv(f'{sub_dir}/derivatives/{sub}_adult_{atlas}_correlations.csv', index=False)
-    
-    #add to summary_df
-    summary_df = pd.concat([summary_df, sub_df])
-
-    
-
-summary_df.to_csv(f'{params.results_dir}/infant_adult_{atlas}_similarity.csv', index = False)
-all_sub_df.to_csv(f'{params.results_dir}/infant_{atlas}_comparisons.csv', index = False)
+summary_df.to_csv(f'{group_params.out_dir}/derivatives/{atlas}/infant_adult_{atlas}_similarity.csv', index = False)
+all_sub_df.to_csv(f'{group_params.results_dir}/derivatives/{atlas}/infant_{atlas}_roi_similarity.csv', index = False)
 

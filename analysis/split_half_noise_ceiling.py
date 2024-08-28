@@ -4,13 +4,15 @@ compute split half
 *i think by splitting the TS
 '''
 
-git_dir = '/mnt/c/Users/ArcaroLab/Desktop/git_repos/dhcp'
-
+project_name = 'dhcp'
 import os
+#get current working directory
+cwd = os.getcwd()
+git_dir = cwd.split(project_name)[0] + project_name
 import sys
+
 #add git_dir to path
 sys.path.append(git_dir)
-
 import numpy as np
 import pandas as pd
 
@@ -23,12 +25,13 @@ age_groups = ['infant']
 atlas = 'wang'
 
 #load roi labels
-atlas_name, roi_labels = params.load_atlas_info(atlas)
+atlas_info= params.load_atlas_info(atlas)
+
 
 #add networks to roi labels
-roi_labels['network'] = ['EVC']*6 + ['ventral']*5 + ['lateral']*6 + ['dorsal']*7
+#atlas_info.roi_labels['network'] = ['EVC']*6 + ['ventral']*5 + ['lateral']*6 + ['dorsal']*7
 
-networks = ['EVC', 'ventral', 'lateral', 'dorsal']
+networks = ['Occipital', 'Ventral', 'Lateral', 'Dorsal']
 
 n_subs = 30
 
@@ -51,32 +54,38 @@ def split_half_reliability(group, atlas, all_rois, all_networks):
     Compute split half reliability for each roi
     '''
 
-    atlas_name, roi_labels = params.load_atlas_info(atlas)
-    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params(group)
+    atlas_info= params.load_atlas_info(atlas)
+    group_info = params.load_group_params(group)
 
-    sub_list = pd.read_csv(f'{out_dir}/participants.csv')
+    sub_list = group_info.sub_list
 
     #select only subs who have atlas_ts
     sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
 
     
-
+    all_sub_df = pd.DataFrame(columns = ['sub', 'ses','sex','birth_age', 'scan_age', 'hemi', 'roi','network','fc' ])
 
     #for each subject looop through wang labels and load timeseries
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+
+        sex = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'sex'].values[0]
+        birth_age = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'birth_age'].values[0]
+        scan_age = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'scan_age'].values[0]
+
+
         all_ts1 = []
         all_ts2 = []
         all_ts = []
         for hemi in params.hemis:
             #load timeseries
             #this is all ROIs for a given hemisphere
-            ts = np.load(f'{out_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_{hemi}_ts.npy')
+            ts = np.load(f'{group_info.out_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{atlas}_{hemi}_ts.npy')
 
             
             #if ts is longer than params.vols, truncate
             #this is to equalize the number of volumes across groups
-            if ts.shape[0] > params.vols:
-                ts = ts[:params.vols,:]
+            if ts.shape[0] > group_info.vols:
+                ts = ts[:group_info.vols,:]
 
             #append to all_ts
             all_ts.append(ts)
@@ -119,26 +128,40 @@ def split_half_reliability(group, atlas, all_rois, all_networks):
         #drop nan values
         corr_mat1 = corr_mat1.dropna()
 
-        roi_corrs = pd.DataFrame(columns = ['roi', 'network','r'])
+        roi_corrs = pd.DataFrame(columns = all_sub_df.columns)
+
+        
         #correlate for each ROI
         for roi in all_rois:
+            #extract hemi and roi
+            hemi = roi.split('_')[0]
+            curr_roi = roi.split('_')[1]
+            network = atlas_info.roi_labels[atlas_info.roi_labels['label'] == curr_roi]['network'].values[0]
+
             #extract roi fc
             roi_fc = corr_mat1[corr_mat1['roi'] == roi]
 
             r = np.corrcoef(roi_fc['corr'], roi_fc['corr2'])[0,1]
 
+            
+
             #add to roi_corrs using concat
-            roi_corrs = pd.concat([roi_corrs, pd.DataFrame([[roi, roi_fc['network'].values[0], r]], columns = ['roi', 'network','r'])], ignore_index=True)
+            roi_corrs = pd.concat([roi_corrs, pd.DataFrame([[sub, ses, sex, birth_age, scan_age, hemi, curr_roi, network, r]], columns =  all_sub_df.columns)], ignore_index=True)
+        
+
             
 
 
-
-        
-
         #create noise ceiling folder
-        os.makedirs(f'{out_dir}/derivatives/noise_ceiling', exist_ok=True)
+        os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/derivatives/noise_ceiling', exist_ok=True)
         #save  
-        roi_corrs.to_csv(f'{out_dir}/derivatives/noise_ceiling/{sub}_{atlas}_split_half_reliability.csv', index=False)
+        roi_corrs.to_csv(f'{group_info.out_dir}/{sub}/{ses}/derivatives/noise_ceiling/{sub}_{atlas}_split_half_reliability.csv', index=False)
+
+        #add to all_sub_df
+        all_sub_df = pd.concat([all_sub_df, roi_corrs], ignore_index=True)
+
+    #save
+    all_sub_df.to_csv(f'{group_info.out_dir}/derivatives/noise_ceilings/{group}_{atlas}_split_half_reliability.csv', index=False)
 
 
 def network_summary(group, atlas):
@@ -216,13 +239,13 @@ def roi_summary(group, atlas, all_rois):
 #define all rois and networks
 all_rois = []
 all_networks = []
-for roi in roi_labels['label']:
+for roi in atlas_info.roi_labels['label']:
     for hemi in params.hemis:
         all_rois.append(f'{hemi}_{roi}')
-        all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
+        all_networks.append(atlas_info.roi_labels[atlas_info.roi_labels['label'] == roi]['network'].values[0])
 
 for group in age_groups:
     print(f'calculating split half {group} data...')
     split_half_reliability(group, atlas, all_rois, all_networks)
-    network_summary(group, atlas)
-    roi_summary(group, atlas, all_rois)
+    #network_summary(group, atlas)
+    #roi_summary(group, atlas, all_rois)
