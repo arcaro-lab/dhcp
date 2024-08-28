@@ -55,7 +55,7 @@ all_rois = []
 all_networks = []
 
 #flag whether to rerun correlations
-re_run = True
+re_run = False
 
 
 
@@ -223,5 +223,5 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
     
 
 summary_df.to_csv(f'{group_params.out_dir}/derivatives/{atlas}/infant_adult_{atlas}_similarity.csv', index = False)
-all_sub_df.to_csv(f'{group_params.results_dir}/derivatives/{atlas}/infant_{atlas}_roi_similarity.csv', index = False)
+all_sub_df.to_csv(f'{group_params.out_dir}/derivatives/{atlas}/infant_{atlas}_roi_similarity.csv', index = False)
 

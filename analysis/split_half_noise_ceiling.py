@@ -19,6 +19,8 @@ import pandas as pd
 import dhcp_params as params
 
 import pdb
+import warnings
+warnings.filterwarnings("ignore")
 
 age_groups= ['infant', 'adult']
 age_groups = ['infant']
@@ -160,81 +162,10 @@ def split_half_reliability(group, atlas, all_rois, all_networks):
         #add to all_sub_df
         all_sub_df = pd.concat([all_sub_df, roi_corrs], ignore_index=True)
 
-    #save
-    all_sub_df.to_csv(f'{group_info.out_dir}/derivatives/noise_ceilings/{group}_{atlas}_split_half_reliability.csv', index=False)
+    #make directory and save
+    os.makedirs(f'{group_info.out_dir}/derivatives/noise_ceiling', exist_ok=True)
+    all_sub_df.to_csv(f'{group_info.out_dir}/derivatives/noise_ceiling/{group}_{atlas}_split_half_reliability.csv', index=False)
 
-
-def network_summary(group, atlas):
-    
-    '''
-    Summarize split half reliability by network
-    '''
-    print('computing network summary...')
-
-    atlas_name, roi_labels = params.load_atlas_info(atlas)
-    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
-
-    sub_list = pd.read_csv(f'{out_dir}/participants.csv')
-
-    #select only subs who have atlas_ts
-    sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
-
-    #create dataframe to store all subs
-    all_sub_df = pd.DataFrame(columns=networks)
-
-    #loop through subjects and load split half reliability
-    for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-        #load split half reliability
-        sub_df = pd.read_csv(f'{out_dir}/derivatives/noise_ceiling/{sub}_{atlas}_split_half_reliability.csv')
-
-        #compute mean by network
-        #sub_df = sub_df.groupby(['network']).mean()
-
-        
-        #add mean value for each network to all_sub_df
-        for network in networks:
-            all_sub_df.loc[sub, network] = sub_df[sub_df['network'] == network]['r'].mean()
-        
-
-    
-    #save
-    all_sub_df.to_csv(f'{git_dir}/results/noise_ceilings/{group}_{atlas}_network_split_half_reliability.csv', index=False)
-
-
-def roi_summary(group, atlas, all_rois):
-    '''
-    Summarize split half reliability by roi
-    '''
-    print('computing roi summary...')
-    atlas_name, roi_labels = params.load_atlas_info(atlas)
-    raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf = params.load_group_params(group)
-
-    sub_list = pd.read_csv(f'{out_dir}/participants.csv')
-
-    #select only subs who have atlas_ts
-    sub_list = sub_list[sub_list[f'{atlas}_ts'] == 1]
-
-    #create dataframe to store all subs
-    all_sub_df = pd.DataFrame(columns=all_rois)
-
-    #loop through subjects and load split half reliability
-    for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-        #load split half reliability
-        sub_df = pd.read_csv(f'{out_dir}/derivatives/noise_ceiling/{sub}_{atlas}_split_half_reliability.csv')
-
-        #compute mean by network
-        #sub_df = sub_df.groupby(['network']).mean()
-
-        
-        #add mean value for each network to all_sub_df
-        for roi in all_rois:
-            all_sub_df.loc[sub, roi] = sub_df[sub_df['roi'] == roi]['r'].mean()
-        
-
-    
-    #save
-    all_sub_df.to_csv(f'{git_dir}/results/noise_ceilings/{group}_{atlas}_roi_split_half_reliability.csv', index=False)
-    
 
 #define all rois and networks
 all_rois = []
