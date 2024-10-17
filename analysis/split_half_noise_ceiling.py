@@ -1,7 +1,7 @@
 '''
-compute split half
+compute split half noise ceiling by splitting timeseries in half and computing matrix on each
 
-*i think by splitting the TS
+
 '''
 
 project_name = 'dhcp'
