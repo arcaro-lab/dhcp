@@ -1,3 +1,7 @@
+'''
+Create RDMs from timeseries data by correlating timeseries from each ROI using Pearson correlation
+'''
+
 project_name = 'dhcp'
 import os
 #get current working directory

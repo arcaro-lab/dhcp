@@ -42,12 +42,13 @@ os.makedirs(f'{group_info.out_dir}/{sub}/{ses}/xfm', exist_ok=True)
 
 
 
-#invert xfm to make anatomical to functional
+#for infants invert xfm to make anatomical to functional
 if group == 'infant':
 
     #check if anat2func xfm exists
     bash_cmd = f'convert_xfm -omat {group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)} -inverse {group_info.func2anat_xfm.replace('*SUB*',sub).replace('*SES*',ses)}'
     subprocess.run(bash_cmd, shell=True)
+
 
 #for infants
 xfm = group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)
@@ -64,14 +65,15 @@ func = f'func/{sub}_{ses}_{group_info.func_suf}'
 brain_mask = f'anat/{sub}_{ses}_{group_info.brain_mask_suf}'
 
 
-#check if brain mask exists
+#check if brain mask exists in original anat directory or in preprocessing directory
+#this should only happen for infant
 if not os.path.isfile(f'{anat_input}/{brain_mask}.nii.gz'):
-
+    
     #binarize brain mask and output to preprocessing directory
     brain_mask = f'anat/{sub}_{ses}_desc-brain_mask'
 
 
-
+#binarize brain mask and save in preprocessing directory
 bash_cmd = f'fslmaths {anat_input}/{brain_mask}.nii.gz -bin {out_dir}/{brain_mask}.nii.gz'
 subprocess.run(bash_cmd, shell=True)
 
@@ -86,6 +88,17 @@ subprocess.run(bash_cmd, shell=True)
 #create 1 volume version of func file
 bash_cmd = f'fslmaths {func_input}/{func}.nii.gz -Tmean {out_dir}/{func}_1vol.nii.gz'
 subprocess.run(bash_cmd.split(), check = True)
+
+#check if xfm exists, else create it
+if group == 'adult':
+    #create anat2func xfm
+    bash_cmd = f'flirt -in {out_dir}/{anat}_brain.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -omat {group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)} -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
+    subprocess.run(bash_cmd, shell=True)
+    
+    #run flirt in reverse to get func2anat xfm
+    bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {out_dir}/{anat}_brain.nii.gz -omat {group_info.func2anat_xfm.replace('*SUB*',sub).replace('*SES*',ses)} -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
+    subprocess.run(bash_cmd, shell=True)
+
 
 
 #create brain mask in epi space

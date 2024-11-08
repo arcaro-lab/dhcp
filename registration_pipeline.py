@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'infant'
+group = 'adult'
 group_info = params.load_group_params(group)
 
 #set directories

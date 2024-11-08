@@ -67,6 +67,10 @@ class load_group_params():
             self.template_name = 'MNI152'
 
             self.sub_file = f'{git_dir}/participants_7T.csv'
+            self.sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
+
+            self.func2anat_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/func2anat.mat'
+            self.anat2func_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/anat2func.mat'
 
             
         self.sub_list = pd.read_csv(self.sub_file)

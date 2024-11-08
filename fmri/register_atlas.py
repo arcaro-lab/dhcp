@@ -65,17 +65,15 @@ for hemi in ['lh','rh']:
     curr_atlas = atlas_info.atlas_name.replace('hemi', hemi)
     
 
-    #check if curr atlas exists
-    #if it does, delete it
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'):
-        #delete atlas
-        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK')
-        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
-
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK'):
-        #delete atlas
-        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK')
-        os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
+    #check if registered atlas exists, if it does delete it. Otherwise this crashed the afni command
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK')
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
+        
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK')
+    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
+        
+        
+        
     
     
     #register atlas to subject with afni
@@ -88,8 +86,8 @@ for hemi in ['lh','rh']:
                             -map_func mode \
                                 -prefix {out_dir}/atlas/{curr_atlas}_anat"""
     
+    subprocess.run(bash_cmd, shell=True)
     
-    subprocess.run(bash_cmd.split(), check = True)
 
     
     #check if atlas has orgi or tlrc extension
