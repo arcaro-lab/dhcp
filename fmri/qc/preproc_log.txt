@@ -2109,3 +2109,8 @@
 07/11/2024 16:37:13: Error in extract_brain.py for sub-910241: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-910241 ses-01 adult ' returned non-zero exit status 1.
 07/11/2024 16:37:41: Error in extract_brain.py for sub-927359: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-927359 ses-01 adult ' returned non-zero exit status 1.
 07/11/2024 16:38:09: Error in extract_brain.py for sub-973770: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-973770 ses-01 adult ' returned non-zero exit status 1.
+08/11/2024 15:36:35: Error in extract_brain.py for sub-148133: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-148133 ses-01 adult ' returned non-zero exit status 1.
+08/11/2024 15:37:06: Error in extract_brain.py for sub-150423: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-150423 ses-01 adult ' returned non-zero exit status 1.
+08/11/2024 15:37:38: Error in extract_brain.py for sub-155938: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-155938 ses-01 adult ' returned non-zero exit status 1.
+08/11/2024 15:38:09: Error in extract_brain.py for sub-156334: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-156334 ses-01 adult ' returned non-zero exit status 1.
+08/11/2024 18:25:52: Error in phase1_registration.py for sub-745555: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/phase1_registration.py sub-745555 ses-01 adult ' returned non-zero exit status 1.
