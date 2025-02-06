@@ -47,6 +47,8 @@ class load_group_params():
 
             self.sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
 
+            
+
             self.func2anat_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-T2w_mode-image.mat'
             self.anat2func_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-bold_mode-image.mat'
 
@@ -110,37 +112,38 @@ class load_atlas_info():
 
 
 
-def load_roi_info(roi):
-    '''
-    Load ROI info
-    '''
-
-    if roi == 'pulvinar':
-        roi_name = 'rois/pulvinar/40wk/hemi_pulvinar'
-        template = 'templates/week40_T2w'
-        template_name = '40wk'
-
-        roi_labels = pd.read_csv(f'atlases/pulvinar_labels.csv')
-
-        xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
-        #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
-        method = 'applywarp'
-        
+class load_roi_info():
+    def __init__(self,roi):
         '''
-        NEED TO MAKE THIS WORK FOR THE GROUP
+        Load ROI info
         '''
-    if roi == 'wang': 
-        roi_name = 'wang'
-        template = 'wang'
-        template_name = 'wang'
+
+        if roi == 'pulvinar':
+            self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar'
+            self.template = 'templates/week40_T2w'
+            self.template_name = '40wk'
+
+            self.roi_labels = pd.read_csv(f'atlases/pulvinar_labels.csv')
+
+            self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
+            #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
+            self.method = 'applywarp'
+            
+            '''
+            NEED TO MAKE THIS WORK FOR THE GROUP
+            '''
+        if roi == 'wang': 
+            self.roi_name = 'wang'
+            self.template = 'wang'
+            self.template_name = 'wang'
 
 
-    if roi == 'brain':
-        roi_name = 'anat/brain'
-        template = 'brain'
-        template_name = 'brain'
+        if roi == 'brain':
+            self.roi_name = 'anat/brain'
+            self.template = 'brain'
+            self.template_name = 'brain'
 
-    return roi_name, roi_labels, template, template_name, xfm, method
+    
 
 def transform_map(in_space,out_space):
     if in_space == 'dchp_bold' and out_space == '40wk':

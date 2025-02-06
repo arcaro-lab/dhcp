@@ -30,53 +30,52 @@ warnings.filterwarnings("ignore")
 import dhcp_params as params
 import subprocess
 
+
+
+#read atlas and group info as args
+
+group = sys.argv[1]
+seed_atlas = sys.argv[2]
+target_roi = sys.argv[3]
+
 group = 'infant'
-
-raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template,template_name = params.load_group_params('adult')
-
-
-analysis_name = 'whole_brain'
 seed_atlas = 'wang'
 target_roi = 'brain'
 
-#analysis_name = 'thalmocortical'
-#seed_atlas = 'wang'
-#target_roi = 'pulvinar'
-#load subject list
-#load subject list
-sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
-sub_list = sub_list[sub_list[f'{seed_atlas}_ts'] == 1]
-#sub_list = sub_list[sub_list[f'{target_roi}_reg'] == 1]
+#load atlast name and roi labels
+atlas_info = params.load_atlas_info(seed_atlas)
 
-#load atlas info
-#atlas_name, roi_labels = params.load_atlas_info(seed_atlas)
+atlas_name, roi_labels = atlas_info.roi_labels
 
-roi_name, roi_labels = params.load_atlas_info(seed_atlas)
-'''
-#load target atlas info
-try:
-    target_name, target_labels = params.load_atlas_info(target_roi)
-    target_dir = f'atlas/{target_name}_epi.nii.gz'
-except:
-    target_name = target_roi
-    target_name = params.load_roi_info(target_roi)
-    target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz'
-'''
+
+group_params = params.load_group_params(group)
+#load individual infant data
+sub_info = group_params.sub_list
+sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atlas}_excl'] != 1)]
+
+out_dir = group_params.out_dir
+
+
+#load roi info
+roi_info = params.load_roi_info(target_roi)
+
 #sub = sys.argv[1]
 #ses = sys.argv[2]
 #atlas = sys.argv[3]
 #target = sys.argv[4]
-target_name = target_roi
-target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz' #THIS NEEDS TO BE _epi EVENTUALLY!!
+target_name = roi_info.roi_name
+target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz' 
 
+anaysis_name = target_roi
 
-
-#results_dir = f'{out_dir}/derivatives/retinotopy'
+results_dir = f'{out_dir}/derivatives/{target_roi}'
 #create results dir
 
 
 def compute_correlations(sub, ses, func_dir, seed_file, target_file):
     print(f'Computing correlations for {sub} {ses}')
+
+    results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
 
     #load func data
@@ -114,7 +113,7 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         for n, ts in enumerate(seed_ts):
             #get roi label
             roi = roi_labels['label'][n]
-            pdb.set_trace()
+            
             #compute correlation between seed and brain
             seed_to_voxel_correlations = (np.dot(brain_time_series.T, ts) /
                                         ts.shape[0])
@@ -265,7 +264,7 @@ def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
 
 
 #loop through subjects
-for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     #set seed dir
     seed_file = f'{out_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{seed_atlas}_hemi_ts.npy'
     target_file = f'{out_dir}/{sub}/{ses}/{target_dir}'
@@ -273,15 +272,14 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
 
     
     #compute seed to roi correlations
-    compute_correlations(sub, ses,raw_func_dir, seed_file, target_file)
+    compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
 
     #register correlations to template
     #register_max_to_template(sub, ses,analysis_name, group_template, template_name)
-    #register_indiv_map_to_template(sub, ses,analysis_name, group_template, template_name)
+    register_indiv_map_to_template(sub, ses,analysis_name, group_template, template_name)
 
 
 
-
-#create_group_map(group, sub_list,  analysis_name, template_name,target_name)
+create_group_map(group, sub_list,  analysis_name, template_name,target_name)
 
 
