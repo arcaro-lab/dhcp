@@ -47,8 +47,8 @@ group_params = params.load_group_params(group)
 #load individual infant data
 sub_info = group_params.sub_list
 
-results_dir = f'{group_params.out_dir}/derivatives'
-#os.makedirs(f'{group_params.out_dir}/derivatives/{atlas}', exist_ok=True)
+results_dir = f'{group_params.out_dir}/derivatives/{atlas}'
+os.makedirs(f'{group_params.out_dir}/derivatives/{atlas}', exist_ok=True)
 
 networks = roi_labels['network'].unique()
 
