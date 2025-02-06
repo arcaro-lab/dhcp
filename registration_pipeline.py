@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'adult'
+group = 'infant'
 group_info = params.load_group_params(group)
 
 #set directories
@@ -80,18 +80,18 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = True
+extract_brain = False
 
 #Reg-phase1-3 : Register individual anat to fsaverage
-reg_phase1 = True
-reg_phase2 = True
-reg_phase3 = True
+reg_phase1 = False
+reg_phase2 = False
+reg_phase3 = False
 
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
-split_atlas = True
+split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True
