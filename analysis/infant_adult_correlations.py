@@ -43,6 +43,7 @@ os.makedirs(f'{infant_params.out_dir}/derivatives/{atlas}', exist_ok=True)
 #infant_fc = infant_fc[0:30,:,:]
 
 sub_info = infant_params.sub_list
+sub_info = sub_info[(sub_info[f'{atlas}_ts'] == 1) & (sub_info[f'{atlas}_exclude'] != 1)]
 
 infant_data = pd.read_csv(f'{infant_params.out_dir}/derivatives/{atlas}/infant_{atlas}_roi_similarity.csv')
 #sub_info = sub_info.head(30)
@@ -56,7 +57,7 @@ all_rois = []
 all_networks = []
 
 #flag whether to rerun correlations
-re_run = True
+re_run = False
 
 all_rois = []
 all_networks = []
@@ -116,8 +117,8 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
     if os.path.isfile(f'{sub_dir}/derivatives/{sub}_adult_{atlas}_correlations.csv') and os.path.isfile(f'{sub_dir}/derivatives/fc_matrix/{sub}_{atlas}_correlations.csv') and re_run == False:
         print(sub, ses, 'exists')
         #load indvidiaul sub fc file
-        curr_df = pd.read_csv(f'{sub_dir}/derivatives/fc_matrix/{sub}_{atlas}_correlations.csv')
-        all_sub_df = pd.concat([all_sub_df,curr_df])
+        #curr_df = pd.read_csv(f'{sub_dir}/derivatives/fc_matrix/{sub}_{atlas}_correlations.csv')
+        #all_sub_df = pd.concat([all_sub_df,curr_df])
 
         #load individual sub-adult correlation
         sub_df = pd.read_csv(f'{sub_dir}/derivatives/{sub}_adult_{atlas}_correlations.csv')
@@ -157,7 +158,7 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
                         
                         infant_roi_df = infant_roi_df[rois_to_include]
                         adult_roi_df = adult_roi_df[rois_to_include]
-                        pdb.set_trace()
+                        
 
                         #calculate correlation
                         corr = np.corrcoef(infant_roi_df['fc'], adult_roi_df['fc'])[0,1]
@@ -192,6 +193,6 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
         print('error', sub, ses)
     
 
+summary_df.to_csv(f'{infant_params.out_dir}/derivatives/{atlas}/infant_adult_{atlas}_similarity.csv', index = False)
 
-all_sub_df.to_csv(f'{infant_params.out_dir}/derivatives/{atlas}/infant_{atlas}_roi_similarity.csv', index = False)
 

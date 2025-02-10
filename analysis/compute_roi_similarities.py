@@ -47,6 +47,9 @@ group_params = params.load_group_params(group)
 #load individual infant data
 sub_info = group_params.sub_list
 
+#remove rows where atlas_exclude is 1
+sub_info = sub_info[(sub_info[f'{atlas}_ts'] == 1) & (sub_info[f'{atlas}_exclude'] != 1)]
+
 results_dir = f'{group_params.out_dir}/derivatives/{atlas}'
 os.makedirs(f'{group_params.out_dir}/derivatives/{atlas}', exist_ok=True)
 
@@ -68,6 +71,7 @@ The difference between infants and adults is that infant data was organized alte
 Adult data was organized by ROI then hemi (lhV1, lhV2 ... rhV1, rhV2)
 
 '''
+'''
 if group == 'infant':
     all_rois = []
     all_networks = []
@@ -75,14 +79,14 @@ if group == 'infant':
         for hemi in params.hemis:
             all_rois.append(f'{hemi}_{roi}')
             all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
+'''
 
-if group == 'adult':
-    all_rois = []
-    all_networks = []
-    for hemi in params.hemis:
-        for roi in roi_labels['label']:
-            all_rois.append(f'{hemi}_{roi}')
-            all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
+all_rois = []
+all_networks = []
+for hemi in params.hemis:
+    for roi in roi_labels['label']:
+        all_rois.append(f'{hemi}_{roi}')
+        all_networks.append(roi_labels[roi_labels['label'] == roi]['network'].values[0])
 
 
 all_sub_df = pd.DataFrame(columns = ['sub', 'ses','sex','birth_age', 'scan_age', 'hemi1', 'roi1','network1','hemi2','roi2','network2', 'hemi_similarity', 'roi_similarity','network_similarity','fc' ])

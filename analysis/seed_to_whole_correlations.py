@@ -29,6 +29,7 @@ warnings.filterwarnings("ignore")
 
 import dhcp_params as params
 import subprocess
+from glob import glob as glob
 
 
 
@@ -38,20 +39,20 @@ group = sys.argv[1]
 seed_atlas = sys.argv[2]
 target_roi = sys.argv[3]
 
-group = 'infant'
-seed_atlas = 'wang'
-target_roi = 'brain'
+#group = 'infant'
+#seed_atlas = 'wang'
+#target_roi = 'brain'
 
 #load atlast name and roi labels
 atlas_info = params.load_atlas_info(seed_atlas)
 
-atlas_name, roi_labels = atlas_info.roi_labels
+atlas_name, roi_labels = atlas_info.atlas_name, atlas_info.roi_labels
 
 
 group_params = params.load_group_params(group)
 #load individual infant data
 sub_info = group_params.sub_list
-sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atlas}_excl'] != 1)]
+sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atlas}_exclude'] != 1)]
 
 out_dir = group_params.out_dir
 
@@ -66,7 +67,7 @@ roi_info = params.load_roi_info(target_roi)
 target_name = roi_info.roi_name
 target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz' 
 
-anaysis_name = target_roi
+analysis_name = target_roi
 
 results_dir = f'{out_dir}/derivatives/{target_roi}'
 #create results dir
@@ -75,35 +76,54 @@ results_dir = f'{out_dir}/derivatives/{target_roi}'
 def compute_correlations(sub, ses, func_dir, seed_file, target_file):
     print(f'Computing correlations for {sub} {ses}')
 
+    
+
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
 
-    #load func data
-    func_img = image.load_img(f'{func_dir}/{sub}/{ses}/func/{sub}_{ses}_{params.func_suf}.nii.gz')
-    affine = func_img.affine
-    header = func_img.header
 
-    #index first image of func
-    dummy_img = func_img.slicer[:,:,:,0]
+    func_files =  glob(f'{func_dir}/{sub}/{ses}/func/*_bold.nii.gz')
 
-    for hemi in params.hemis:
+    
+    #func_img = image.load_img(f'{func_dir}/{sub}/{ses}/func/{sub}_{ses}_{group_params.func_suf}.nii.gz')
+    
+    
+    for hemi in group_params.hemis:
         curr_seed = seed_file.replace('hemi', hemi)
-        curr_target = target_file.replace('hemi', hemi)
+        
 
         #load data from seed
         seed_ts = np.load(curr_seed)
         seed_ts = seed_ts.T
 
-        #load target atlas
-        target_atlas = image.load_img(curr_target)
-        #binarize target atlas
-        target_atlas = image.math_img('img>0', img = target_atlas)
+        curr_target = target_file.replace('hemi', hemi)
+        all_funcs = []
+        #load func data
+        for n, func_file in enumerate(func_files):
+            
+            #load func
+            try:
 
-        #set masker
-        brain_masker = NiftiMasker(target_atlas, standardize=True)
+                func_img = image.load_img(func_file)
+                
+                
+            except:
+                print(f'Error loading {func_file}')
+                continue
 
-        #Extract brain data
-        brain_time_series = brain_masker.fit_transform(func_img)
+            target_roi = image.binarize_img(image.load_img(curr_target))
+            roi_masker = NiftiMasker(target_roi, standardize=True)
+            run_ts = roi_masker.fit_transform(func_img)
+
+            all_funcs.append(run_ts)
+
+        target_ts = np.concatenate(all_funcs, axis = 0)
+
+        affine = func_img.affine
+        header = func_img.header
+
+        #index first image of func
+        dummy_img = func_img.slicer[:,:,:,0]
 
 
         '''
@@ -115,11 +135,12 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
             roi = roi_labels['label'][n]
             
             #compute correlation between seed and brain
-            seed_to_voxel_correlations = (np.dot(brain_time_series.T, ts) /
+            seed_to_voxel_correlations = (np.dot(target_ts.T, ts) /
                                         ts.shape[0])
             
+            
             #save correlation map
-            seed_to_voxel_correlations_img = brain_masker.inverse_transform(seed_to_voxel_correlations.T)
+            seed_to_voxel_correlations_img = roi_masker.inverse_transform(seed_to_voxel_correlations.T)
 
             #set all 0s to nan
             seed_to_voxel_correlations_img = image.math_img('np.where(img == 0, np.nan, img)', img = seed_to_voxel_correlations_img)
@@ -131,6 +152,9 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
             seed_to_voxel_correlations_img = seed_to_voxel_correlations_img.get_fdata()
             
             all_maps.append(seed_to_voxel_correlations_img)
+
+
+            
 
             
         '''
@@ -151,11 +175,11 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         max_map = nib.Nifti1Image(max_map, affine, header)
 
         #apply mask
-        brain_masker = NiftiMasker(target_atlas, smoothing_fwhm=0)
-        smoothed_map = brain_masker.fit_transform(max_map)
+        roi_masker = NiftiMasker(target_roi, smoothing_fwhm=0)
+        smoothed_map = roi_masker.fit_transform(max_map)
 
         #convert back to nifti
-        smoothed_map = brain_masker.inverse_transform(smoothed_map)
+        smoothed_map = roi_masker.inverse_transform(smoothed_map)
 
         #save map
         nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
@@ -168,8 +192,8 @@ def register_max_to_template(sub, ses,analysis_name, template,template_name):
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
 
-    warp = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
-    for hemi in params.hemis:
+    warp = f'{group_params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
+    for hemi in group_params.hemis:
         curr_map = f'{results_dir}/{hemi}_{analysis_name}_map'
         '''
         #apply transformations to roi
@@ -195,8 +219,8 @@ def register_indiv_map_to_template(sub, ses,analysis_name, template,template_nam
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
 
-    warp = f'{params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
-    for hemi in params.hemis:
+    warp = f'{group_params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
+    for hemi in group_params.hemis:
         for n, roi in enumerate(roi_labels['label']):
             curr_map = f'{results_dir}/{hemi}_{roi}_corr'
 
@@ -223,12 +247,12 @@ def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
 
     #loop through hemis
-    for hemi in params.hemis:
+    for hemi in group_params.hemis:
         #load roi mask
         '''
         NEED TO MAKE THIS WORK FOR THE GROUP
         '''
-        roi_name = params.load_roi_info(roi)
+        roi_name = group_params.load_roi_info(roi)
         curr_roi = f'{out_dir}/atlases/{roi_name}.nii.gz'
         #replace hemi in curr_roi
         curr_roi = curr_roi.replace('hemi', hemi)
