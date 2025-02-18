@@ -69,9 +69,9 @@ sub_list.reset_index(drop=True, inplace=True)
 
 
 #set atlas
-atlas = 'wang'
+atlas = 'schaefer400'
 
-roi = 'pulvinar'
+roi = 'pulvinar_infant'
 
 '''
 Flags to determine which preprocessing steps to run
@@ -94,11 +94,11 @@ register_atlas = False
 split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
-extract_ts_roi = True
+extract_ts_roi = False
 
 
 #Register volumetric roi to individual anat
-register_vol_roi = False
+register_vol_roi = True
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False

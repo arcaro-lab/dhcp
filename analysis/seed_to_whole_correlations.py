@@ -300,10 +300,10 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
 
     #register correlations to template
     #register_max_to_template(sub, ses,analysis_name, group_template, template_name)
-    register_indiv_map_to_template(sub, ses,analysis_name, group_template, template_name)
+    register_indiv_map_to_template(sub, ses,analysis_name, group_params.group_template, group_params.template_name)
 
 
 
-create_group_map(group, sub_list,  analysis_name, template_name,target_name)
+create_group_map(group, sub_info,  analysis_name, group_params.template_name,target_name)
 
 

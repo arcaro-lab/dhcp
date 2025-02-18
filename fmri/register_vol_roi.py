@@ -26,25 +26,34 @@ matplotlib.use('Agg')
 import argparse
 
 sub = sys.argv[1]
-group = sys.argv[2]
+ses = sys.argv[2]
+group = sys.argv[3]
 
 group_info = dhcp_params.load_group_params(group)
 
-ses = 'ses-'+glob(f'{group_info.raw_func_dir}/{sub}/ses-*')[0].split('ses-')[1]
-roi = sys.argv[3]
+
+roi = sys.argv[4]
 
 
-roi_name, roi_labels, template, template_name, xfm, method = group_info.load_roi_info(roi)
+roi_info = dhcp_params.load_roi_info(roi)
 
-xfm = xfm.replace('*SUB*', sub).replace('*SES*', ses)
-xfm = f'{group_info.raw_func_dir}/{sub}/{ses}/xfm/{xfm}.nii.gz'
+template = roi_info.template
+template_name = roi_info.template_name
+method = roi_info.method
+roi_name = roi_info.roi_name
+
+
+#pull transforms
+template2anat = group_info.template2anat.replace('*SUB*', sub).replace('*SES*', ses)
+anat2func= group_info.anat2func.replace('*SUB*', sub).replace('*SES*', ses)
+
 
 
 #set sub dir
 anat_input = f'{group_info.raw_anat_dir}/{sub}/{ses}'
 func_input = f'{group_info.raw_func_dir}/{sub}/{ses}'
 data_dir = f'{group_info.out_dir}/{sub}/{ses}'
-atlas_dir = group_info.atlas_dir
+atlas_dir = dhcp_params.atlas_dir
 
 anat = f'anat/{sub}_{ses}_{group_info.anat_suf}' 
 
@@ -111,22 +120,49 @@ def register_with_ants():
     bash_cmd = f'fslmaths {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -bin -fillh {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz'
     subprocess.run(bash_cmd.split(), check = True)
 
-def register_with_applywarp(curr_roi, xfm):
+def register_with_applywarp(curr_roi):
 
     os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
+
     
-    #check if inwarp already exists
-    if os.path.exists(f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz') == False:
+    #check if template2func already exists
+    if os.path.exists(template2func) == False:
     
-        bash_cmd = f'invwarp -w {xfm} -o {data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz'
+        bash_cmd = f'invwarp -w {func2template} -o {template2func} -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz'
         subprocess.run(bash_cmd, shell=True)
 
-    final_xfm = f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz'
-
-    bash_cmd = f'applywarp -i {group_info.atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz  -w {final_xfm} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
+    #final_xfm = f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz'
     
+    #apply transformations for template2func
+    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz  -w {template2func} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
     subprocess.run(bash_cmd, shell=True)
 
+    #apply transformations for template2anat
+    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/{anat}_brain.nii.gz  -w {template2anat} -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz --interp=nn'
+    subprocess.run(bash_cmd, shell=True)
+
+
+def register_with_flirt(curr_roi, func2template, template2func):
+
+    os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
+
+    #check if template2anat already exists
+    if os.path.exists(template2anat) == False:
+        #create omat
+        bash_cmd = f'flirt -in {group_info.group_template} -ref {data_dir}/{anat}_brain.nii.gz -omat {template2anat} -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
+        subprocess.run(bash_cmd, shell=True)
+
+    #transform roi to anat space
+    bash_cmd = f'flirt -in {atlas_dir}/{curr_roi}.nii.gz -ref {data_dir}/{anat}_brain.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -applyxfm -init {template2anat} -interp nearestneighbour'
+    subprocess.run(bash_cmd, shell=True)
+
+    #transform roi from anat to func space
+    bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -ref {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {anat2func_xfm} -interp nearestneighbour'
+
+
+    if os.path.exists(template2func) == False:
+        bash_cmd = f'flirt -in {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -ref {group_info.group_template} -out {template2func} -omat {template2func.replace(".nii.gz",".mat")}'
+        subprocess.run(bash_cmd, shell=True)
 
 
 
@@ -137,7 +173,11 @@ for hemi in group_info.hemis:
         register_with_ants()
 
     elif method == 'applywarp':
-        register_with_applywarp(curr_roi, xfm)
+        register_with_applywarp(curr_roi)
+
+
+    elif method == 'flirt':
+        register_with_flirt(curr_roi, func2template, template2func)
     
 
 

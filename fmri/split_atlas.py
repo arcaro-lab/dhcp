@@ -145,6 +145,10 @@ for hemi in group_info.hemis:
     #plot atlas on subject's brain
     plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[group_info.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
+
+#create qc directory if it doesn't exist
+os.makedirs(f'{git_dir}/fmri/qc/{atlas}/{group}', exist_ok = True)
+
 plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
 
         

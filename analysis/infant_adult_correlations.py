@@ -193,6 +193,6 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
         print('error', sub, ses)
     
 
-summary_df.to_csv(f'{infant_params.out_dir}/derivatives/{atlas}/infant_adult_{atlas}_similarity.csv', index = False)
+summary_df.to_csv(f'{infant_params.out_dir}/derivatives/{atlas}/infant_adult_{atlas}_correlations.csv', index = False)
 
 

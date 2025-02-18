@@ -47,13 +47,15 @@ class load_group_params():
 
             self.sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
 
-            
+            #transforms
+            self.func2anat = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-T2w_mode-image.mat'
+            self.anat2func = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-bold_mode-image.mat'
 
-            self.func2anat_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-T2w_mode-image.mat'
-            self.anat2func_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-bold_mode-image.mat'
+            self.func2template = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image.nii.gz'
+            self.template2func = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image.nii.gz'
 
-            self.func240wk = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image.nii.gz'
-            self.anat240wk = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image.nii.gz'
+            self.anat2template = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-serag40wk_mode-image.nii.gz'
+            self.template2anat = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-serag40wk_to-T2w_mode-image.nii.gz'
 
         elif group == 'adult':
             #7T hcp data directories
@@ -65,14 +67,21 @@ class load_group_params():
             self.func_suf = f'task-rest_run-01_preproc_bold'
 
             self.brain_mask_suf =self.anat_suf + '_mask'
-            self.group_template = 'MNI152_2009_SurfVol'
-            self.template_name = 'MNI152'
+            self.group_template = 'mni_icbm152_t1_tal_nlin_asym_09a_brain'
+            self.template_name = 'MNI'
 
             self.sub_file = f'{git_dir}/participants_7T.csv'
             self.sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
 
-            self.func2anat_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/func2anat.mat'
-            self.anat2func_xfm = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/anat2func.mat'
+            #transforms
+            self.func2anat = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/func2anat.mat'
+            self.anat2func = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/anat2func.mat'
+
+            self.func2template = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/func2template.mat'
+            self.template2func = f'{self.raw_func_dir}/*SUB*/*SES*/xfm/template2func.mat'
+
+            self.anat2template = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/anat2template.mat'
+            self.template2anat = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/template2anat.mat'
 
             
         self.sub_list = pd.read_csv(self.sub_file)
@@ -108,7 +117,10 @@ class load_atlas_info():
             self.atlas_name  = 'calcsulc_binnedroi_hemi'
             self.roi_labels = pd.read_csv(f'{atlas_dir}/calcsulc_labels.csv')
 
-            
+        
+        elif atlas == 'schaefer400':
+            self.atlas_name  = 'schaefer400_hemi'
+            self.roi_labels = pd.read_csv(f'{atlas_dir}/schaefer400_labels.csv')
 
 
 
@@ -118,16 +130,28 @@ class load_roi_info():
         Load ROI info
         '''
 
-        if roi == 'pulvinar':
-            self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar'
+        if roi == 'pulvinar_infant':
+            self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar_40wk'
             self.template = 'templates/week40_T2w'
             self.template_name = '40wk'
+
+            self.roi_labels = pd.read_csv(f'{atlas_dir}/pulvinar_labels.csv')
+
+            self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
+            #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
+            self.method = 'applywarp'
+
+        if roi == 'pulvinar_adult':
+
+            self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar_mni'
+            self.template = 'templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
+            self.template_name = 'MNI'
 
             self.roi_labels = pd.read_csv(f'atlases/pulvinar_labels.csv')
 
             self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
             #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
-            self.method = 'applywarp'
+            self.method = 'flirt'
             
             '''
             NEED TO MAKE THIS WORK FOR THE GROUP
