@@ -39,7 +39,7 @@ class load_group_params():
             self.func_suf = f'task-rest_desc-preproc_bold'
 
             self.brain_mask_suf = 'desc-ribbon_dseg'
-            self.group_template = 'week40_T2w'
+            self.group_template = f'{atlas_dir}/templates/week40_T2w'
             self.template_name = '40wk'
             self.vols = 2300
             self.sub_file = f'{git_dir}/participants_dhcp.csv'
@@ -67,7 +67,7 @@ class load_group_params():
             self.func_suf = f'task-rest_run-01_preproc_bold'
 
             self.brain_mask_suf =self.anat_suf + '_mask'
-            self.group_template = 'mni_icbm152_t1_tal_nlin_asym_09a_brain'
+            self.group_template = f'{atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
             self.template_name = 'MNI'
 
             self.sub_file = f'{git_dir}/participants_7T.csv'
@@ -84,7 +84,7 @@ class load_group_params():
             self.template2anat = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/template2anat.mat'
 
             
-        self.sub_list = pd.read_csv(self.sub_file)
+        #self.sub_list = pd.read_csv(self.sub_file)
 
     #return raw_data_dir, raw_anat_dir, raw_func_dir, out_dir, anat_suf, func_suf, brain_mask_suf, group_template, template_name
 
@@ -132,24 +132,24 @@ class load_roi_info():
 
         if roi == 'pulvinar_infant':
             self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar_40wk'
-            self.template = 'templates/week40_T2w'
+            self.template = f'{atlas_dir}/templates/week40_T2w'
             self.template_name = '40wk'
 
             self.roi_labels = pd.read_csv(f'{atlas_dir}/pulvinar_labels.csv')
 
-            self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
+            #self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
             #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
             self.method = 'applywarp'
 
         if roi == 'pulvinar_adult':
 
-            self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar_mni'
-            self.template = 'templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
+            self.roi_name = 'rois/pulvinar/hemi_pulvinar_mni'
+            self.template = f'{atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
             self.template_name = 'MNI'
 
-            self.roi_labels = pd.read_csv(f'atlases/pulvinar_labels.csv')
+            self.roi_labels = pd.read_csv(f'{atlas_dir}/pulvinar_labels.csv')
 
-            self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
+            #self.xfm = '*SUB*_*SES*_from-bold_to-extdhcp40wk_mode-image'
             #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
             self.method = 'flirt'
             

@@ -65,7 +65,7 @@ roi_info = params.load_roi_info(target_roi)
 #atlas = sys.argv[3]
 #target = sys.argv[4]
 target_name = roi_info.roi_name
-target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz' 
+target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz' 
 
 analysis_name = target_roi
 
@@ -184,7 +184,44 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         #save map
         nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
 
-def register_max_to_template(sub, ses,analysis_name, template,template_name):
+
+def register_indiv_map_to_template(group, sub, ses):
+    '''
+    Loop through rois of atlas and register to template
+    
+    '''
+    print(f'Registering indiv maps {sub} {analysis_name} to template')
+    sub_dir = f'{out_dir}/{sub}/{ses}'
+    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
+
+    template_img = image.load_img(group_params.group_template)
+    template_affine = template_img.affine
+
+    xfm = group_params.func2template.replace('*SUB*', sub).replace('*SES*', ses)
+    for hemi in group_params.hemis:
+        for n, roi in enumerate(roi_labels['label']):
+            curr_map = f'{results_dir}/{hemi}_{roi}_corr'
+
+            curr_map_img = image.load_img(f'{curr_map}.nii.gz')
+            curr_map_affine = curr_map_img.affine
+
+            #check if they are identical
+            if np.array_equal(curr_map_affine, template_affine):
+                continue
+            else:
+
+                if group == 'infant':
+                    #apply transformations to roi
+                    bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {group_params.group_template} -w {xfm} -o {curr_map}_{group_params.template_name}.nii.gz'
+                    subprocess.run(bash_cmd, shell=True)
+
+                elif group == 'adult':
+                    bash_cmd = f'flirt -in {curr_map}.nii.gz -ref {out_dir}/templates/{group_params.group_template}.nii.gz -applyxfm -init {xfm} -out {curr_map}_{group_params.template_name}.nii.gz'
+                    subprocess.run(bash_cmd, shell=True)
+
+
+
+def register_max_to_template(group, sub, ses,analysis_name, template,template_name):
     '''
     Register max map to template
     '''
@@ -210,24 +247,8 @@ def register_max_to_template(sub, ses,analysis_name, template,template_name):
         bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {out_dir}/templates/{template}.nii.gz -w {warp} -o {curr_map}_{template_name}.nii.gz'
         subprocess.run(bash_cmd, shell=True)
 
-def register_indiv_map_to_template(sub, ses,analysis_name, template,template_name):
-    '''
-    Loop through rois of atlas and register to template
-    
-    '''
-    print(f'Registering indiv maps {sub} {analysis_name} to {template}')
-    sub_dir = f'{out_dir}/{sub}/{ses}'
-    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
-
-    warp = f'{group_params.raw_func_dir}/{sub}/{ses}/xfm/{sub}_{ses}_from-bold_to-extdhcp40wk_mode-image.nii.gz'
-    for hemi in group_params.hemis:
-        for n, roi in enumerate(roi_labels['label']):
-            curr_map = f'{results_dir}/{hemi}_{roi}_corr'
 
             
-            bash_cmd = f'applywarp -i {curr_map}.nii.gz -r {out_dir}/templates/{template}.nii.gz -w {warp} -o {curr_map}_{template_name}.nii.gz'
-            subprocess.run(bash_cmd, shell=True)
-        
 
 
 def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
@@ -296,14 +317,14 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
 
     
     #compute seed to roi correlations
-    compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
+    #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
 
     #register correlations to template
-    #register_max_to_template(sub, ses,analysis_name, group_template, template_name)
-    register_indiv_map_to_template(sub, ses,analysis_name, group_params.group_template, group_params.template_name)
+    register_indiv_map_to_template(group, sub, ses)
+    #register_indiv_map_to_template(sub, ses,analysis_name, group_params.group_template, group_params.template_name)
 
 
 
-create_group_map(group, sub_info,  analysis_name, group_params.template_name,target_name)
+#create_group_map(group, sub_info,  analysis_name, group_params.template_name,target_name)
 
 

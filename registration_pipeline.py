@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'infant'
+group = 'adult'
 group_info = params.load_group_params(group)
 
 #set directories
@@ -69,9 +69,9 @@ sub_list.reset_index(drop=True, inplace=True)
 
 
 #set atlas
-atlas = 'schaefer400'
+atlas = 'wang'
 
-roi = 'pulvinar_infant'
+roi = 'pulvinar_adult'
 
 '''
 Flags to determine which preprocessing steps to run
