@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore")
 import dhcp_params as params
 import subprocess
 from glob import glob as glob
-
+import shutil
 
 
 #read atlas and group info as args
@@ -54,6 +54,14 @@ group_params = params.load_group_params(group)
 sub_info = group_params.sub_list
 sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atlas}_exclude'] != 1)]
 
+
+#load only subs with two sessions
+#sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
+#sub_info = sub_info.reset_index()
+
+#
+#sub_info = sub_info.iloc[70:len(sub_info)]
+
 out_dir = group_params.out_dir
 
 
@@ -65,13 +73,15 @@ roi_info = params.load_roi_info(target_roi)
 #atlas = sys.argv[3]
 #target = sys.argv[4]
 target_name = roi_info.roi_name
-target_dir = f'rois/{target_roi}/hemi_{target_roi}_epi.nii.gz' 
+target_dir = f'rois/{target_roi}/hemi_{target_roi}.nii.gz' 
 
 analysis_name = target_roi
 
 results_dir = f'{out_dir}/derivatives/{target_roi}'
 #create results dir
 
+#Flag for checking whether to rerun the analysis
+rerun = False
 
 def compute_correlations(sub, ses, func_dir, seed_file, target_file):
     print(f'Computing correlations for {sub} {ses}')
@@ -80,6 +90,11 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
 
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
+
+    if rerun == False:
+        if os.path.exists(f'{results_dir}/{analysis_name}/{group_params.hemis[0]}_{analysis_name}_map.nii.gz') == True:
+            print(f'{sub} {ses} seed to whole already computed')
+            return
 
 
     func_files =  glob(f'{func_dir}/{sub}/{ses}/func/*_bold.nii.gz')
@@ -194,7 +209,15 @@ def register_indiv_map_to_template(group, sub, ses):
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
 
-    template_img = image.load_img(group_params.group_template)
+    #check if files already exist
+    if rerun == False:
+        if os.path.exists(f'{results_dir}/lh_SPL1_corr_{group_params.template_name}.nii.gz') == True:
+            print(f'{sub} {ses} already registered to template')
+            return
+
+
+
+    template_img = image.load_img(group_params.group_template + '.nii.gz')
     template_affine = template_img.affine
 
     xfm = group_params.func2template.replace('*SUB*', sub).replace('*SES*', ses)
@@ -207,7 +230,7 @@ def register_indiv_map_to_template(group, sub, ses):
 
             #check if they are identical
             if np.array_equal(curr_map_affine, template_affine):
-                continue
+                pass
             else:
 
                 if group == 'infant':
@@ -216,10 +239,45 @@ def register_indiv_map_to_template(group, sub, ses):
                     subprocess.run(bash_cmd, shell=True)
 
                 elif group == 'adult':
-                    bash_cmd = f'flirt -in {curr_map}.nii.gz -ref {out_dir}/templates/{group_params.group_template}.nii.gz -applyxfm -init {xfm} -out {curr_map}_{group_params.template_name}.nii.gz'
+                    #check if xfm already exists
+                    if os.path.exists(xfm) == False:
+                        #create transformation by inverting template2anat
+                        bash_cmd = f'convert_xfm -omat {sub_dir}/xfm/anat2template.mat -inverse {sub_dir}/xfm/template2anat.mat'
+                        subprocess.run(bash_cmd, shell=True)
+
+                        #copy xfm as template2func
+                        shutil.copy(f'{sub_dir}/xfm/anat2template.mat', f'{sub_dir}/xfm/func2template.mat')
+
+                    #pdb.set_trace()
+                    bash_cmd = f'flirt -in {curr_map}.nii.gz -ref {group_params.group_template}.nii.gz -applyxfm -init {xfm} -out {curr_map}_{group_params.template_name}.nii.gz'
                     subprocess.run(bash_cmd, shell=True)
 
+def register_40wk_to_mni(sub, ses):
+    '''
+    Register 40wk to MNI
+    '''
+    print(f'Registering 40wk to MNI {sub}')
+    
+    sub_dir = f'{out_dir}/{sub}/{ses}'
+    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
 
+    #check if files already exist
+    if rerun == False:
+        if os.path.exists(f'{results_dir}/lh_SPL1_corr_MNI.nii.gz') == True:
+            print(f'{sub} {ses} already registered to MNI')
+            return
+
+    mni = f'{params.atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain.nii.gz'
+    xfm = f'{params.atlas_dir}/templates/xfm/extdhcp40wk_to_MNI152NLin2009aAsym_warp.nii.gz'
+
+    for hemi in group_params.hemis:
+        for n, roi in enumerate(roi_labels['label']):
+            curr_map = f'{results_dir}/{hemi}_{roi}_corr'
+
+    
+            
+            bash_cmd = f'applywarp -i {curr_map}_40wk.nii.gz -r {mni} -w {xfm} -o {curr_map}_MNI.nii.gz'
+            subprocess.run(bash_cmd, shell=True)
 
 def register_max_to_template(group, sub, ses,analysis_name, template,template_name):
     '''
@@ -251,13 +309,21 @@ def register_max_to_template(group, sub, ses,analysis_name, template,template_na
             
 
 
-def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
+def create_group_map(group, sub_list, roi_name, standardize = False):
     '''
-    Create group map by loading each subject's map and taking the median
+    Create group map by loading each subject's map and taking the mean 
     '''
-    print(f'Creating group map for {group}')
+    print(f'Creating group map for {group} and {roi_name}')
+    
+
+    roi_info = params.load_roi_info(roi_name)
     #load template
-    template_file = f'{out_dir}/templates/{group_template}.nii.gz'
+    template_file = f'{roi_info.template}.nii.gz'
+    roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
+
+    #load roi mask
+    
+
     affine = image.load_img(template_file).affine
     header = image.load_img(template_file).header
 
@@ -266,65 +332,81 @@ def create_group_map(group, sub_list,  analysis_name, template_name, roi_name):
     results_dir = f'{out_dir}/derivatives/{analysis_name}'
     #create results dir
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
+    
 
     #loop through hemis
     for hemi in group_params.hemis:
-        #load roi mask
-        '''
-        NEED TO MAKE THIS WORK FOR THE GROUP
-        '''
-        roi_name = group_params.load_roi_info(roi)
-        curr_roi = f'{out_dir}/atlases/{roi_name}.nii.gz'
         #replace hemi in curr_roi
-        curr_roi = curr_roi.replace('hemi', hemi)
+        curr_roi = roi_name.replace('hemi', hemi)
         #create masker
-        brain_masker = NiftiMasker(curr_roi)
+        roi_masker = NiftiMasker(curr_roi,standardize = standardize)
+                                 
+        #load roi mask
+        for n, roi in enumerate(roi_labels['label']):
+            print(f'Creating group map for {hemi} {roi} {n}/{len(roi_labels)}')          
+        
+        
 
-        all_maps = []
-        for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-            sub_dir = f'{out_dir}/{sub}/{ses}'
+            all_maps = []
+            for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
+                sub_dir = f'{out_dir}/{sub}/{ses}'
+                curr_map = f'{sub_dir}/derivatives/brain/{hemi}_{roi}_corr_MNI.nii.gz'
 
-            curr_map = image.load_img(f'{sub_dir}/derivatives/{analysis_name}/{hemi}_{analysis_name}_map_{template_name}.nii.gz')
-            #apply mask
-            curr_map = brain_masker.fit_transform(curr_map)
-            #convert back to nifti
-            curr_map = brain_masker.inverse_transform(curr_map)
-            curr_map = curr_map.get_fdata()
-            all_maps.append(curr_map)
+                curr_map = image.load_img(curr_map)
+                #apply mask
+                curr_map = roi_masker.fit_transform(curr_map)
+                #convert back to nifti
+                #curr_map = roi_masker.inverse_transform(curr_map)
+                
+                all_maps.append(curr_map)
 
-        #convert to numpy array
-        all_maps = np.array(all_maps)
+            #convert to numpy array
+            all_maps = np.array(all_maps)
 
-        #take median across subjects
-        group_map = np.median(all_maps, axis = 0)
+            #take median across subjects
+            group_map = np.median(all_maps, axis = 0)
 
-        #save
-        group_map = nib.Nifti1Image(group_map, affine, header)
-        group_map.to_filename(f'{results_dir}/{hemi}_{analysis_name}_map_{template_name}.nii.gz')
+            #save as numpy array
+            np.save(f'{results_dir}/{hemi}_{roi}.npy', group_map)
 
-    
+            #inverse transform to nifti
+            group_img = roi_masker.inverse_transform(group_map)
+            group_img.to_filename(f'{results_dir}/{hemi}_{roi}.nii.gz')
+
+        
 
 
 
 
-
+n = 0 
 #loop through subjects
 for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
+    #print progress
+    n += 1
+    print(f'{n}/{len(sub_info)}')
+
     #set seed dir
     seed_file = f'{out_dir}/{sub}/{ses}/derivatives/timeseries/{sub}_{ses}_{seed_atlas}_hemi_ts.npy'
     target_file = f'{out_dir}/{sub}/{ses}/{target_dir}'
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
 
+  
+
+
     
     #compute seed to roi correlations
     #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
 
-    #register correlations to template
-    register_indiv_map_to_template(group, sub, ses)
-    #register_indiv_map_to_template(sub, ses,analysis_name, group_params.group_template, group_params.template_name)
+    #register correlations to template group-specific template
+    #register_indiv_map_to_template(group, sub, ses)
+    
+    #register correlations to mni
+    #register_40wk_to_mni(sub, ses)
+
+    break
 
 
 
-#create_group_map(group, sub_info,  analysis_name, group_params.template_name,target_name)
+create_group_map(group, sub_info, target_roi)
 
 
