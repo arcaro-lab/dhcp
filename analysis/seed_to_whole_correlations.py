@@ -20,7 +20,7 @@ import numpy as np
 from nilearn.maskers import NiftiMasker
 
 import nibabel as nib
-import os
+
 
 import pdb
 
@@ -346,7 +346,6 @@ def create_group_map(group, sub_list, roi_name, standardize = False):
             print(f'Creating group map for {hemi} {roi} {n}/{len(roi_labels)}')          
         
         
-
             all_maps = []
             for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
                 sub_dir = f'{out_dir}/{sub}/{ses}'

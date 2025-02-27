@@ -57,7 +57,7 @@ all_rois = []
 all_networks = []
 
 #flag whether to rerun correlations
-re_run = False
+re_run = True
 
 all_rois = []
 all_networks = []
@@ -180,9 +180,10 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
 
                         
                         #add to sub_df
-                        curr_data = [sub, ses, sex, birth_age, scan_age, hemi, infant_roi, infant_network, adult_roi, adult_network,hemi_sim, roi_sim, net_sim, corr]
+                        curr_data = [sub, ses, sex, birth_age, scan_age, infant_hemi, infant_roi, infant_network, adult_roi, adult_network,hemi_sim, roi_sim, net_sim, corr]
                         
                         sub_df.loc[len(sub_df)] = curr_data
+            
 
         #save sub_df
         sub_df.to_csv(f'{sub_dir}/derivatives/{sub}_adult_{atlas}_correlations.csv', index=False)
