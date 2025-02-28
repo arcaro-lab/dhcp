@@ -60,7 +60,7 @@ sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atla
 #sub_info = sub_info.reset_index()
 
 #
-#sub_info = sub_info.iloc[70:len(sub_info)]
+sub_info = sub_info.iloc[70:len(sub_info)]
 
 out_dir = group_params.out_dir
 
@@ -81,7 +81,7 @@ results_dir = f'{out_dir}/derivatives/{target_roi}'
 #create results dir
 
 #Flag for checking whether to rerun the analysis
-rerun = False
+rerun = True
 
 def compute_correlations(sub, ses, func_dir, seed_file, target_file):
     print(f'Computing correlations for {sub} {ses}')
@@ -153,6 +153,9 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
             seed_to_voxel_correlations = (np.dot(target_ts.T, ts) /
                                         ts.shape[0])
             
+            #target_ts.shape = 4600,28807
+            #ts.shape = 4600
+            
             
             #save correlation map
             seed_to_voxel_correlations_img = roi_masker.inverse_transform(seed_to_voxel_correlations.T)
@@ -199,6 +202,124 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         #save map
         nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
 
+
+
+def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
+    print(f'Computing second order correlations for {sub}')
+    sub_dir = f'{out_dir}/{sub}/{ses}'
+    results_dir = f'{sub_dir}/derivatives/{analysis_name}'
+    timseries_dir = f'{sub_dir}/derivatives/timeseries'
+
+    
+    roi_info = params.load_roi_info(roi_name)
+    #load template
+    template_file = f'{roi_info.template}.nii.gz'
+    roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
+
+    #check if first roi exists
+
+    
+    for hemi in params.hemis:
+        #load roi mask
+
+        data_dir = f'{sub_dir}/derivatives/brain'
+        
+        target_mask = image.load_img(roi_name.replace('hemi', hemi))
+        #create masker object
+        masker = NiftiMasker(mask_img=target_mask, standardize=False)  
+
+        
+
+        #check if whole_brain image exists
+
+        
+        if not os.path.exists(f'{data_dir}/{params.hemis[0]}_{roi_labels["label"][0]}_corr_MNI.nii.gz'):
+            print(f'No first order correlations found for {sub}')
+            return
+            
+        
+        
+
+        #load similarity RDM for seed_atlas
+        seed_ts = np.load(f'{timseries_dir}/{sub}_{ses}_{seed_atlas}_{hemi}_ts.npy').T
+
+        #create seed_rdm
+        seed_rdm = np.corrcoef(seed_ts)
+
+        #subtract .001 from diagonal, so fisher z transform doesn't break
+        np.fill_diagonal(seed_rdm, seed_rdm.diagonal() - .001)
+
+        
+        #fisher z transform
+        seed_rdm = np.arctanh(seed_rdm)
+
+
+        #loop through rois
+        all_rois = []
+        for roi in roi_labels['label']:
+            
+            #load data for each ROI
+
+            roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr_MNI.nii.gz')
+
+            #extract data
+            roi_data = masker.fit_transform(roi_img)
+            
+            #flatten
+            #roi_data = roi_data.flatten()
+
+            #append to list
+            all_rois.append(roi_data)
+
+
+        #convert to array
+        all_rois = np.array(all_rois)
+        #pdb.set_trace()
+        #fisher z transform
+        all_rois = np.arctanh(all_rois)
+
+        #squeeze
+        all_rois = all_rois.squeeze()
+
+        #create zero array with shape of all_rois
+        second_order_rdm = np.zeros(all_rois.shape)
+        
+
+        for rn,roi in enumerate(roi_labels['label']):
+            #remove current roi from rdm
+            curr_seed_rdm = np.delete(seed_rdm[rn,:], rn)
+            curr_roi_rdms = np.delete(all_rois, rn, axis = 0)
+
+            #zscore curr_seed_rdm and curr_roi_rdms
+            curr_seed_rdm = (curr_seed_rdm - np.mean(curr_seed_rdm)) / np.std(curr_seed_rdm)
+            curr_roi_rdms = (curr_roi_rdms - np.mean(curr_roi_rdms, axis = 0)) / np.std(curr_roi_rdms, axis = 0)
+
+            
+            seed_to_roi_correlation = (np.dot(curr_roi_rdms.T, curr_seed_rdm) / curr_seed_rdm.shape[0])
+            second_order_rdm[rn,:] = seed_to_roi_correlation
+            
+            #reshape to match roi_data
+            curr_roi_corr = seed_to_roi_correlation.reshape(roi_data.shape)
+
+            #transform it back to brain space
+            curr_roi_img = masker.inverse_transform(curr_roi_corr)
+
+            #drop last dimension
+            #curr_roi = curr_roi.slicer[:,:,:,0]
+            
+            #make 0s nans
+            curr_roi_img = image.math_img('np.where(img == 0, np.nan, img)', img = curr_roi_img)
+            
+        
+            #save it
+            curr_roi_img.to_filename(f'{results_dir}/{hemi}_{roi}_second_order_MNI.nii.gz')
+            
+
+        #remove middle dimension
+        second_order_rdm = second_order_rdm.squeeze()
+        #save second order rdm
+        np.save(f'{results_dir}/{hemi}_{seed_atlas}_second_order_rdm.npy', second_order_rdm)
+#        pdb.set_trace()
 
 def register_indiv_map_to_template(group, sub, ses):
     '''
@@ -396,16 +517,19 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     #compute seed to roi correlations
     #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
 
+    #compute 2nd order corr
+    compute_2ndorder_correlations(sub, ses, target_roi)
+
     #register correlations to template group-specific template
     #register_indiv_map_to_template(group, sub, ses)
     
     #register correlations to mni
     #register_40wk_to_mni(sub, ses)
 
-    break
+    
 
 
 
-create_group_map(group, sub_info, target_roi)
+#create_group_map(group, sub_info, target_roi)
 
 
