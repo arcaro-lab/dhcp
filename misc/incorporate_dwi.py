@@ -44,7 +44,15 @@ for sub_dir in subject_dirs:
         source_dir = f'{sub_dir}/{target_folder}'
         dest_dir = f'{dhcp_preproc}/{sub}/{ses}/{target_folder}'
 
-        #if target folder exists, delte it
+        #check if target folder exists
+        if os.path.exists(dest_dir):
+            print(f'{dest_dir} already exists')
+            continue
+        else:
+            print(f'{dest_dir} does not exist')
+            #create target folder
+            os.makedirs(dest_dir, exist_ok=True)
+            print(f'Created {dest_dir}')
 
         #os.makedirs(dest, exist_ok=True)
         try:
@@ -55,7 +63,7 @@ for sub_dir in subject_dirs:
         except:
             #copy file
             try:
-                shutil.copy(source_dir, dest_dir, dirs_exist_ok=True)
+                shutil.copy(source_dir, dest_dir)
                 print(f'Copied {source_dir} to {dest_dir}')
 
             except:

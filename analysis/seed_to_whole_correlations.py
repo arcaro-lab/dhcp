@@ -56,11 +56,11 @@ sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atla
 
 
 #load only subs with two sessions
-#sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
-#sub_info = sub_info.reset_index()
+sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
+sub_info = sub_info.reset_index()
 
 #
-sub_info = sub_info.iloc[70:len(sub_info)]
+#sub_info = sub_info.iloc[70:len(sub_info)]
 
 out_dir = group_params.out_dir
 
@@ -208,6 +208,9 @@ def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
     print(f'Computing second order correlations for {sub}')
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
+    #create results dir
+    os.makedirs(results_dir, exist_ok = True)
+
     timseries_dir = f'{sub_dir}/derivatives/timeseries'
 
     
@@ -430,7 +433,7 @@ def register_max_to_template(group, sub, ses,analysis_name, template,template_na
             
 
 
-def create_group_map(group, sub_list, roi_name, standardize = False):
+def create_group_map(group, sub_list, roi_name,suf ='_corr_MNI', standardize = False):
     '''
     Create group map by loading each subject's map and taking the mean 
     '''
@@ -470,7 +473,7 @@ def create_group_map(group, sub_list, roi_name, standardize = False):
             all_maps = []
             for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
                 sub_dir = f'{out_dir}/{sub}/{ses}'
-                curr_map = f'{sub_dir}/derivatives/brain/{hemi}_{roi}_corr_MNI.nii.gz'
+                curr_map = f'{sub_dir}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.nii.gz'
 
                 curr_map = image.load_img(curr_map)
                 #apply mask
@@ -491,7 +494,7 @@ def create_group_map(group, sub_list, roi_name, standardize = False):
 
             #inverse transform to nifti
             group_img = roi_masker.inverse_transform(group_map)
-            group_img.to_filename(f'{results_dir}/{hemi}_{roi}.nii.gz')
+            group_img.to_filename(f'{results_dir}/{hemi}_{roi}{suf}.nii.gz')
 
         
 
@@ -518,18 +521,19 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
 
     #compute 2nd order corr
-    compute_2ndorder_correlations(sub, ses, target_roi)
+    #compute_2ndorder_correlations(sub, ses, target_roi)
 
     #register correlations to template group-specific template
     #register_indiv_map_to_template(group, sub, ses)
     
     #register correlations to mni
     #register_40wk_to_mni(sub, ses)
+    break
 
     
 
 
 
-#create_group_map(group, sub_info, target_roi)
+create_group_map(group, sub_info, target_roi, '_second_order_MNI', standardize = True)
 
 

@@ -61,12 +61,14 @@ roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
 
 summary_df = pd.DataFrame(columns = ['sub', 'roi','network','t1_age','t2_age','age_diff','t1_cortex_corr','t2_cortex_corr', f't1_{target_roi}_corr', f't2_{target_roi}_corr'])
 
-
-
-
+#set up maskers
 lh_masker = NiftiMasker(roi_name.replace('hemi','lh'),standardize = True)
 rh_masker = NiftiMasker(roi_name.replace('hemi','rh'),standardize = True)
                         
+#target suffix
+#suf = '_corr_MNI'
+suf = '_second_order_MNI'
+
 
 #loop through ROIs in atlas
 for roi, network in zip(roi_labels['label'], roi_labels['network']):
@@ -85,8 +87,8 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
         ses1 = curr_sub[curr_sub['scan_age'] == np.min(curr_sub['scan_age'])]['ses'].values[0]
         ses2 = curr_sub[curr_sub['scan_age'] == np.max(curr_sub['scan_age'])]['ses'].values[0]
 
-        ses1_dir = f'{group_params.out_dir}/{sub}/{ses1}/derivatives/brain'
-        ses2_dir = f'{group_params.out_dir}/{sub}/{ses2}/derivatives/brain'
+        ses1_dir = f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult'
+        ses2_dir = f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult'
 
         #get ages from ses1 and ses2
         t1_age = curr_sub[curr_sub['ses'] == ses1]['scan_age'].values[0]
@@ -109,7 +111,6 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
         t2_cortex_corr = np.mean([lh_t2_cortex_corr, rh_t2_cortex_corr])
         
         #loop through hemis
-        '''ADD RH WHEN ITS READY'''
         for hemi in ['lh', 'rh']:
 
             if hemi == 'lh':
@@ -122,22 +123,22 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
             
             
             #check if numpy array of data exists
-            if os.path.exists(f'{ses2_dir}/{hemi}_{roi}_corr_MNI.npy'):
+            if os.path.exists(f'{ses2_dir}/{hemi}_{roi}{suf}.npy'):
                 #load data
-                ses1_data = np.load(f'{ses1_dir}/{hemi}_{roi}_corr_MNI.npy').flatten()
-                ses2_data = np.load(f'{ses2_dir}/{hemi}_{roi}_corr_MNI.npy').flatten()
+                ses1_data = np.load(f'{ses1_dir}/{hemi}_{roi}{suf}.npy').flatten()
+                ses2_data = np.load(f'{ses2_dir}/{hemi}_{roi}{suf}.npy').flatten()
             else:
 
-                ses1_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/brain/{hemi}_{roi}_corr_MNI.nii.gz')
-                ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/brain/{hemi}_{roi}_corr_MNI.nii.gz')
+                ses1_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.nii.gz')
+                ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.nii.gz')
 
                 #extract data from each
                 ses1_data = roi_masker.fit_transform(ses1_map)
                 ses2_data = roi_masker.fit_transform(ses2_map)
 
                 #save as numpy array
-                np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/brain/{hemi}_{roi}_corr_MNI.npy', ses1_data)
-                np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/brain/{hemi}_{roi}_corr_MNI.npy', ses2_data)
+                np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.npy', ses1_data)
+                np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.npy', ses2_data)
 
             #correlate with adult group map
             corr1 = np.corrcoef(adult_map, ses1_data)[0,1]
@@ -167,7 +168,7 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
 
 
     #save summary_df
-    summary_df.to_csv(f'{git_dir}/results/roi_corrs/pulvinar_session_correlations.csv', index = False)
+    summary_df.to_csv(f'{git_dir}/results/roi_corrs/pulvinar_session_correlations{suf}.csv', index = False)
 
 
 
