@@ -59,8 +59,10 @@ sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atla
 sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
 sub_info = sub_info.reset_index()
 
-#
-#sub_info = sub_info.iloc[70:len(sub_info)]
+#invert order of sub_info
+#sub_info = sub_info.iloc[::-1]
+
+sub_info = sub_info.iloc[70:len(sub_info)]
 
 out_dir = group_params.out_dir
 
@@ -83,10 +85,13 @@ results_dir = f'{out_dir}/derivatives/{target_roi}'
 #Flag for checking whether to rerun the analysis
 rerun = True
 
-def compute_correlations(sub, ses, func_dir, seed_file, target_file):
+def compute_correlations(sub, ses, func_dir, seed_file):
+    '''
+    Computes seed-to-whole brain correlations
+    '''
+
     print(f'Computing correlations for {sub} {ses}')
 
-    
 
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
     os.makedirs(f'{results_dir}/{analysis_name}', exist_ok = True)
@@ -101,7 +106,19 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
 
     
     #func_img = image.load_img(f'{func_dir}/{sub}/{ses}/func/{sub}_{ses}_{group_params.func_suf}.nii.gz')
-    
+
+    #check if brain mask exists
+    if os.path.exists(f'{out_dir}/{sub}/{ses}/anat/{sub}_{ses}_{group_params.brain_mask_suf}_epi.nii.gz'):
+        brain_roi = image.load_img(f'{out_dir}/{sub}/{ses}/anat/{sub}_{ses}_{group_params.brain_mask_suf}_epi.nii.gz')
+        brain_masker = NiftiMasker(brain_roi, standardize=True)
+    elif os.path.exists(f'{out_dir}/{sub}/{ses}/anat/{sub}_{ses}_desc_brain_mask_epi.nii.gz'):
+        brain_roi = image.load_img(f'{out_dir}/{sub}/{ses}/anat/{sub}_{ses}_desc_brain_mask_epi.nii.gz')
+        brain_masker = NiftiMasker(brain_roi, standardize=True)
+    else:
+        print(f'No brain mask found for {sub}')
+        return
+
+
     
     for hemi in group_params.hemis:
         curr_seed = seed_file.replace('hemi', hemi)
@@ -126,9 +143,8 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
                 print(f'Error loading {func_file}')
                 continue
 
-            target_roi = image.binarize_img(image.load_img(curr_target))
-            roi_masker = NiftiMasker(target_roi, standardize=True)
-            run_ts = roi_masker.fit_transform(func_img)
+
+            run_ts = brain_masker.fit_transform(func_img)
 
             all_funcs.append(run_ts)
 
@@ -148,6 +164,9 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         for n, ts in enumerate(seed_ts):
             #get roi label
             roi = roi_labels['label'][n]
+
+            #standardize ts
+            ts = (ts - np.mean(ts)) / np.std(ts)
             
             #compute correlation between seed and brain
             seed_to_voxel_correlations = (np.dot(target_ts.T, ts) /
@@ -158,7 +177,7 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
             
             
             #save correlation map
-            seed_to_voxel_correlations_img = roi_masker.inverse_transform(seed_to_voxel_correlations.T)
+            seed_to_voxel_correlations_img = brain_masker.inverse_transform(seed_to_voxel_correlations.T)
 
             #set all 0s to nan
             seed_to_voxel_correlations_img = image.math_img('np.where(img == 0, np.nan, img)', img = seed_to_voxel_correlations_img)
@@ -193,18 +212,22 @@ def compute_correlations(sub, ses, func_dir, seed_file, target_file):
         max_map = nib.Nifti1Image(max_map, affine, header)
 
         #apply mask
-        roi_masker = NiftiMasker(target_roi, smoothing_fwhm=0)
-        smoothed_map = roi_masker.fit_transform(max_map)
+        #roi_masker = NiftiMasker(target_roi, smoothing_fwhm=0)
+        #smoothed_map = brain_masker.fit_transform(max_map)
 
         #convert back to nifti
-        smoothed_map = roi_masker.inverse_transform(smoothed_map)
+        #smoothed_map = brain_masker.inverse_transform(smoothed_map)
 
         #save map
-        nib.save(smoothed_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
+        nib.save(max_map, f'{results_dir}/{analysis_name}/{hemi}_{analysis_name}_map.nii.gz')
 
 
 
-def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
+def compute_2ndorder_correlations(sub, ses):
+    '''
+    Computes 2nd order correlations between seed-to-roi correlations
+    '''
+
     print(f'Computing second order correlations for {sub}')
     sub_dir = f'{out_dir}/{sub}/{ses}'
     results_dir = f'{sub_dir}/derivatives/{analysis_name}'
@@ -213,11 +236,10 @@ def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
 
     timseries_dir = f'{sub_dir}/derivatives/timeseries'
 
-    
-    roi_info = params.load_roi_info(roi_name)
-    #load template
-    template_file = f'{roi_info.template}.nii.gz'
-    roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
+
+
+    brain_mask = f'{params.atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain_binary.nii.gz'
+    brain_masker = NiftiMasker(brain_mask, standardize = False)
 
     #check if first roi exists
 
@@ -226,23 +248,15 @@ def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
         #load roi mask
 
         data_dir = f'{sub_dir}/derivatives/brain'
-        
-        target_mask = image.load_img(roi_name.replace('hemi', hemi))
-        #create masker object
-        masker = NiftiMasker(mask_img=target_mask, standardize=False)  
+       
 
-        
-
-        #check if whole_brain image exists
-
-        
+        #check if whole_brain image exists        
         if not os.path.exists(f'{data_dir}/{params.hemis[0]}_{roi_labels["label"][0]}_corr_MNI.nii.gz'):
             print(f'No first order correlations found for {sub}')
             return
             
         
         
-
         #load similarity RDM for seed_atlas
         seed_ts = np.load(f'{timseries_dir}/{sub}_{ses}_{seed_atlas}_{hemi}_ts.npy').T
 
@@ -266,7 +280,7 @@ def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
             roi_img = image.load_img(f'{data_dir}/{hemi}_{roi}_corr_MNI.nii.gz')
 
             #extract data
-            roi_data = masker.fit_transform(roi_img)
+            roi_data = brain_masker.fit_transform(roi_img)
             
             #flatten
             #roi_data = roi_data.flatten()
@@ -305,7 +319,7 @@ def compute_2ndorder_correlations(sub, ses, roi_name, standardize = False):
             curr_roi_corr = seed_to_roi_correlation.reshape(roi_data.shape)
 
             #transform it back to brain space
-            curr_roi_img = masker.inverse_transform(curr_roi_corr)
+            curr_roi_img = brain_masker.inverse_transform(curr_roi_corr)
 
             #drop last dimension
             #curr_roi = curr_roi.slicer[:,:,:,0]
@@ -433,17 +447,20 @@ def register_max_to_template(group, sub, ses,analysis_name, template,template_na
             
 
 
-def create_group_map(group, sub_list, roi_name,suf ='_corr_MNI', standardize = False):
+def create_group_map(group, sub_list, suf ='_corr_MNI', standardize = False):
     '''
     Create group map by loading each subject's map and taking the mean 
     '''
     print(f'Creating group map for {group} and {roi_name}')
     
 
-    roi_info = params.load_roi_info(roi_name)
+    #roi_info = params.load_roi_info(roi_name)
     #load template
-    template_file = f'{roi_info.template}.nii.gz'
-    roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
+    template_file = f'{params.atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain.nii.gz'
+    #roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
+
+    brain_mask = f'{params.atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain_binary.nii.gz'
+    brain_masker = NiftiMasker(brain_mask, standardize = False)
 
     #load roi mask
     
@@ -463,7 +480,7 @@ def create_group_map(group, sub_list, roi_name,suf ='_corr_MNI', standardize = F
         #replace hemi in curr_roi
         curr_roi = roi_name.replace('hemi', hemi)
         #create masker
-        roi_masker = NiftiMasker(curr_roi,standardize = standardize)
+        #roi_masker = NiftiMasker(curr_roi,standardize = standardize)
                                  
         #load roi mask
         for n, roi in enumerate(roi_labels['label']):
@@ -477,9 +494,14 @@ def create_group_map(group, sub_list, roi_name,suf ='_corr_MNI', standardize = F
 
                 curr_map = image.load_img(curr_map)
                 #apply mask
-                curr_map = roi_masker.fit_transform(curr_map)
+                curr_map = brain_masker.fit_transform(curr_map)
                 #convert back to nifti
                 #curr_map = roi_masker.inverse_transform(curr_map)
+
+                #fisher z transform
+                curr_map = np.arctanh(curr_map)
+                #standardize
+                curr_map = (curr_map - np.mean(curr_map)) / np.std(curr_map)
                 
                 all_maps.append(curr_map)
 
@@ -493,7 +515,7 @@ def create_group_map(group, sub_list, roi_name,suf ='_corr_MNI', standardize = F
             np.save(f'{results_dir}/{hemi}_{roi}.npy', group_map)
 
             #inverse transform to nifti
-            group_img = roi_masker.inverse_transform(group_map)
+            group_img = brain_masker.inverse_transform(group_map)
             group_img.to_filename(f'{results_dir}/{hemi}_{roi}{suf}.nii.gz')
 
         
@@ -514,26 +536,25 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
 
   
-
-
     
     #compute seed to roi correlations
-    #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file, target_file)
-
-    #compute 2nd order corr
-    #compute_2ndorder_correlations(sub, ses, target_roi)
+    compute_correlations(sub, ses,group_params.raw_func_dir, seed_file)
 
     #register correlations to template group-specific template
-    #register_indiv_map_to_template(group, sub, ses)
+    register_indiv_map_to_template(group, sub, ses)
     
     #register correlations to mni
-    #register_40wk_to_mni(sub, ses)
-    break
+    register_40wk_to_mni(sub, ses)
+
+    #compute 2nd order corr
+    compute_2ndorder_correlations(sub, ses)
+
+
 
     
 
 
 
-create_group_map(group, sub_info, target_roi, '_second_order_MNI', standardize = True)
+#create_group_map(group, sub_info,  '_second_order_MNI', standardize = True)
 
 

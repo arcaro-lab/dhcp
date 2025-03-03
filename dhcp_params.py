@@ -130,7 +130,7 @@ class load_roi_info():
         Load ROI info
         '''
 
-        if roi == 'pulvinar_infant':
+        if roi == 'pulvinar_40wk':
             self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar_40wk'
             self.template = f'{atlas_dir}/templates/week40_T2w'
             self.template_name = '40wk'
@@ -141,7 +141,7 @@ class load_roi_info():
             #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
             self.method = 'applywarp'
 
-        if roi == 'pulvinar_adult':
+        if roi == 'pulvinar_mni':
 
             self.roi_name = 'rois/pulvinar/hemi_pulvinar_mni'
             self.template = f'{atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
