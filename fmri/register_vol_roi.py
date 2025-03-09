@@ -143,7 +143,7 @@ def register_to_infants(curr_roi):
     subprocess.run(bash_cmd, shell=True)
 
     #apply transformations for template2dwi
-    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/dwi_bedpostx.bedpostX/nodif_brain_mask.nii.gz  -w {template2dwi} -o {data_dir}/rois/{roi}/{hemi}_{roi}_dwi.nii.gz --interp=nn'
+    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/dwi/nodif_brain.nii.gz  -w {template2dwi} -o {data_dir}/rois/{roi}/{hemi}_{roi}_dwi.nii.gz --interp=nn'
     subprocess.run(bash_cmd, shell=True)
 
     #apply transformations to anat

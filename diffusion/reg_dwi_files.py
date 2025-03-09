@@ -45,7 +45,7 @@ def reg_to_template():
     source_dir = f'/mnt/DataDrive3/vlad/diffusion/individual_subjects/{source_sub}/{source_ses}'
     xfm = f'{source_dir}/xfm/sub-CC00063AN06_ses-15102_from-dwi_to-extdhcp40wk_mode-image.nii.gz'
 
-    exclusion_file ='exclusion_dwispace_allmasks_*hemi*'
+    exclusion_file ='binaryMask_dwispace_*hemi*'
 
     waypoint_file = f'*roi*_*hemi*_{source_sub}_waypoint_mask_dwispace.nii.gz'
 
@@ -55,9 +55,9 @@ def reg_to_template():
     target_dir = f'{params.atlas_dir}/diffusion_wangatlas/40wk'
 
 
-    '''
+    
     for hemi in ['lh', 'rh']:
-        
+        print('registering exclusion mask')
         
         #apply transform to exclusion mask
         bash_cmd = f'applywarp --ref={template} --in={source_dir}/exclusionmasks/{exclusion_file.replace('*hemi*', hemi)}.nii --warp={xfm} --out={target_dir}/{exclusion_file.replace('*hemi*', hemi)}_40wk.nii'
@@ -74,12 +74,13 @@ def reg_to_template():
         #apply transform to waypoint mask
         bash_cmd = f'applywarp --ref={template} --in={waypoint_file} --warp={xfm} --out={out_file}'
         subprocess.run(bash_cmd, shell=True)
-        
+    ''' 
 reg_to_template()
 '''
 Register exclusion and waypoint masks from 40wk template to individual subjects
 '''
 
+print('Registering exclusion and waypoint masks to individual subjects')
 group_params = params.load_group_params('infant')
 #load individual infant data
 sub_info = group_params.sub_list
@@ -94,7 +95,7 @@ sub_info = sub_info.reset_index()
 source_dir = f'{params.atlas_dir}/diffusion_wangatlas/40wk'
 
 #glob exclusion and waypoint masks
-exclusion_files = glob(f'{source_dir}/exclusion_*.nii.gz')
+exclusion_files = glob(f'{source_dir}/binaryMask_dwispace_*.nii.gz')
 waypoint_files = glob(f'{source_dir}/waypointmasks/*.nii.gz')
 
 
@@ -126,7 +127,7 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
             out_file = f'{exclusion_dir}/{os.path.basename(exclusion_file).replace('40wk', '')}'
             
             #apply transform to exclusion mask
-            bash_cmd = f'applywarp --ref={exclusion_file} --in={exclusion_file} --warp={xfm} --out={out_file}'
+            bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={exclusion_file} --warp={xfm} --out={out_file}'
             subprocess.run(bash_cmd, shell=True)
 
         #loop through waypoint files
@@ -138,7 +139,7 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
             out_file = f'{waypoint_dir}/{os.path.basename(waypoint_file).replace('40wk', '')}'
             
             #apply transform to waypoint mask
-            bash_cmd = f'applywarp --ref={waypoint_file} --in={waypoint_file} --warp={xfm} --out={out_file}'
+            bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={waypoint_file} --warp={xfm} --out={out_file}'
             subprocess.run(bash_cmd, shell=True)
     else:
         print(f'{sub} {ses} missing xfm')
