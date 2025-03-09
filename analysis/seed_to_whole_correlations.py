@@ -56,13 +56,13 @@ sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atla
 
 
 #load only subs with two sessions
-sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
-sub_info = sub_info.reset_index()
+#sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
+#sub_info = sub_info.reset_index()
 
 #invert order of sub_info
 #sub_info = sub_info.iloc[::-1]
 
-sub_info = sub_info.iloc[70:len(sub_info)]
+#sub_info = sub_info.iloc[70:len(sub_info)]
 
 out_dir = group_params.out_dir
 
@@ -447,11 +447,11 @@ def register_max_to_template(group, sub, ses,analysis_name, template,template_na
             
 
 
-def create_group_map(group, sub_list, suf ='_corr_MNI', standardize = False):
+def create_group_map(group, sub_list, suf ='_corr_MNI'):
     '''
     Create group map by loading each subject's map and taking the mean 
     '''
-    print(f'Creating group map for {group} and {roi_name}')
+    print(f'Creating group map for {group}')
     
 
     #roi_info = params.load_roi_info(roi_name)
@@ -478,7 +478,7 @@ def create_group_map(group, sub_list, suf ='_corr_MNI', standardize = False):
     #loop through hemis
     for hemi in group_params.hemis:
         #replace hemi in curr_roi
-        curr_roi = roi_name.replace('hemi', hemi)
+        #curr_roi = roi_name.replace('hemi', hemi)
         #create masker
         #roi_masker = NiftiMasker(curr_roi,standardize = standardize)
                                  
@@ -490,7 +490,7 @@ def create_group_map(group, sub_list, suf ='_corr_MNI', standardize = False):
             all_maps = []
             for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
                 sub_dir = f'{out_dir}/{sub}/{ses}'
-                curr_map = f'{sub_dir}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.nii.gz'
+                curr_map = f'{sub_dir}/derivatives/brain/{hemi}_{roi}{suf}.nii.gz'
 
                 curr_map = image.load_img(curr_map)
                 #apply mask
@@ -538,23 +538,23 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
   
     
     #compute seed to roi correlations
-    compute_correlations(sub, ses,group_params.raw_func_dir, seed_file)
+    #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file)
 
     #register correlations to template group-specific template
-    register_indiv_map_to_template(group, sub, ses)
+    #register_indiv_map_to_template(group, sub, ses)
     
     #register correlations to mni
-    register_40wk_to_mni(sub, ses)
+    #register_40wk_to_mni(sub, ses)
 
     #compute 2nd order corr
-    compute_2ndorder_correlations(sub, ses)
+    #compute_2ndorder_correlations(sub, ses)
 
-
+    break
 
     
 
 
 
-#create_group_map(group, sub_info,  '_second_order_MNI', standardize = True)
+create_group_map(group, sub_info,  '_second_order_MNI')
 
 

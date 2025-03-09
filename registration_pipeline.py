@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'adult'
+group = 'infant'
 group_info = params.load_group_params(group)
 
 #set directories
@@ -57,10 +57,12 @@ full_sub_list = group_info.sub_list
 
 #limit to subs with 1 in to_run col
 sub_list = full_sub_list[full_sub_list['to_run']==1]
+sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
 #reset index
 sub_list.reset_index(drop=True, inplace=True)
 
 
+pdb.set_trace()
 
 
 
@@ -71,7 +73,7 @@ sub_list.reset_index(drop=True, inplace=True)
 #set atlas
 atlas = 'wang'
 
-roi = 'pulvinar_adult'
+roi = 'pulvinar'
 
 '''
 Flags to determine which preprocessing steps to run

@@ -35,7 +35,7 @@ group_info = dhcp_params.load_group_params(group)
 roi = sys.argv[4]
 
 
-roi_info = dhcp_params.load_roi_info(roi)
+roi_info = dhcp_params.load_roi_info(roi, group)
 
 template = roi_info.template
 template_name = roi_info.template_name
@@ -50,6 +50,7 @@ func2template = group_info.func2template.replace('*SUB*', sub).replace('*SES*', 
 func2anat = group_info.func2anat.replace('*SUB*', sub).replace('*SES*', ses)
 anat2func = group_info.anat2func.replace('*SUB*', sub).replace('*SES*', ses)
 template2anat = group_info.template2anat.replace('*SUB*', sub).replace('*SES*', ses)
+template2dwi = group_info.template2dwi.replace('*SUB*', sub).replace('*SES*', ses)
 
 
 #set sub dir
@@ -126,6 +127,7 @@ def register_with_ants():
 
 def register_to_infants(curr_roi):
     
+
     os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
     
     #check if template2func already exists
@@ -140,11 +142,16 @@ def register_to_infants(curr_roi):
     bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz  -w {template2func} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
     subprocess.run(bash_cmd, shell=True)
 
+    #apply transformations for template2dwi
+    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/dwi_bedpostx.bedpostX/nodif_brain_mask.nii.gz  -w {template2dwi} -o {data_dir}/rois/{roi}/{hemi}_{roi}_dwi.nii.gz --interp=nn'
+    subprocess.run(bash_cmd, shell=True)
+
     #apply transformations to anat
     #bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/{anat}_brain.nii.gz  -w {template2anat} -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz --interp=nn'
     bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -ref {data_dir}/{anat}_brain.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -applyxfm -init {func2anat} -interp nearestneighbour'
     subprocess.run(bash_cmd, shell=True)    
 
+    
 
 def register_to_adults(curr_roi):
     os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)

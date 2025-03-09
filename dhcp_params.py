@@ -57,6 +57,12 @@ class load_group_params():
             self.anat2template = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-serag40wk_mode-image.nii.gz'
             self.template2anat = f'{self.raw_anat_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-serag40wk_to-T2w_mode-image.nii.gz'
 
+            self.dwi2template = f'{self.out_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-dwi_to-extdhcp40wk_mode-image.nii.gz'
+            self.template2dwi = f'{self.out_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-extdhcp40wk_to-dwi_mode-image.nii.gz'
+
+            self.dwi2anat = f'{self.out_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-dwi_to-T2w_mode-image.mat'
+            self.anat2dwi = f'{self.out_dir}/*SUB*/*SES*/xfm/*SUB*_*SES*_from-T2w_to-dwi_mode-image.mat'
+
         elif group == 'adult':
             #7T hcp data directories
             self.raw_data_dir = '/mnt/DataDrive1/data_preproc/human_mri/7T_HCP'
@@ -125,12 +131,12 @@ class load_atlas_info():
 
 
 class load_roi_info():
-    def __init__(self,roi):
+    def __init__(self,roi, group=None):
         '''
         Load ROI info
         '''
 
-        if roi == 'pulvinar_40wk':
+        if roi == 'pulvinar_40wk' or roi == 'pulvinar' and group == 'infant':
             self.roi_name = 'rois/pulvinar/40wk/hemi_pulvinar_40wk'
             self.template = f'{atlas_dir}/templates/week40_T2w'
             self.template_name = '40wk'
@@ -141,7 +147,7 @@ class load_roi_info():
             #xfm = '*SUB*_*SES*_from-extdhcp40wk_to-bold_mode-image'
             self.method = 'applywarp'
 
-        if roi == 'pulvinar_mni':
+        if roi == 'pulvinar_mni' or roi == 'pulvinar' and group == 'adult':
 
             self.roi_name = 'rois/pulvinar/hemi_pulvinar_mni'
             self.template = f'{atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'

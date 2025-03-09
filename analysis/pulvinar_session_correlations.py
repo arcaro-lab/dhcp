@@ -53,9 +53,9 @@ sub_data = pd.read_csv(f'{group_params.out_dir}/derivatives/{atlas}/infant_adult
 #set up adult directories
 adult_params = params.load_group_params('adult')
 
-group_dir = f'{adult_params.out_dir}/derivatives/{target_roi}_adult'
+group_dir = f'{adult_params.out_dir}/derivatives/brain'
 
-roi_info = params.load_roi_info(f'{target_roi}_adult')
+roi_info = params.load_roi_info(f'{target_roi}_mni')
 roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
 roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
 
@@ -66,8 +66,10 @@ lh_masker = NiftiMasker(roi_name.replace('hemi','lh'),standardize = True)
 rh_masker = NiftiMasker(roi_name.replace('hemi','rh'),standardize = True)
                         
 #target suffix
-#suf = '_corr_MNI'
-suf = '_second_order_MNI'
+suf = '_corr_MNI'
+#suf = '_second_order_MNI'
+
+rerun = True
 
 
 #loop through ROIs in atlas
@@ -75,8 +77,11 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
     print(roi)
 
     #load adult group map
-    lh_adult_map = np.load(f'{group_dir}/lh_{roi}.npy').flatten()
-    rh_adult_map = np.load(f'{group_dir}/rh_{roi}.npy').flatten() #ADD RH WHEN ITS READY
+    lh_adult_map_img = image.load_img(f'{group_dir}/lh_{roi}{suf}.nii.gz')
+    rh_adult_map_img = image.load_img(f'{group_dir}/rh_{roi}{suf}.nii.gz')
+
+    lh_adult_map = lh_masker.fit_transform(lh_adult_map_img)
+    rh_adult_map = rh_masker.fit_transform(rh_adult_map_img)
 
     #loop through unique subs in sub_info
     for sub in sub_info['participant_id'].unique():
@@ -120,10 +125,12 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
                 roi_masker = rh_masker
                 adult_map = rh_adult_map
             
+            adult_map = np.squeeze(adult_map)
+            
             
             
             #check if numpy array of data exists
-            if os.path.exists(f'{ses2_dir}/{hemi}_{roi}{suf}.npy'):
+            if os.path.exists(f'{ses2_dir}/{hemi}_{roi}{suf}.npy' and rerun == False):
                 #load data
                 ses1_data = np.load(f'{ses1_dir}/{hemi}_{roi}{suf}.npy').flatten()
                 ses2_data = np.load(f'{ses2_dir}/{hemi}_{roi}{suf}.npy').flatten()
@@ -139,10 +146,13 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
                 #save as numpy array
                 np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.npy', ses1_data)
                 np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.npy', ses2_data)
-
+            
             #correlate with adult group map
-            corr1 = np.corrcoef(adult_map, ses1_data)[0,1]
-            corr2 = np.corrcoef(adult_map, ses2_data)[0,1]
+            #include values that are greater than 0 in infant map
+            ses1_ind = np.where(ses1_data > 0)
+            ses2_ind = np.where(ses2_data > 0)
+            corr1 = np.corrcoef(adult_map[ses1_ind], ses1_data[ses1_ind])[0,1]
+            corr2 = np.corrcoef(adult_map[ses2_ind], ses2_data[ses2_ind])[0,1]
 
             hemi_data1.append(corr1)
             hemi_data2.append(corr2)
