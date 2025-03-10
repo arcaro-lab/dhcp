@@ -57,7 +57,8 @@ full_sub_list = group_info.sub_list
 
 #limit to subs with 1 in to_run col
 sub_list = full_sub_list[full_sub_list['to_run']==1]
-sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
+#only grab subs with two sessions
+#sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
 #reset index
 sub_list.reset_index(drop=True, inplace=True)
 
@@ -93,14 +94,14 @@ reg_phase3 = False
 #Registers atlas to individual anat
 register_atlas = False
 #split atlas into individual rois
-split_atlas = False
+split_atlas = True
 
 #extracts mean timeseries from each roi of atlas
-extract_ts_roi = False
+extract_ts_roi = True
 
 
 #Register volumetric roi to individual anat
-register_vol_roi = True
+register_vol_roi = False
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False

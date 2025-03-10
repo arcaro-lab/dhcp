@@ -39,11 +39,11 @@ def reg_to_template():
     register exclusion and waypoint masks to 40wk template
     '''
 
-    source_sub = 'sub-CC00063AN06'
-    source_ses = 'ses-15102'
+    source_sub = 'sub-CC00071XX06'
+    source_ses = 'ses-27000'
 
     source_dir = f'/mnt/DataDrive3/vlad/diffusion/individual_subjects/{source_sub}/{source_ses}'
-    xfm = f'{source_dir}/xfm/sub-CC00063AN06_ses-15102_from-dwi_to-extdhcp40wk_mode-image.nii.gz'
+    xfm = f'{source_dir}/xfm/{source_sub}_{source_ses}_from-dwi_to-extdhcp40wk_mode-image.nii.gz'
 
     exclusion_file ='binaryMask_dwispace_*hemi*'
 
@@ -55,15 +55,16 @@ def reg_to_template():
     target_dir = f'{params.atlas_dir}/diffusion_wangatlas/40wk'
 
 
-    
+    '''
+    #THIS IS NOT CORRECT    
     for hemi in ['lh', 'rh']:
         print('registering exclusion mask')
         
         #apply transform to exclusion mask
         bash_cmd = f'applywarp --ref={template} --in={source_dir}/exclusionmasks/{exclusion_file.replace('*hemi*', hemi)}.nii --warp={xfm} --out={target_dir}/{exclusion_file.replace('*hemi*', hemi)}_40wk.nii'
         subprocess.run(bash_cmd, shell=True)
-
     '''
+    
     #glob all waypoint files
     waypoint_files = glob(f'{source_dir}/waypointmasks/*.nii.gz')
 
@@ -74,7 +75,7 @@ def reg_to_template():
         #apply transform to waypoint mask
         bash_cmd = f'applywarp --ref={template} --in={waypoint_file} --warp={xfm} --out={out_file}'
         subprocess.run(bash_cmd, shell=True)
-    ''' 
+    
 reg_to_template()
 '''
 Register exclusion and waypoint masks from 40wk template to individual subjects
@@ -95,7 +96,7 @@ sub_info = sub_info.reset_index()
 source_dir = f'{params.atlas_dir}/diffusion_wangatlas/40wk'
 
 #glob exclusion and waypoint masks
-exclusion_files = glob(f'{source_dir}/binaryMask_dwispace_*.nii.gz')
+exclusion_files = glob(f'{source_dir}/exclusionmasks/*.nii.gz')
 waypoint_files = glob(f'{source_dir}/waypointmasks/*.nii.gz')
 
 
