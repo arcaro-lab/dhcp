@@ -1,1 +1,1 @@
-/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/sub-CC00087AN14/ses-31800/rois/waypointmasks/V1_lh_sub-CC00063AN06_waypoint_mask_dwispace.nii.gz
+/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/sub-CC00087AN14/ses-31800/rois/waypointmasks/V1v_lh_waypoint_mask_dwispace.nii.gz

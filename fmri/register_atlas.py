@@ -66,14 +66,21 @@ for hemi in ['lh','rh']:
     
 
     #check if registered atlas exists, if it does delete it. Otherwise this crashed the afni command
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK')
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
+    #if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK')
+    #if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+orig.HEAD')
         
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK')
-    if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
+    #if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.BRIK')
+    #if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD'): os.remove(f'{out_dir}/atlas/{curr_atlas}_anat+tlrc.HEAD')
+
+    #check if atlas files exist, if they do delete them
+    atlas_files = glob(f'{out_dir}/atlas/{curr_atlas}*')
+    
+    #pdb.set_trace()
+    for file in atlas_files:
+        os.remove(file)
         
         
-        
+    
     
     
     #register atlas to subject with afni
@@ -88,7 +95,7 @@ for hemi in ['lh','rh']:
     
     subprocess.run(bash_cmd, shell=True)
     
-
+    
     
     #check if atlas has orgi or tlrc extension
     if os.path.exists(f'{out_dir}/atlas/{curr_atlas}_anat+orig.BRIK'): atlas_ext = '+orig'
@@ -123,6 +130,8 @@ for hemi in ['lh','rh']:
 
     #save nifti
     nib.save(atlas_nifti, f'{out_dir}/atlas/{curr_atlas}_anat.nii.gz')
+
+    
 
 
 

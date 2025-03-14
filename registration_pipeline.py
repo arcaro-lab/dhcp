@@ -58,7 +58,7 @@ full_sub_list = group_info.sub_list
 #limit to subs with 1 in to_run col
 sub_list = full_sub_list[full_sub_list['to_run']==1]
 #only grab subs with two sessions
-#sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
+sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
 #reset index
 sub_list.reset_index(drop=True, inplace=True)
 
@@ -92,7 +92,7 @@ reg_phase3 = False
 
 
 #Registers atlas to individual anat
-register_atlas = False
+register_atlas = True
 #split atlas into individual rois
 split_atlas = True
 
@@ -101,10 +101,13 @@ extract_ts_roi = True
 
 
 #Register volumetric roi to individual anat
-register_vol_roi = False
+register_vol_roi = True
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False
+
+#reg atlas rois to dwi
+reg_atlas2dwi = True
 
 
 
@@ -228,6 +231,13 @@ if extract_ts_voxel:
     *note: this is a very time and memory intensive if you have many ROIs
     '''
     launch_script(sub_list = sub_list,script_name='extract_ts_voxel.py',analysis_name=f'{roi}_ts',pre_req=f'{roi}_reg', atlas = roi)
+
+
+if reg_atlas2dwi:
+    '''
+    Register atlas rois to dwi
+    '''
+    launch_script(sub_list = sub_list,script_name='reg_atlas2dwi.py',analysis_name=f'{atlas}_dwi',pre_req=f'{atlas}_split', atlas = atlas)
 
 #end time
 end = time.time()

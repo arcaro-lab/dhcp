@@ -145,11 +145,36 @@ for hemi in group_info.hemis:
     #plot atlas on subject's brain
     plotting.plot_roi(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz', bg_img = func_img, axes = ax[group_info.hemis.index(hemi)], title = f'{sub} {hemi} {atlas}',draw_cross=False) 
 
-
 #create qc directory if it doesn't exist
 os.makedirs(f'{git_dir}/fmri/qc/{atlas}/{group}', exist_ok = True)
 
 plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
+
+'''
+Split atlas one more time to save individual max probability ROIs
+'''
+for hemi in group_info.hemis:
+    curr_atlas = atlas_name.replace('hemi', hemi)
+    #load atlas
+    atlas_img = image.load_img(f'{out_dir}/atlas/{curr_atlas}_epi.nii.gz')
+
+    #loop through rois in labels file
+    for roi_ind, roi in zip(roi_labels['index'],roi_labels['label']):
+        #extract current roi
+        roi_atlas = image.math_img(f'np.where(atlas == {roi_ind}, atlas, 0)', atlas = atlas_img)
+
+        #save roi
+        nib.save(roi_atlas, f'{roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz')
+        
+        #binarize and fill holes in roi using fsl
+        bash_cmd = f'fslmaths {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz -bin {roi_dir}/{atlas}/{hemi}_{roi}_epi.nii.gz'
+        subprocess.run(bash_cmd.split(), check = True)
+        
+        #create qc directory if it doesn't exist
+        
+
+
+
 
         
 

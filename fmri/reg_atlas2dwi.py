@@ -55,10 +55,7 @@ func2anat = group_info.func2anat.replace('*SUB*',sub).replace('*SES*',ses)
 
 anat2dwi = group_info.anat2dwi.replace('*SUB*',sub).replace('*SES*',ses)
 
-#if atlas dir exists, delete it
-if os.path.exists(f'{roi_dir}/{atlas}'):
-    shutil.rmtree(f'{roi_dir}/{atlas}')
-
+#make roi dir
 os.makedirs(f'{roi_dir}/{atlas}', exist_ok = True)
 
 anat_img = image.load_img(f'{anat_dir}/anat/{sub}_{ses}_{group_info.anat_suf}_brain.nii.gz')
@@ -67,6 +64,11 @@ anat_affine = anat_img.affine
 #load functional image
 func_img = image.load_img(f'{out_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz')
 func_affine = func_img.affine
+
+#load dwi image
+dwi_img = image.load_img(f'{out_dir}/dwi/nodif.nii.gz')
+dwi_affine = dwi_img.affine
+dwi_header = dwi_img.header
 
 
 
@@ -91,6 +93,11 @@ for hemi in group_info.hemis:
     for roi_ind, roi in zip(roi_labels['index'],roi_labels['label']):
         #extract current roi
         roi_atlas = image.math_img(f'np.where(atlas == {roi_ind}, atlas, 0)', atlas = atlas_img)
+
+        #replace header of roi with dwi header
+        roi_atlas = image.new_img_like(dwi_img, roi_atlas.get_fdata(), affine = dwi_affine, copy_header = True)
+
+        
 
         #save roi
         nib.save(roi_atlas, f'{roi_dir}/{atlas}/{hemi}_{roi}_dwi.nii.gz')

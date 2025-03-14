@@ -146,6 +146,17 @@ def register_to_infants(curr_roi):
     bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/dwi/nodif_brain.nii.gz  -w {template2dwi} -o {data_dir}/rois/{roi}/{hemi}_{roi}_dwi.nii.gz --interp=nn'
     subprocess.run(bash_cmd, shell=True)
 
+    #load roi and apply header from dwi image
+    dwi_img = image.load_img(f'{data_dir}/dwi/nodif.nii.gz')
+    dwi_affine = dwi_img.affine
+    dwi_header = dwi_img.header
+
+    roi_img = image.load_img(f'{data_dir}/rois/{roi}/{hemi}_{roi}_dwi.nii.gz')
+    roi_img = image.new_img_like(dwi_img, roi_img.get_fdata(), affine = dwi_affine, copy_header = True)
+
+    #save roi
+    roi_img.to_filename(f'{data_dir}/rois/{roi}/{hemi}_{roi}_dwi.nii.gz')
+
     #apply transformations to anat
     #bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/{anat}_brain.nii.gz  -w {template2anat} -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz --interp=nn'
     bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -ref {data_dir}/{anat}_brain.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -applyxfm -init {func2anat} -interp nearestneighbour'
@@ -170,53 +181,6 @@ def register_to_adults(curr_roi):
     shutil.copy(f'{data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz', f'{data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz')
     
     
-
-
-def register_with_applywarp(curr_roi):
-
-    os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
-
-  
-    
-    #check if template2func already exists
-    if os.path.exists(template2func) == False:
-    
-        bash_cmd = f'invwarp -w {func2template} -o {template2func} -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz'
-        subprocess.run(bash_cmd, shell=True)
-
-    #final_xfm = f'{data_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-bold_mode-image.nii.gz'
-    
-    #apply transformations for template2func
-    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz  -w {template2func} -o {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz --interp=nn'
-    subprocess.run(bash_cmd, shell=True)
-
-    #apply transformations for template2anat
-    bash_cmd = f'applywarp -i {atlas_dir}/{curr_roi}.nii.gz -r {data_dir}/{anat}_brain.nii.gz  -w {template2anat} -o {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz --interp=nn'
-    subprocess.run(bash_cmd, shell=True)
-    
-
-
-def register_with_flirt(curr_roi, func2template, template2func):
-
-    os.makedirs(f'{data_dir}/rois/{roi}', exist_ok=True)
-
-    #check if template2anat already exists
-    if os.path.exists(template2anat) == False:
-        #create omat
-        bash_cmd = f'flirt -in {group_info.group_template} -ref {data_dir}/{anat}_brain.nii.gz -omat {template2anat} -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12'
-        subprocess.run(bash_cmd, shell=True)
-
-    #transform roi to anat space
-    bash_cmd = f'flirt -in {atlas_dir}/{curr_roi}.nii.gz -ref {data_dir}/{anat}_brain.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -applyxfm -init {template2anat} -interp nearestneighbour'
-    subprocess.run(bash_cmd, shell=True)
-
-    #transform roi from anat to func space
-    bash_cmd = f'flirt -in {data_dir}/rois/{roi}/{hemi}_{roi}_anat.nii.gz -ref {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -out {data_dir}/rois/{roi}/{hemi}_{roi}_epi.nii.gz -applyxfm -init {anat2func} -interp nearestneighbour'
-
-
-    if os.path.exists(template2func) == False:
-        bash_cmd = f'flirt -in {data_dir}/func/{sub}_{ses}_{group_info.func_suf}_1vol.nii.gz -ref {group_info.group_template} -out {template2func} -omat {template2func.replace(".nii.gz",".mat")}'
-        subprocess.run(bash_cmd, shell=True)
 
 
 
