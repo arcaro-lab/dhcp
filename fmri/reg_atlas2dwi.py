@@ -33,9 +33,6 @@ atlas = sys.argv[4]
 
 group_info = dhcp_params.load_group_params(group)
 
-
-
-
 #hemis = ['lh','rh']
 
 #set sub dir

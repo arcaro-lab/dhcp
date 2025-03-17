@@ -92,22 +92,22 @@ reg_phase3 = False
 
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
-split_atlas = True
+split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True
 
 
 #Register volumetric roi to individual anat
-register_vol_roi = True
+register_vol_roi = False
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False
 
 #reg atlas rois to dwi
-reg_atlas2dwi = True
+reg_atlas2dwi = False
 
 
 
@@ -129,9 +129,11 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
     #if pre-reqs is not None, check if pre-reqs have been met
     if pre_req != '':
         curr_subs = curr_subs[curr_subs[pre_req]==1]
-
+    
+    n = 1
     for sub, ses in zip(curr_subs['participant_id'], curr_subs['ses']):
-        print(f'Running {analysis_name} for {sub}')
+        print(f'Running {analysis_name} for {sub}', f'{n} of {len(curr_subs)}' )
+        n += 1
 
         try:
             #run script

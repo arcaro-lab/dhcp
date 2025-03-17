@@ -117,12 +117,13 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     #get xfm for sub
     xfm = f'{sub_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-dwi_mode-image.nii.gz'
 
-    dwi_img = image.load_img(f'{sub_dir}/dwi/nodif.nii.gz')
-    dwi_affine = dwi_img.affine
-    dwi_header = dwi_img.header
+
 
     #check if xfm exists
     if os.path.exists(xfm):
+        dwi_img = image.load_img(f'{sub_dir}/dwi/nodif.nii.gz')
+        dwi_affine = dwi_img.affine
+        dwi_header = dwi_img.header
         #create exclusion and waypoint directories under rois
         exclusion_dir = f'{sub_dir}/rois/exclusionmasks'
         waypoint_dir = f'{sub_dir}/rois/waypointmasks'
