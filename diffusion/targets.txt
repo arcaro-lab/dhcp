@@ -1,1 +1,1 @@
-/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/sub-CC00087AN14/ses-31800/rois/wang/lh_V1v_epi.nii.gz
+/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/sub-CC00087AN14/ses-31800/rois/wang/lh_IPS0_dwi.nii.gz

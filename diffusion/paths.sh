@@ -17,7 +17,7 @@ sub_dir=/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/${sub}/${ses}
 
 warp=${sub_dir}/xfm/${sub}_${ses}_from-extdhcp40wk_to-dwi_mode-image.nii.gz
 target_roi=/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/atlases/rois/wang/40wk/lh_V1v_40wk.nii.gz
-target_roi_native=${sub_dir}/rois/wang/lh_V1v_dwi.nii.gz
+target_roi_native=${sub_dir}/rois/wang/lh_IPS0_dwi.nii.gz
 roi=/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed/atlases/rois/pulvinar/lh_pulvinar_40wk.nii.gz 
 seed_roi=${sub_dir}/rois/pulvinar/lh_pulvinar_dwi.nii.gz
 
@@ -32,7 +32,7 @@ waypoint_file=/mnt/DataDrive3/vlad/git_repos/dhcp/diffusion/waypoints.txt
 
 target_file=/mnt/DataDrive3/vlad/git_repos/dhcp/diffusion/targets.txt
 
-out_dir=${sub_dir}/probtrackx2
+out_dir=${sub_dir}/derivatives/probtrackx
 
 applywarp --ref=${brain} --in=${roi} --warp=${warp} --out=${seed_roi}
 

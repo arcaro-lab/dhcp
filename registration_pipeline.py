@@ -109,6 +109,9 @@ extract_ts_voxel = False
 #reg atlas rois to dwi
 reg_atlas2dwi = False
 
+#run_probtrackx
+run_probtrackx = True
+
 
 
 
@@ -240,6 +243,12 @@ if reg_atlas2dwi:
     Register atlas rois to dwi
     '''
     launch_script(sub_list = sub_list,script_name='reg_atlas2dwi.py',analysis_name=f'{atlas}_dwi',pre_req=f'{atlas}_split', atlas = atlas)
+
+if run_probtrackx:
+    '''
+    Run probtrackx on all rois of the atlas
+    '''
+    launch_script(sub_list = sub_list,script_name='run_probtrackx.py',analysis_name=f'{atlas}_probtrackx',pre_req=f'{atlas}_dwi', atlas = atlas)
 
 #end time
 end = time.time()
