@@ -106,6 +106,7 @@ for hemi in ['lh','rh']:
             f.write(f'{waypoint_mask}\n')
         
         #check if files already exist in seeds_dir
+        
         if os.path.exists(f'{seeds_dir}/seeds_to_{hemi}_{roi}_dwi.nii.gz') == False:
 
 

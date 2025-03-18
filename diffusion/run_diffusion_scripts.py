@@ -37,7 +37,7 @@ sub_list.reset_index(drop=True, inplace=True)
 
 script_dir = git_dir + '/run_probtrackx'
 
-n_jobs = 5
+n_jobs = 50 #number of jobs to run at once
 job_time = 150 #amount of time in minutes to run job
 
 n = 0 #track number of jobs run
@@ -47,15 +47,27 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     #run job
     bash_cmd = f'python {git_dir}/diffusion/run_probtrackx.py {sub} {ses} {group} {atlas} &'
     print(bash_cmd)
-    subprocess.run(bash_cmd, shell=True)
+    #subprocess.run(bash_cmd, shell=True)
 
     n += 1
 
     if n == n_jobs:
+        #load sub_list
+        full_sub_list = group_info.sub_list
+
+        #loop through all subs and check whether ifnal file exists
+        for check_sub, check_ses in zip(full_sub_list['participant_id'], full_sub_list['ses']):
+            check_file = f'{group_info.out_dir}/{check_sub}/{check_ses}/derivatives/dwi_seeds/seeds_to_rh_SPL1_40wk.nii.gz'
+            if os.path.exists(check_file):
+                #set atlas_probtrackx col to 1
+                full_sub_list.loc[(full_sub_list['participant_id'] == check_sub) & (full_sub_list['ses'] == check_ses), 'atlas_probtrackx'] = 1
+            else:
+                #set atlas_probtrackx col to ''
+                full_sub_list.loc[(full_sub_list['participant_id'] == check_sub) & (full_sub_list['ses'] == check_ses), 'atlas_probtrackx'] = ''
+
+        #save full_sub_list
+        full_sub_list.to_csv(f'{git_dir}/participants_dhcp.csv', index = False)
+
         #wait for jobs to finish
         print('waiting for jobs to finish')
-        time.sleep(job_time*60)
-        
-
-
-
+        #time.sleep(job_time*60)

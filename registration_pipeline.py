@@ -58,9 +58,9 @@ full_sub_list = group_info.sub_list
 #limit to subs with 1 in to_run col
 sub_list = full_sub_list[full_sub_list['to_run']==1]
 #only grab subs with two sessions
-sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
+#sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
 #reset index
-sub_list.reset_index(drop=True, inplace=True)
+#sub_list.reset_index(drop=True, inplace=True)
 
 
 
@@ -110,7 +110,7 @@ extract_ts_voxel = False
 reg_atlas2dwi = False
 
 #run_probtrackx
-run_probtrackx = True
+run_probtrackx = False
 
 
 
