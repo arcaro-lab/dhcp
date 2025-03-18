@@ -71,7 +71,7 @@ if not os.path.exists(dwi2template_xfm):
     print(f'Files do not exist, exiting')
     sys.exit(1)
 
-rerun = False
+rerun = True
 
 #loop through rois, create waypoint file and target file, run probtrackx2
 for hemi in ['lh','rh']:
@@ -107,7 +107,7 @@ for hemi in ['lh','rh']:
         
         #check if files already exist in seeds_dir
         
-        if os.path.exists(f'{seeds_dir}/seeds_to_{hemi}_{roi}_dwi.nii.gz') == False:
+        if os.path.exists(f'{seeds_dir}/seeds_to_{hemi}_{roi}_dwi.nii.gz') == False or rerun == True:
 
 
             #run probtrackx2
