@@ -53,6 +53,11 @@ sub_info = sub_info[(sub_info['wang_probtrackx'] == 1)]
 #load only subs with two sessions
 sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
 
+#reset index
+sub_info = sub_info.reset_index(drop = True)
+
+
+
 #load infant adult cortical correlations
 sub_data = pd.read_csv(f'{group_params.out_dir}/derivatives/{atlas}/infant_adult_wang_correlations.csv')
 
@@ -72,19 +77,25 @@ lh_masker = NiftiMasker(roi_name.replace('hemi','lh'),standardize = True)
 rh_masker = NiftiMasker(roi_name.replace('hemi','rh'),standardize = True)
                         
 #target suffix
-suf = '_corr_MNI'
+suf = '_40wk'
 #suf = '_second_order_MNI'
 
-rerun = True
+rerun = False
 
 
 #loop through ROIs in atlas
 for roi, network in zip(roi_labels['label'], roi_labels['network']):
     print(roi)
+    adult_roi = roi
 
-    #load adult group map
-    lh_adult_map_img = image.load_img(f'{group_dir}/lh_{roi}{suf}.nii.gz')
-    rh_adult_map_img = image.load_img(f'{group_dir}/rh_{roi}{suf}.nii.gz')
+    #replace names to match adult data
+    adult_roi = adult_roi.replace('hMT', 'TO1').replace('MST','TO2')
+    adult_roi= adult_roi.replace('V1v','V1').replace('V1d','V1').replace('V2v','V2').replace('V2d','V2')
+    adult_roi = adult_roi.replace('V3v','V3').replace('V3d','V3')
+
+    #load adult group mapGroup_dtihV4_rh_groupmax_pulvinar_zscore.nii.gz
+    lh_adult_map_img = image.load_img(f'{adult_data_dir}/Group_dti{adult_roi}_lh_groupmax_pulvinar_40wk.nii.gz')
+    rh_adult_map_img = image.load_img(f'{adult_data_dir}/Group_dti{adult_roi}_rh_groupmax_pulvinar_40wk.nii.gz')
 
     lh_adult_map = lh_masker.fit_transform(lh_adult_map_img)
     rh_adult_map = rh_masker.fit_transform(rh_adult_map_img)
@@ -94,12 +105,23 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
             #curr_sub data
         curr_sub = sub_data[sub_data['sub'] == sub]
 
-        #determine which ses is first using scan_age
-        ses1 = curr_sub[curr_sub['scan_age'] == np.min(curr_sub['scan_age'])]['ses'].values[0]
-        ses2 = curr_sub[curr_sub['scan_age'] == np.max(curr_sub['scan_age'])]['ses'].values[0]
+        #get ses1 and ses2 for sub from sub_info
+        curr_sub_info = sub_info[sub_info['participant_id'] == sub]
+        ses1 = curr_sub_info['ses'].values[0]
+        ses2 = curr_sub_info['ses'].values[1]
 
-        ses1_dir = f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult'
-        ses2_dir = f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult'
+        #check if sub_data has both ses
+        if (curr_sub['ses'] == ses1).sum() == 0 or (curr_sub['ses'] == ses2).sum() == 0:
+            continue
+
+        #pdb.set_trace()
+        #determine which ses is first using scan_age
+        #ses1 = curr_sub[curr_sub['scan_age'] == np.min(curr_sub['scan_age'])]['ses'].values[0]
+        #ses2 = curr_sub[curr_sub['scan_age'] == np.max(curr_sub['scan_age'])]['ses'].values[0]
+
+        #pdb.set_trace()
+        ses1_dir = f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds'
+        ses2_dir = f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds'
 
         #get ages from ses1 and ses2
         t1_age = curr_sub[curr_sub['ses'] == ses1]['scan_age'].values[0]
@@ -136,29 +158,30 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
             
             
             #check if numpy array of data exists
-            if os.path.exists(f'{ses2_dir}/{hemi}_{roi}{suf}.npy' and rerun == False):
+            if os.path.exists(f'{ses2_dir}/{hemi}_{roi}{suf}.npy') and rerun == False:
                 #load data
                 ses1_data = np.load(f'{ses1_dir}/{hemi}_{roi}{suf}.npy').flatten()
                 ses2_data = np.load(f'{ses2_dir}/{hemi}_{roi}{suf}.npy').flatten()
             else:
 
-                ses1_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.nii.gz')
-                ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.nii.gz')
+                ses1_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/seeds_to_{hemi}_{roi}{suf}.nii.gz')
+                ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/seeds_to_{hemi}_{roi}{suf}.nii.gz')
 
                 #extract data from each
                 ses1_data = roi_masker.fit_transform(ses1_map)
                 ses2_data = roi_masker.fit_transform(ses2_map)
 
                 #save as numpy array
-                np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.npy', ses1_data)
-                np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/pulvinar_adult/{hemi}_{roi}{suf}.npy', ses2_data)
+                np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/{hemi}_{roi}{suf}.npy', ses1_data)
+                np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/{hemi}_{roi}{suf}.npy', ses2_data)
+            
             
             #correlate with adult group map
             #include values that are greater than 0 in infant map
-            ses1_ind = np.where(ses1_data > 0)
-            ses2_ind = np.where(ses2_data > 0)
-            corr1 = np.corrcoef(adult_map[ses1_ind], ses1_data[ses1_ind])[0,1]
-            corr2 = np.corrcoef(adult_map[ses2_ind], ses2_data[ses2_ind])[0,1]
+            #ses1_ind = np.where(ses1_data > 0)
+            #ses2_ind = np.where(ses2_data > 0)
+            corr1 = np.corrcoef(adult_map, ses1_data)[0,1]
+            corr2 = np.corrcoef(adult_map, ses2_data)[0,1]
 
             hemi_data1.append(corr1)
             hemi_data2.append(corr2)
@@ -184,7 +207,7 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
 
 
     #save summary_df
-    summary_df.to_csv(f'{git_dir}/results/roi_corrs/pulvinar_session_correlations{suf}.csv', index = False)
+    summary_df.to_csv(f'{git_dir}/results/roi_corrs/pulvinar_dwi_session_correlations{suf}.csv', index = False)
 
 
 

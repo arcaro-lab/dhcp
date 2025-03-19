@@ -130,20 +130,17 @@ for hemi in ['lh','rh']:
         else:
             print(f'Files already exist, skipping...')
 
-        #warp seed file to template space
-        seed_file = f'{seeds_dir}/seeds_to_{hemi}_{roi}_dwi.nii.gz'
-        bash_cmd = f'applywarp -i {seed_file} -r {group_info.group_template}.nii.gz -o {seed_file.replace("_dwi","_40wk")} -w {dwi2template_xfm}'
-        subprocess.run(bash_cmd, shell=True)
+
+        #check if files already exist
+        if os.path.exists(f'{seeds_dir}/seeds_to_{hemi}_{roi}_40wk.nii.gz') == False or rerun == True:
+                
+            #warp seed file to template space
+            seed_file = f'{seeds_dir}/seeds_to_{hemi}_{roi}_dwi.nii.gz'
+            bash_cmd = f'applywarp -i {seed_file} -r {group_info.group_template}.nii.gz -o {seed_file.replace("_dwi","_40wk")} -w {dwi2template_xfm}'
+            subprocess.run(bash_cmd, shell=True)
+        else:
+            print(f'Files already exist, skipping...')
 
         #print timing
         end = time.time()
         print(f'Probtrackx2 for {hemi} {roi} took {end-start} seconds')
-
-
-
-        
-
-        
-
-
-
