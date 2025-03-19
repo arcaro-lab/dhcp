@@ -91,7 +91,7 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
     #replace names to match adult data
     adult_roi = adult_roi.replace('hMT', 'TO1').replace('MST','TO2')
     adult_roi= adult_roi.replace('V1v','V1').replace('V1d','V1').replace('V2v','V2').replace('V2d','V2')
-    adult_roi = adult_roi.replace('V3v','V3').replace('V3d','V3')
+    adult_roi = adult_roi.replace('V3v','V3').replace('V3d','V3').replace('SPL1','SPL')
 
     #load adult group mapGroup_dtihV4_rh_groupmax_pulvinar_zscore.nii.gz
     lh_adult_map_img = image.load_img(f'{adult_data_dir}/Group_dti{adult_roi}_lh_groupmax_pulvinar_40wk.nii.gz')
