@@ -57,7 +57,7 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     if n == n_jobs:
         #load sub_list
         #wait for jobs to finish
-        #time.sleep(job_time*60)
+        time.sleep(job_time*60)
         print('waiting for jobs to finish')
         full_sub_list = pd.read_csv(f'{git_dir}/participants_dhcp.csv')
 
