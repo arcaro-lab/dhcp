@@ -80,7 +80,7 @@ rh_masker = NiftiMasker(roi_name.replace('hemi','rh'),standardize = True)
 suf = '_40wk'
 #suf = '_second_order_MNI'
 
-rerun = False
+rerun = True
 
 
 #loop through ROIs in atlas

@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'infant'
+group = 'adult'
 group_info = params.load_group_params(group)
 
 #set directories
@@ -62,11 +62,6 @@ sub_list = full_sub_list[full_sub_list['to_run']==1]
 #reset index
 #sub_list.reset_index(drop=True, inplace=True)
 
-
-
-
-
-
 #limit to first 30 subjects
 #sub_list = full_sub_list.head(200)
 
@@ -90,15 +85,13 @@ reg_phase1 = False
 reg_phase2 = False
 reg_phase3 = False
 
-
 #Registers atlas to individual anat
 register_atlas = False
 #split atlas into individual rois
-split_atlas = False
+split_atlas = True
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True
-
 
 #Register volumetric roi to individual anat
 register_vol_roi = False

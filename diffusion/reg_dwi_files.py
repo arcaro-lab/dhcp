@@ -33,10 +33,11 @@ import subprocess
 from glob import glob as glob
 import shutil
 
+rerun = False
 
 def reg_to_template():
     '''
-    register exclusion and waypoint masks to 40wk template
+    register exclusion and waypoint masks from example sub to 40wk template
     '''
 
     source_sub = 'sub-CC00071XX06'
@@ -56,7 +57,7 @@ def reg_to_template():
 
 
     '''
-    #THIS IS NOT CORRECT    
+    #THIS IS NOT USED ANYMROE    
     for hemi in ['lh', 'rh']:
         print('registering exclusion mask')
         
@@ -76,97 +77,147 @@ def reg_to_template():
         bash_cmd = f'applywarp --ref={template} --in={waypoint_file} --warp={xfm} --out={out_file} --interp=nn'
         subprocess.run(bash_cmd, shell=True)
     
-#reg_to_template()
 
 
-'''
-Register exclusion and waypoint masks from 40wk template to individual subjects
-'''
+def reg_to_masks_to_subjects():
 
-print('Registering exclusion and waypoint masks to individual subjects')
-group_params = params.load_group_params('infant')
-#load individual infant data
-sub_info = group_params.sub_list
-sub_info = sub_info[(sub_info[f'wang_exclude'] != 1)]
+    '''
+    Register exclusion and waypoint masks from 40wk template to individual subjects
+    '''
 
-
-#load only subs with two sessions
-sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
-sub_info = sub_info.reset_index()
-
-#loop through subs and register exclusion and waypoint masks
-source_dir = f'{params.atlas_dir}/diffusion_wangatlas/40wk'
-
-#glob exclusion and waypoint masks
-exclusion_files = glob(f'{source_dir}/exclusionmasks/*.nii.gz')
-waypoint_files = glob(f'{source_dir}/waypointmasks/*.nii.gz')
-
-#only keep sub-CC00063AN06 in sub_info
-#sub_info = sub_info[sub_info['participant_id'] == 'sub-CC00063AN06']
+    print('Registering exclusion and waypoint masks to individual subjects')
+    group_params = params.load_group_params('infant')
+    #load individual infant data
+    sub_info = group_params.sub_list
+    sub_info = sub_info[(sub_info[f'wang_exclude'] != 1)]
 
 
-n = 0 
-#loop through subjects
-for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
-    #print progress
-    n += 1
-    print(f'{n}/{len(sub_info)}', sub, ses)
-    #set sub_dir
-    sub_dir = f'{group_params.out_dir}/{sub}/{ses}'
-    
-    #get xfm for sub
-    xfm = f'{sub_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-dwi_mode-image.nii.gz'
+    #load only subs with two sessions
+    sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
+    sub_info = sub_info.reset_index()
+
+    #loop through subs and register exclusion and waypoint masks
+    source_dir = f'{params.atlas_dir}/diffusion_wangatlas/40wk'
+
+    #glob exclusion and waypoint masks
+    exclusion_files = glob(f'{source_dir}/exclusionmasks/*.nii.gz')
+    waypoint_files = glob(f'{source_dir}/waypointmasks/*.nii.gz')
+    brain_files = glob(f'{params.atlas_dir}/rois/*brain_mask_40wk.nii.gz')
+
+    #only keep sub-CC00063AN06 in sub_info
+    #sub_info = sub_info[sub_info['participant_id'] == 'sub-CC00063AN06']
 
 
-
-    #check if xfm exists
-    if os.path.exists(xfm):
-        dwi_img = image.load_img(f'{sub_dir}/dwi/nodif.nii.gz')
-        dwi_affine = dwi_img.affine
-        dwi_header = dwi_img.header
-        #create exclusion and waypoint directories under rois
-        exclusion_dir = f'{sub_dir}/rois/exclusionmasks'
-        waypoint_dir = f'{sub_dir}/rois/waypointmasks'
-
-        #remove existing exclusion and waypoint directories
-        shutil.rmtree(exclusion_dir, ignore_errors = True)
-        shutil.rmtree(waypoint_dir, ignore_errors = True)
+    n = 0 
+    #loop through subjects
+    for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
+        #print progress
+        n += 1
+        print(f'{n}/{len(sub_info)}', sub, ses)
+        #set sub_dir
+        sub_dir = f'{group_params.out_dir}/{sub}/{ses}'
         
-        os.makedirs(exclusion_dir, exist_ok = True)
-        os.makedirs(waypoint_dir, exist_ok = True)
+        #get xfm for sub
+        xfm = f'{sub_dir}/xfm/{sub}_{ses}_from-extdhcp40wk_to-dwi_mode-image.nii.gz'
 
-        #loop through exclusion files
-        for exclusion_file in exclusion_files:
-            #set out file
-            out_file = f'{exclusion_dir}/{os.path.basename(exclusion_file).replace('40wk', '')}'
+        last_exclusion_file = f'{sub_dir}/rois/exclusionmasks/{os.path.basename(exclusion_files[-1]).replace('40wk', '')}'
+        last_waypoint_file = f'{sub_dir}/rois/waypointmasks/{os.path.basename(waypoint_files[-1]).replace('40wk', '')}'
+        last_brain_file = f'{sub_dir}/rois/brain/{os.path.basename(brain_files[-1]).replace('40wk', 'dwi')}'
+
+
+
+        #check if xfm exists
+        if os.path.exists(xfm):
+            dwi_img = image.load_img(f'{sub_dir}/dwi/nodif.nii.gz')
+            dwi_affine = dwi_img.affine
+            dwi_header = dwi_img.header
+            #create exclusion and waypoint directories under rois
+            exclusion_dir = f'{sub_dir}/rois/exclusionmasks'
+            waypoint_dir = f'{sub_dir}/rois/waypointmasks'
+
             
-            #apply transform to exclusion mask
-            bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={exclusion_file} --warp={xfm} --out={out_file} --interp=nn'
-            subprocess.run(bash_cmd, shell=True)
+            #check if last exclusion file already exists or rerun is True
+            if os.path.exists(last_exclusion_file) == False or rerun == True:
+                print('registering exclusion mask')
+                
+                #remove existing exclusion directory if it exists
+                shutil.rmtree(exclusion_dir, ignore_errors = True)
+                os.makedirs(exclusion_dir, exist_ok = True)
 
-            #load file and apply dwi header
-            exclusion_img = image.load_img(out_file)
-            exclusion_img = image.new_img_like(dwi_img, exclusion_img.get_fdata(), affine = dwi_affine, copy_header = True)
-            #save file
-            exclusion_img.to_filename(out_file)
+                #loop through exclusion files
+                for exclusion_file in exclusion_files:
+                    #set out file
+                    out_file = f'{exclusion_dir}/{os.path.basename(exclusion_file).replace('40wk', '')}'
+                    
+                    #apply transform to exclusion mask
+                    bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={exclusion_file} --warp={xfm} --out={out_file} --interp=nn'
+                    subprocess.run(bash_cmd, shell=True)
 
-        #loop through waypoint files
-        for waypoint_file in waypoint_files:
-            #replace sub in waypoint file
+                    #load file and apply dwi header
+                    exclusion_img = image.load_img(out_file)
+                    exclusion_img = image.new_img_like(dwi_img, exclusion_img.get_fdata(), affine = dwi_affine, copy_header = True)
+                    #save file
+                    exclusion_img.to_filename(out_file)
+
             
-            out_file = waypoint_file
-            #set out file
-            out_file = f'{waypoint_dir}/{os.path.basename(waypoint_file).replace('40wk', '')}'
-            
-            #apply transform to waypoint mask
-            bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={waypoint_file} --warp={xfm} --out={out_file} --interp=nn'
-            subprocess.run(bash_cmd, shell=True)
+            #check if last waypoint file already exists or rerun is True
+            if os.path.exists(last_waypoint_file) == False or rerun == True:
+                print('registering waypoint mask')
+                #remove existing waypoint directory if it exists
+                shutil.rmtree(waypoint_dir, ignore_errors = True)
+                os.makedirs(waypoint_dir, exist_ok = True)
 
-            #load file and apply dwi header
-            waypoint_img = image.load_img(out_file)
-            waypoint_img = image.new_img_like(dwi_img, waypoint_img.get_fdata(), affine = dwi_affine, copy_header = True)
-            #save file
-            waypoint_img.to_filename(out_file)
-    else:
-        print(f'{sub} {ses} missing xfm')
-        continue
+                #loop through waypoint files
+                for waypoint_file in waypoint_files:
+                    #replace sub in waypoint file
+                    
+                    out_file = waypoint_file
+                    #set out file
+                    out_file = f'{waypoint_dir}/{os.path.basename(waypoint_file).replace('40wk', '')}'
+                    
+                    #check if file already exists or rerun is True
+                    if os.path.exists(out_file) and rerun == False:
+                        continue
+
+                    #apply transform to waypoint mask
+                    bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={waypoint_file} --warp={xfm} --out={out_file} --interp=nn'
+                    subprocess.run(bash_cmd, shell=True)
+
+                    #load file and apply dwi header
+                    waypoint_img = image.load_img(out_file)
+                    waypoint_img = image.new_img_like(dwi_img, waypoint_img.get_fdata(), affine = dwi_affine, copy_header = True)
+                    #save file
+                    waypoint_img.to_filename(out_file)
+
+            
+            #check if last brain file already exists or rerun is True
+            if os.path.exists(last_brain_file) == False or rerun == True:
+                print('registering brain mask')                    
+
+                #loop through brain mask files
+                for brain_file in brain_files:
+                    #set out file
+                    
+                    out_file = f'{sub_dir}/rois/brain/{os.path.basename(brain_file).replace('40wk', 'dwi')}'
+                    
+                    #check if file already exists or rerun is True
+                    if os.path.exists(out_file) and rerun == False:
+                        continue
+
+                    #apply transform to brain mask
+                    bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={brain_file} --warp={xfm} --out={out_file} --interp=nn'
+                    subprocess.run(bash_cmd, shell=True)
+
+                    #load file and apply dwi header
+                    brain_img = image.load_img(out_file)
+                    brain_img = image.new_img_like(dwi_img, brain_img.get_fdata(), affine = dwi_affine, copy_header = True)
+                    #save file
+                    brain_img.to_filename(out_file)
+
+        else:
+            print(f'{sub} {ses} missing xfm')
+            continue
+
+
+#reg_to_template()
+reg_to_masks_to_subjects()
