@@ -44,7 +44,7 @@ network_rois = [['V1v', 'V2v','V3v', ''],['V1d', 'V2d','V3d', ''],['V1v', 'V2v',
 networks = ['Occipital_v', 'Occipital_d', 'Ventral', 'Dorsal', 'Lateral']
 
 if group == 'infant':
-    suf = '_day1'
+    suf = '_all'
 
 dist_summary = pd.read_csv(f'{git_dir}/results/clustering/{group}{suf}_{atlas}_roi_distance.csv')
 

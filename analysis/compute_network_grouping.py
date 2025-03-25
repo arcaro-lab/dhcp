@@ -54,7 +54,7 @@ for roi in roi_labels['label']:
 group_df = pd.read_csv(f'{group_params.out_dir}/derivatives/{atlas}/{group}_{atlas}_roi_similarity.csv')
 
 if group == 'infant':
-    suf = '_day1'
+    suf = '_all'
     #add age and age group columns
     group_df['age'] = (group_df['scan_age'] - group_df['birth_age'])*7
     group_df['age_group'] = np.nan
@@ -62,7 +62,7 @@ if group == 'infant':
         group_df.loc[(group_df['scan_age'] >= age_bins[i]) & (group_df['scan_age'] < age_bins[i+1]), 'age_group'] = age_groups[i]
 
     #extract only term and post term infants scanned within a day of birth
-    group_df = group_df[(group_df['age'] <= 1) & (group_df['age_group'] == 'term') | (group_df['age'] <= 1) & (group_df['age_group'] == 'post')]
+    #group_df = group_df[(group_df['age'] <= 1) & (group_df['age_group'] == 'term') | (group_df['age'] <= 1) & (group_df['age_group'] == 'post')]
 
 
 def create_mat(df,col = 'fc'):
@@ -99,18 +99,26 @@ group_df['roi2'] = group_df['hemi2'] + '_' + group_df['roi2']
 mds = MDS(n_components = 2, dissimilarity = 'euclidean')
 #mds_results = mds.fit(fc_mat).embedding_
 
-dist_summary = pd.DataFrame(columns= ['sub','ses','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])
-for subn, sub in enumerate(group_df['sub'].unique()):
+dist_summary = pd.DataFrame(columns= ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])
+subn = 0
+for sub, ses in zip(group_df['sub'], group_df['ses']):
     print(subn, len(group_df['sub'].unique()))
+    
+    subn += 1
 
     #extract sub_df
-    sub_df = group_df[group_df['sub'] == sub]
+    sub_df = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]
 
     #extract fc matrix from sub_df
     fc_mat = create_mat(sub_df, col = 'fc')
 
     #set diagonal to 1
     #np.fill_diagonal(fc_mat, 1)
+    
+    #extract birth_age, scan_age, age_group for sub
+    birth_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['birth_age'].values[0]
+    scan_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['scan_age'].values[0]
+    age_group = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['age_group'].values[0]
     
 
 
@@ -142,7 +150,7 @@ for subn, sub in enumerate(group_df['sub'].unique()):
             hemi_similarity = 'same' if hemi1 == hemi2 else 'diff'
 
             #concat to dist_summary
-            dist_summary = pd.concat([dist_summary, pd.DataFrame([[sub, sub_df['ses'].values[0], network1, hemi1, roi_name1, network2, hemi2, roi_name2,hemi_similarity, network_similarity, roi_similarity, dist]], columns = ['sub','ses','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity','roi_similarity', 'dist'])])
+            dist_summary = pd.concat([dist_summary, pd.DataFrame([[sub,ses,birth_age, scan_age,age_group, network1, hemi1, roi_name1, network2, hemi2, roi_name2,hemi_similarity, network_similarity, roi_similarity, dist]], columns = ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])])
 
             
 
