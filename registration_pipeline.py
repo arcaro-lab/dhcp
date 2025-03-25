@@ -62,8 +62,8 @@ sub_list = full_sub_list[full_sub_list['to_run']==1]
 #reset index
 #sub_list.reset_index(drop=True, inplace=True)
 
-#limit to first 30 subjects
-#sub_list = full_sub_list.head(200)
+#start half way through sublist
+sub_list = sub_list[int(len(sub_list)/2):]
 
 
 #set atlas
@@ -140,6 +140,9 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             
             #set analysis_name to 1
             sub_list.loc[(sub_list['participant_id']==sub) & (sub_list['ses'] == ses), analysis_name] = 1
+            
+            #load the most recent version of the full_sub_list
+            full_sub_list = pd.read_csv(f'{group_info.sub_file}')
 
             #update the full_sub_list for this participant and ses
             full_sub_list.loc[(full_sub_list['participant_id']==sub) & (full_sub_list['ses'] == ses), analysis_name] = 1
@@ -147,6 +150,9 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
             #reset index
             full_sub_list.reset_index(drop=True, inplace=True)
             full_sub_list.to_csv(f'{group_info.sub_file}', index=False)
+            
+            
+
             
         except Exception as e:
             #open log file

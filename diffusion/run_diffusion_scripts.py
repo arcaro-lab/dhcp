@@ -24,7 +24,8 @@ import time
 
 
 group = 'infant'
-atlas = 'wang'
+seed = 'wang'
+target = 'wang'
 group_info = dhcp_params.load_group_params(group)
 
 sub_list = group_info.sub_list
@@ -34,21 +35,21 @@ sub_list = sub_list[sub_list['to_run']==1]
 sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
 
 #of those grab only the subs with the atlas_probtrackx col set to '' and atlas_dwi col set to 1
-sub_list = sub_list[(sub_list[f'{atlas}_probtrackx'] != 1) & (sub_list[f'{atlas}_dwi'] == 1)]
+sub_list = sub_list[(sub_list[f'{seed}_to_{target}_probtrackx'] != 1) & (sub_list[f'{target}_dwi'] == 1)]
 #reset index
 sub_list.reset_index(drop=True, inplace=True)
 
-script_dir = git_dir + '/run_probtrackx'
+script_name = 'probtrackx_atlas_to_atlas.py'
 
-n_jobs = 33 #number of jobs to run at once
-job_time = 150 #amount of time in minutes to run job
+n_jobs = 50 #number of jobs to run at once
+job_time = 1600 #amount of time in minutes to run job
 
 n = 0 #track number of jobs run
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     print(sub, ses)
 
     #run job
-    bash_cmd = f'python {git_dir}/diffusion/run_probtrackx.py {sub} {ses} {group} {atlas} &'
+    bash_cmd = f'python {git_dir}/diffusion/{script_name} --sub {sub} --ses {ses} --group {group} --seed {seed} --target {target} &'
     print(bash_cmd)
     subprocess.run(bash_cmd, shell=True)
 
@@ -64,13 +65,13 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         
         #loop through all subs and check whether ifnal file exists
         for check_sub, check_ses in zip(full_sub_list['participant_id'], full_sub_list['ses']):
-            check_file = f'{group_info.out_dir}/{check_sub}/{check_ses}/derivatives/dwi_seeds/seeds_to_rh_SPL1_40wk.nii.gz'
+            check_file = f'{group_info.out_dir}/{check_sub}/{check_ses}/derivatives/dwi_seeds/{seed}_seeds_to_rh_SPL1_40wk.nii.gz'
             if os.path.exists(check_file):
                 #set atlas_probtrackx col to 1
-                full_sub_list.loc[(full_sub_list['participant_id'] == check_sub) & (full_sub_list['ses'] == check_ses), f'{atlas}_probtrackx'] = 1
+                full_sub_list.loc[(full_sub_list['participant_id'] == check_sub) & (full_sub_list['ses'] == check_ses), f'{seed}_to_{target}_probtrackx'] = 1
             else:
                 #set atlas_probtrackx col to ''
-                full_sub_list.loc[(full_sub_list['participant_id'] == check_sub) & (full_sub_list['ses'] == check_ses), f'{atlas}_probtrackx'] = ''
+                full_sub_list.loc[(full_sub_list['participant_id'] == check_sub) & (full_sub_list['ses'] == check_ses), f'{seed}_to_{target}_probtrackx'] = ''
         
         #save full_sub_list
         full_sub_list.to_csv(f'{git_dir}/participants_dhcp.csv', index = False)
