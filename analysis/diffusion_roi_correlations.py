@@ -48,7 +48,7 @@ sub_info = group_params.sub_list
 sub_info = sub_info[(sub_info[f'{atlas}_ts'] == 1) & (sub_info[f'{atlas}_exclude'] != 1)]
 
 #load data wang_probtrackx
-sub_info = sub_info[(sub_info['wang_probtrackx'] == 1)]
+sub_info = sub_info[(sub_info['pulvinar_to_wang_probtrackx'] == 1)]
 
 #load only subs with two sessions
 sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
@@ -164,16 +164,16 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
                 ses2_data = np.load(f'{ses2_dir}/{hemi}_{roi}{suf}.npy').flatten()
             else:
 
-                ses1_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/seeds_to_{hemi}_{roi}{suf}.nii.gz')
-                ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/seeds_to_{hemi}_{roi}{suf}.nii.gz')
+                ses1_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/pulvinar_seeds_to_{hemi}_{roi}{suf}.nii.gz')
+                ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/pulvinar_seeds_to_{hemi}_{roi}{suf}.nii.gz')
 
                 #extract data from each
                 ses1_data = roi_masker.fit_transform(ses1_map)
                 ses2_data = roi_masker.fit_transform(ses2_map)
 
                 #save as numpy array
-                np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/{hemi}_{roi}{suf}.npy', ses1_data)
-                np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/{hemi}_{roi}{suf}.npy', ses2_data)
+                np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/pulvinar_to_{hemi}_{roi}{suf}.npy', ses1_data)
+                np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/pulvinar_to_{hemi}_{roi}{suf}.npy', ses2_data)
             
             
             #correlate with adult group map

@@ -23,7 +23,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 age_groups= ['infant', 'adult']
-age_groups = ['infant']
+age_groups = ['adult']
 atlas = 'wang'
 
 #load roi labels
@@ -35,7 +35,7 @@ atlas_info= params.load_atlas_info(atlas)
 
 networks = ['Occipital', 'Ventral', 'Lateral', 'Dorsal']
 
-n_subs = 30
+
 
 def add_network_names(sub_df, all_rois, all_networks):
 
@@ -71,8 +71,15 @@ def split_half_reliability(group, atlas, all_rois, all_networks):
     for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
 
         sex = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'sex'].values[0]
-        birth_age = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'birth_age'].values[0]
-        scan_age = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'scan_age'].values[0]
+
+        if group == 'infant':
+                
+            birth_age = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'birth_age'].values[0]
+            scan_age = sub_list.loc[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses), 'scan_age'].values[0]
+
+        else:
+            birth_age = np.nan
+            scan_age = np.nan
 
 
         all_ts1 = []

@@ -76,6 +76,8 @@ class load_group_params():
             self.group_template = f'{atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain'
             self.template_name = 'MNI'
 
+            self.vols = 2300 #THIS IS THE INFANT VOLS
+
             self.sub_file = f'{git_dir}/participants_7T.csv'
             self.sub_list = pd.read_csv(f'{git_dir}/participants_7T.csv')
 

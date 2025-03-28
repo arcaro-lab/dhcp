@@ -148,7 +148,7 @@ for hemi in group_info.hemis:
 #create qc directory if it doesn't exist
 os.makedirs(f'{git_dir}/fmri/qc/{atlas}/{group}', exist_ok = True)
 
-plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group}/{sub}_{atlas}_epi.png', bbox_inches = 'tight')
+plt.savefig(f'{git_dir}/fmri/qc/{atlas}/{group}/{sub}_{ses}_{atlas}_epi.png', bbox_inches = 'tight')
 
 '''
 Split atlas one more time to save individual max probability ROIs

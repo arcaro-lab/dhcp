@@ -54,7 +54,7 @@ dist_summary = pd.read_csv(f'{git_dir}/results/clustering/{group}{suf}_{atlas}_r
 df_roi_summary = dist_summary[dist_summary['roi_similarity'] == 'diff']
 
 #group by roi1 and roi2
-hierarchy_summary = pd.DataFrame(columns = ['sub', 'network', 'corr'])
+hierarchy_summary = pd.DataFrame(columns = ['sub','ses','birth_age','scan_age','age_group', 'network', 'corr'])
 
 for sub in dist_summary['sub'].unique():
     sub_summary = dist_summary[dist_summary['sub'] == sub]
@@ -131,7 +131,7 @@ for sub in dist_summary['sub'].unique():
         corr = stats.pearsonr(temp_hierarchy_summary['anat_rank'], temp_hierarchy_summary['actual_rank'])[0]
 
         #add to hierarchy_summary
-        hierarchy_summary = pd.concat([hierarchy_summary, pd.DataFrame([[sub, network, corr]], columns = ['sub', 'network', 'corr'])])
+        hierarchy_summary = pd.concat([hierarchy_summary, pd.DataFrame([[sub, network, corr]], columns = ['sub','ses','birth_age','scan_age','age_group', 'network', 'corr'])])
 
 
 #save hierarchy_summary
