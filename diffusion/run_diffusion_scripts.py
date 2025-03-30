@@ -39,10 +39,10 @@ sub_list = sub_list[(sub_list[f'{seed}_to_{target}_probtrackx'] != 1) & (sub_lis
 #reset index
 sub_list.reset_index(drop=True, inplace=True)
 
-script_name = 'probtrackx_atlas_to_atlas.py'
+script_name = 'probtrackx_roi_to_atlas.py'
 
-n_jobs = 50 #number of jobs to run at once
-job_time = 1600 #amount of time in minutes to run job
+n_jobs = 2 #number of jobs to run at once
+job_time = 200 #amount of time in minutes to run job
 
 n = 0 #track number of jobs run
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):

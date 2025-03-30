@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser(description='Run probtrackx2 between seed roi a
 parser.add_argument('--sub', help='subject id',default='sub-CC00087AN14')
 parser.add_argument('--ses', help='session id',default='ses-31800')
 parser.add_argument('--group', help='group name',default='infant')
-parser.add_argument('--atlas', help='atlas name', default='wang')
+parser.add_argument('--target', help='atlas name', default='wang')
 parser.add_argument('--seed', help='name of seed roi', default='pulvinar')
 args = parser.parse_args()
 
@@ -41,7 +41,7 @@ args = parser.parse_args()
 sub = args.sub
 ses = args.ses
 group = args.group
-atlas = args.atlas
+atlas = args.target
 seed = args.seed
 
 

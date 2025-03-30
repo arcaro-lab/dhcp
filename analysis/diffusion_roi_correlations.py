@@ -83,77 +83,72 @@ suf = '_40wk'
 rerun = True
 
 
-#loop through ROIs in atlas
-for roi, network in zip(roi_labels['label'], roi_labels['network']):
-    print(roi)
-    adult_roi = roi
+for hemi in ['lh', 'rh']:
 
-    #replace names to match adult data
-    adult_roi = adult_roi.replace('hMT', 'TO1').replace('MST','TO2')
-    adult_roi= adult_roi.replace('V1v','V1').replace('V1d','V1').replace('V2v','V2').replace('V2d','V2')
-    adult_roi = adult_roi.replace('V3v','V3').replace('V3d','V3').replace('SPL1','SPL')
+    masker = NiftiMasker(roi_name.replace('hemi', hemi), standardize = True)
 
-    #load adult group mapGroup_dtihV4_rh_groupmax_pulvinar_zscore.nii.gz
-    lh_adult_map_img = image.load_img(f'{adult_data_dir}/Group_dti{adult_roi}_lh_groupmax_pulvinar_40wk.nii.gz')
-    rh_adult_map_img = image.load_img(f'{adult_data_dir}/Group_dti{adult_roi}_rh_groupmax_pulvinar_40wk.nii.gz')
+    #loop through ROIs in atlas
+    for roi, network in zip(roi_labels['label'], roi_labels['network']):
+        print(roi)
+        adult_roi = roi
 
-    lh_adult_map = lh_masker.fit_transform(lh_adult_map_img)
-    rh_adult_map = rh_masker.fit_transform(rh_adult_map_img)
+        #replace names to match adult data
+        adult_roi = adult_roi.replace('hMT', 'TO1').replace('MST','TO2')
+        adult_roi= adult_roi.replace('V1v','V1').replace('V1d','V1').replace('V2v','V2').replace('V2d','V2')
+        adult_roi = adult_roi.replace('V3v','V3').replace('V3d','V3').replace('SPL1','SPL')
 
-    #loop through unique subs in sub_info
-    for sub in sub_info['participant_id'].unique():
-            #curr_sub data
-        curr_sub = sub_data[sub_data['sub'] == sub]
+        #load adult group mapGroup_dtihV4_rh_groupmax_pulvinar_zscore.nii.gz
+        adult_map_img = image.load_img(f'{adult_data_dir}/Group_dti{adult_roi}_{hemi}_groupmax_pulvinar_40wk.nii.gz')
 
-        #get ses1 and ses2 for sub from sub_info
-        curr_sub_info = sub_info[sub_info['participant_id'] == sub]
-        ses1 = curr_sub_info['ses'].values[0]
-        ses2 = curr_sub_info['ses'].values[1]
 
-        #check if sub_data has both ses
-        if (curr_sub['ses'] == ses1).sum() == 0 or (curr_sub['ses'] == ses2).sum() == 0:
-            continue
-
-        #pdb.set_trace()
-        #determine which ses is first using scan_age
-        #ses1 = curr_sub[curr_sub['scan_age'] == np.min(curr_sub['scan_age'])]['ses'].values[0]
-        #ses2 = curr_sub[curr_sub['scan_age'] == np.max(curr_sub['scan_age'])]['ses'].values[0]
-
-        #pdb.set_trace()
-        ses1_dir = f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds'
-        ses2_dir = f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds'
-
-        #get ages from ses1 and ses2
-        t1_age = curr_sub[curr_sub['ses'] == ses1]['scan_age'].values[0]
-        t2_age = curr_sub[curr_sub['ses'] == ses2]['scan_age'].values[0]
-        age_diff = t2_age - t1_age
-        hemi_data1 = []
-        hemi_data2 = [] 
-
-        
-        
-        #extract data from each session
-        lh_t1_cortex_corr = curr_sub[(curr_sub['sub'] == sub) & (curr_sub['ses'] == ses1) & (curr_sub['infant_roi'] == roi) & (curr_sub['hemi'] == 'lh') & (curr_sub['roi_similarity'] == 'same') & (curr_sub['hemi_similarity'] == 'same')]['corr']
+        adult_map = masker.fit_transform(adult_map_img)
+        adult_map = np.squeeze(adult_map)
         
 
-        rh_t1_cortex_corr = curr_sub[(curr_sub['sub'] == sub) & (curr_sub['ses'] == ses1) & (curr_sub['infant_roi'] == roi) & (curr_sub['hemi'] == 'rh') & (curr_sub['roi_similarity'] == 'same')& (curr_sub['hemi_similarity'] == 'same')]['corr']
-        lh_t2_cortex_corr = curr_sub[(curr_sub['sub'] == sub) & (curr_sub['ses'] == ses2) & (curr_sub['infant_roi'] == roi) & (curr_sub['hemi'] == 'lh') & (curr_sub['roi_similarity'] == 'same')& (curr_sub['hemi_similarity'] == 'same')]['corr'].values[0]
-        rh_t2_cortex_corr = curr_sub[(curr_sub['sub'] == sub) & (curr_sub['ses'] == ses2) & (curr_sub['infant_roi'] == roi) & (curr_sub['hemi'] == 'rh') & (curr_sub['roi_similarity'] == 'same')& (curr_sub['hemi_similarity'] == 'same')]['corr'].values[0]
-        
-        t1_cortex_corr = np.mean([lh_t1_cortex_corr, rh_t1_cortex_corr])
-        t2_cortex_corr = np.mean([lh_t2_cortex_corr, rh_t2_cortex_corr])
-        
-        #loop through hemis
-        for hemi in ['lh', 'rh']:
+        #loop through unique subs in sub_info
+        for sub in sub_info['participant_id'].unique():
+                #curr_sub data
+            curr_sub = sub_data[sub_data['sub'] == sub]
 
-            if hemi == 'lh':
-                roi_masker = lh_masker
-                adult_map = lh_adult_map
-            else:
-                roi_masker = rh_masker
-                adult_map = rh_adult_map
+            #get ses1 and ses2 for sub from sub_info
+            curr_sub_info = sub_info[sub_info['participant_id'] == sub]
+            ses1 = curr_sub_info['ses'].values[0]
+            ses2 = curr_sub_info['ses'].values[1]
+
+            #check if sub_data has both ses
+            if (curr_sub['ses'] == ses1).sum() == 0 or (curr_sub['ses'] == ses2).sum() == 0:
+                continue
+
+            #pdb.set_trace()
+            #determine which ses is first using scan_age
+            #ses1 = curr_sub[curr_sub['scan_age'] == np.min(curr_sub['scan_age'])]['ses'].values[0]
+            #ses2 = curr_sub[curr_sub['scan_age'] == np.max(curr_sub['scan_age'])]['ses'].values[0]
+
+            #pdb.set_trace()
+            ses1_dir = f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds'
+            ses2_dir = f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds'
+
+            #get ages from ses1 and ses2
+            t1_age = curr_sub[curr_sub['ses'] == ses1]['scan_age'].values[0]
+            t2_age = curr_sub[curr_sub['ses'] == ses2]['scan_age'].values[0]
+            age_diff = t2_age - t1_age
+  
             
-            adult_map = np.squeeze(adult_map)
+            
+            #extract data from each session
+            t1_cortex_corr = curr_sub[(curr_sub['sub'] == sub) & (curr_sub['ses'] == ses1) & (curr_sub['infant_roi'] == roi) & (curr_sub['hemi'] == hemi) & (curr_sub['roi_similarity'] == 'same') & (curr_sub['hemi_similarity'] == 'same')]['corr']
+                        
+            t2_cortex_corr = curr_sub[(curr_sub['sub'] == sub) & (curr_sub['ses'] == ses2) & (curr_sub['infant_roi'] == roi) & (curr_sub['hemi'] == hemi) & (curr_sub['roi_similarity'] == 'same')& (curr_sub['hemi_similarity'] == 'same')]['corr']
+            
+            
+
+
+            '''
+            Compute correlation between adult group map and infant data for pulvinar
+            '''
+
+            
+            
             
             
             
@@ -168,47 +163,43 @@ for roi, network in zip(roi_labels['label'], roi_labels['network']):
                 ses2_map = image.load_img(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/pulvinar_seeds_to_{hemi}_{roi}{suf}.nii.gz')
 
                 #extract data from each
-                ses1_data = roi_masker.fit_transform(ses1_map)
-                ses2_data = roi_masker.fit_transform(ses2_map)
+                ses1_data = masker.fit_transform(ses1_map)
+                ses2_data = masker.fit_transform(ses2_map)
 
                 #save as numpy array
                 np.save(f'{group_params.out_dir}/{sub}/{ses1}/derivatives/dwi_seeds/pulvinar_to_{hemi}_{roi}{suf}.npy', ses1_data)
                 np.save(f'{group_params.out_dir}/{sub}/{ses2}/derivatives/dwi_seeds/pulvinar_to_{hemi}_{roi}{suf}.npy', ses2_data)
             
+                
+                #correlate with adult group map
+                #include values that are greater than 0 in infant map
+                #ses1_ind = np.where(ses1_data > 0)
+                #ses2_ind = np.where(ses2_data > 0)
+            t1_corr = np.corrcoef(adult_map, ses1_data)[0,1]
+            t2_corr = np.corrcoef(adult_map, ses2_data)[0,1]
+
+
             
-            #correlate with adult group map
-            #include values that are greater than 0 in infant map
-            #ses1_ind = np.where(ses1_data > 0)
-            #ses2_ind = np.where(ses2_data > 0)
-            corr1 = np.corrcoef(adult_map, ses1_data)[0,1]
-            corr2 = np.corrcoef(adult_map, ses2_data)[0,1]
-
-            hemi_data1.append(corr1)
-            hemi_data2.append(corr2)
-        
-
-        #compute mean correlation across hemis for each session
-        t1_corr = np.mean(hemi_data1)
-        t2_corr = np.mean(hemi_data2)
-
-
-        #add to summary_df using concat
-        summary_df = pd.concat([summary_df, pd.DataFrame({'sub':sub,
-                                                        'roi':roi,
-                                                        'network':network,
-                                                        't1_age':t1_age,
-                                                        't2_age':t2_age,
-                                                        'age_diff':age_diff,
-                                                        't1_cortex_corr':t1_cortex_corr,
-                                                        't2_cortex_corr':t2_cortex_corr,
-                                                        f't1_{target_roi}_corr':t1_corr,
-                                                        f't2_{target_roi}_corr':t2_corr}, index = [0])])
 
 
 
-    #save summary_df
-    summary_df.to_csv(f'{git_dir}/results/roi_corrs/pulvinar_dwi_session_correlations{suf}.csv', index = False)
+            #add to summary_df using concat
+            summary_df = pd.concat([summary_df, pd.DataFrame({'sub':sub,
+                                                            'roi':roi,
+                                                            'network':network,
+                                                            't1_age':t1_age,
+                                                            't2_age':t2_age,
+                                                            'age_diff':age_diff,
+                                                            't1_cortex_corr':t1_cortex_corr.values[0],
+                                                            't2_cortex_corr':t2_cortex_corr.values[0],
+                                                            f't1_{target_roi}_corr':t1_corr,
+                                                            f't2_{target_roi}_corr':t2_corr}, index = [0])])
 
 
+
+            #save summary_df
+            summary_df.to_csv(f'{git_dir}/results/roi_corrs/pulvinar_dwi_session_correlations{suf}.csv', index = False)
+
+            
 
 
