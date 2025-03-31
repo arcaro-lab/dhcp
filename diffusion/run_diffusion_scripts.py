@@ -24,7 +24,7 @@ import time
 
 
 group = 'infant'
-seed = 'wang'
+seed = 'pulvinar'
 target = 'wang'
 group_info = dhcp_params.load_group_params(group)
 
@@ -35,13 +35,13 @@ sub_list = sub_list[sub_list['to_run']==1]
 sub_list = sub_list[sub_list.duplicated(subset = 'participant_id', keep = False)]
 
 #of those grab only the subs with the atlas_probtrackx col set to '' and atlas_dwi col set to 1
-sub_list = sub_list[(sub_list[f'{seed}_to_{target}_probtrackx'] != 1) & (sub_list[f'{target}_dwi'] == 1)]
+sub_list = sub_list[(sub_list[f'{target}_dwi'] == 1)]
 #reset index
 sub_list.reset_index(drop=True, inplace=True)
 
 script_name = 'probtrackx_roi_to_atlas.py'
 
-n_jobs = 2 #number of jobs to run at once
+n_jobs = 50 #number of jobs to run at once
 job_time = 200 #amount of time in minutes to run job
 
 n = 0 #track number of jobs run

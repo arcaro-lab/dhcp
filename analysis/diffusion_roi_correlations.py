@@ -68,7 +68,6 @@ adult_data_dir = f'{adult_params.out_dir}/derivatives/dwi_seeds'
 
 roi_info = params.load_roi_info(f'{target_roi}_40wk')
 roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
-roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
 
 summary_df = pd.DataFrame(columns = ['sub', 'roi','network','t1_age','t2_age','age_diff','t1_cortex_corr','t2_cortex_corr', f't1_{target_roi}_corr', f't2_{target_roi}_corr'])
 
@@ -145,11 +144,7 @@ for hemi in ['lh', 'rh']:
 
             '''
             Compute correlation between adult group map and infant data for pulvinar
-            '''
-
-            
-            
-            
+            '''           
             
             
             #check if numpy array of data exists
@@ -177,10 +172,6 @@ for hemi in ['lh', 'rh']:
                 #ses2_ind = np.where(ses2_data > 0)
             t1_corr = np.corrcoef(adult_map, ses1_data)[0,1]
             t2_corr = np.corrcoef(adult_map, ses2_data)[0,1]
-
-
-            
-
 
 
             #add to summary_df using concat
