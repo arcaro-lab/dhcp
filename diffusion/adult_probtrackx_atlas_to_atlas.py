@@ -182,7 +182,7 @@ for hemi in ['lh','rh']:
         
         #check if files already exist in seeds_dir
         
-        if os.path.exists(f'{seeds_dir}/{seed}_seeds_to_{hemi}_{roi}_dwi.nii.gz') == False or rerun == True:
+        if os.path.exists(f'{seeds_dir}/{seed}_seeds_to_{hemi}_{roi}_diff.nii.gz') == False or rerun == True:
             
             
             #run probtrackx2
@@ -196,7 +196,7 @@ for hemi in ['lh','rh']:
             shutil.move(paths_file, f'{paths_dir}/{seed}_to_{hemi}_{roi}_fdt_paths.nii.gz')
 
             #move seed file to seeds_dir
-            seed_file = f'{out_dir}/seeds_to_{hemi}_{roi}_dwi.nii.gz'
+            seed_file = f'{out_dir}/seeds_to_{roi}_{hemi}_diff.nii.gz'
             shutil.move(seed_file, f'{seeds_dir}/{seed}_seeds_to_{hemi}_{roi}_dwi.nii.gz')
 
             #remove target and waypoint files
@@ -208,16 +208,17 @@ for hemi in ['lh','rh']:
 
         #check if files already exist
         if os.path.exists(f'{seeds_dir}/{seed}_seeds_to_{hemi}_{roi}_mni.nii.gz') == False or rerun == True:
-                
+            
             #transform seed file to template space
             seed_file = f'{seeds_dir}/{seed}_seeds_to_{hemi}_{roi}_dwi.nii.gz'
 
             #first transform to anat space
-            bash_cmd = f'flirt -in {seed_file} -ref {anat_img} -out {seed_file.replace("_dwi","_anat")} -applyxfm -init {xfm_dir}/b0toanat.mat -interp trilinear'
+            bash_cmd = f'flirt -in {seed_file} -ref {anat_img} -out {seed_file.replace("_dwi","_anat")} -applyxfm -init {xfm_dir}/b02anat.mat -interp trilinear'
             subprocess.run(bash_cmd, shell=True)
 
             #then transform to template space
             bash_cmd = f'flirt -in {seed_file.replace("_dwi","_anat")} -ref {template_img} -out {seed_file.replace("_dwi","_mni")} -applyxfm -init {xfm_dir}/anat2mni.mat -interp trilinear'
+            subprocess.run(bash_cmd, shell=True)
             
         else:
             print(f'Files already exist, skipping...')
@@ -225,5 +226,5 @@ for hemi in ['lh','rh']:
         #print timing
         end = time.time()
         print(f'Probtrackx2 for {hemi} {roi} took {end-start} seconds')
-        pdb.set_trace()
+        
 

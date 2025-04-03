@@ -69,7 +69,7 @@ func_files = glob(f'{func_dir}/func/*_bold.nii.gz')
 #loop through func files
 all_func = []
 
-    
+drop_out_mask = f'{out_dir}/rois/drop_out/drop_out_mask.nii.gz'
 
 gc.collect()
 
@@ -87,6 +87,7 @@ for hemi in ['lh','rh']:
     
     #extract roi timeseries
     masker = NiftiLabelsMasker(
+        mask_img=drop_out_mask,
         labels_img=atlas_dir,
         standardize="zscore",
         standardize_confounds="zscore",

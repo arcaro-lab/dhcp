@@ -30,7 +30,7 @@ import time
 #print date and time
 print(time.strftime("%d/%m/%Y %H:%M:%S"))
 
-group = 'adult'
+group = 'infant'
 group_info = params.load_group_params(group)
 
 #set directories
@@ -44,7 +44,6 @@ out_dir = group_info.out_dir
 #set suffixes for anat and func files
 anat_suf = group_info.anat_suf
 func_suf = group_info.func_suf
-
 
 
 #directory with preprocessing scripts
@@ -63,7 +62,14 @@ sub_list = full_sub_list[full_sub_list['to_run']==1]
 #sub_list.reset_index(drop=True, inplace=True)
 
 #start half way through sublist
-sub_list = sub_list[int(len(sub_list)/2):]
+#sub_list = sub_list[int(len(sub_list)/2):]
+
+#number of subs to run in parallel
+n_jobs = 50
+#how long to wait between batches
+job_time = 15
+
+
 
 
 #set atlas
@@ -127,13 +133,22 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
         curr_subs = curr_subs[curr_subs[pre_req]==1]
     
     n = 1
+    job_count = 0
     for sub, ses in zip(curr_subs['participant_id'], curr_subs['ses']):
         print(f'Running {analysis_name} for {sub}', f'{n} of {len(curr_subs)}' )
         n += 1
+        job_count += 1
+
+        #check if job count is greater than n_jobs
+        if job_count > n_jobs:
+            #wait for jobs to finish
+            print(f'Waiting for {job_time} minutes')
+            time.sleep(job_time*60)
+            job_count = 0
 
         try:
             #run script
-            bash_cmd = f'python {script_dir}/{script_name} {sub} {ses} {group} {atlas}'
+            bash_cmd = f'python {script_dir}/{script_name} {sub} {ses} {group} {atlas} &'
             subprocess.run(bash_cmd, check=True, shell=True)
             
 
