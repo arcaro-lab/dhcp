@@ -167,4 +167,6 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
 
 
 
+
+
 all_sub_df.to_csv(f'{results_dir}/{group}_{atlas}_roi_similarity.csv', index = False)

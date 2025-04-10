@@ -37,6 +37,8 @@ atlas_info = params.load_atlas_info(atlas)
 group_params = params.load_group_params(group)
 
 sub_list = group_params.sub_list
+
+results_dir = f'{group_params.out_dir}/derivatives/clustering'
 #only keep if atlas_ts == 1 and atlas_exclude == ''
 sub_list = sub_list[(sub_list[f'{atlas}_ts'] == 1) & (sub_list[f'{atlas}_exclude'] != 1)]
 
@@ -106,90 +108,91 @@ group_df['roi2'] = group_df['hemi2'] + '_' + group_df['roi2']
 
 subn = 0
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-    print(sub,subn, len(sub_list))
+    #sub = 'sub-CC00505XX10'
+    #ses = 'ses-146900'
+    print(sub, ses, subn, len(sub_list))
     mds = MDS(n_components = 2, dissimilarity = 'euclidean')
    
         
     
-
-    #extract sub_df
-    sub_df = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]
-
-    #check if sub_df is empty
     try:
-
-    
-
-        #extract fc matrix from sub_df
-        fc_mat = create_mat(sub_df, col = 'fc')
-
-        #set diagonal to 1
-        #np.fill_diagonal(fc_mat, 1)
-        
-        #extract birth_age, scan_age, age_group for sub
-        birth_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['birth_age'].values[0]
-        scan_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['scan_age'].values[0]
-        age_group = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['age_group'].values[0]
-        
-
-
-        mds_results = mds.fit(fc_mat).embedding_
-        
-        #add roi and network to mds_results
-        mds_results = pd.DataFrame(mds_results, columns = ['x', 'y'])
-        mds_results['roi1'] = all_rois
-        #add network from roi_labels
-        mds_results['network1'] = all_networks
-
-        #compute euclidean distance between each roi and all other rois
-        #roi_dist = pd.DataFrame(columns= ['network1','roi1','network2', 'roi2', 'dist'])
-        curr_summary = pd.DataFrame(columns= ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])
-        for i, roi1 in enumerate(all_rois):
-            hemi1 = roi1.split('_')[0]
-            roi_name1 = roi1.split('_')[1]
-            network1 = all_networks[all_rois.index(roi1)]
-            for j, roi2 in enumerate(all_rois):
-                #compute distance and then concat
-                dist = np.sqrt((mds_results['x'][i] - mds_results['x'][j])**2 + (mds_results['y'][i] - mds_results['y'][j])**2)
-            
-                hemi2 = roi2.split('_')[0]           
-                roi_name2 = roi2.split('_')[1]
-                network2 = all_networks[all_rois.index(roi2)]
-                
-
-                roi_similarity = 'same' if roi_name1 == roi_name2 else 'diff'
-                network_similarity = 'same' if network1 == network2 else 'diff'
-                hemi_similarity = 'same' if hemi1 == hemi2 else 'diff'
-
-                #concat to dist_summary
-                curr_summary =  pd.concat([curr_summary, pd.DataFrame([[sub,ses,birth_age, scan_age,age_group, network1, hemi1, roi_name1, network2, hemi2, roi_name2,hemi_similarity, network_similarity, roi_similarity, dist]], columns = ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])], ignore_index=True)
-
-                
-
-        if subn != 0:
-            #load dist_summary
-            dist_summary = pd.read_csv(f'{git_dir}/results/clustering/{group}{suf}_{atlas}_roi_distance.csv')
-        else: 
-            dist_summary = pd.DataFrame(columns= ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])
-
-        #concat to dist_summary
-        dist_summary = pd.concat([dist_summary, curr_summary], ignore_index=True)
-                
-        #print(subn, len(group_df['sub'].unique()))
-        #plot_mds(fc_mat,  roi_labels['label'], roi_labels['network'])
-        #plot_mds(fc_mat,  all_rois, all_networks)
-
-
-        #save
-        dist_summary.to_csv(f'{git_dir}/results/clustering/{group}{suf}_{atlas}_roi_distance.csv', index = False)
-        
-        #delete mds_results
-        del dist_summary
-        del mds_results
-        del fc_mat
-        subn += 1
+        #extract sub_df
+        sub_df = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]
     except:
         print('Error with sub', sub)
         continue
+
+
+
+    #pdb.set_trace()
+
+    #extract fc matrix from sub_df
+    fc_mat = create_mat(sub_df, col = 'fc')
+
+    #set diagonal to 1
+    #np.fill_diagonal(fc_mat, 1)
+    
+    #extract birth_age, scan_age, age_group for sub
+    birth_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['birth_age'].values[0]
+    scan_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['scan_age'].values[0]
+    age_group = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['age_group'].values[0]
+    
+
+
+    mds_results = mds.fit(fc_mat).embedding_
+    
+    #add roi and network to mds_results
+    mds_results = pd.DataFrame(mds_results, columns = ['x', 'y'])
+    mds_results['roi1'] = all_rois
+    #add network from roi_labels
+    mds_results['network1'] = all_networks
+
+    #compute euclidean distance between each roi and all other rois
+    #roi_dist = pd.DataFrame(columns= ['network1','roi1','network2', 'roi2', 'dist'])
+    curr_summary = pd.DataFrame(columns= ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])
+    for i, roi1 in enumerate(all_rois):
+        hemi1 = roi1.split('_')[0]
+        roi_name1 = roi1.split('_')[1]
+        network1 = all_networks[all_rois.index(roi1)]
+        for j, roi2 in enumerate(all_rois):
+            #compute distance and then concat
+            dist = np.sqrt((mds_results['x'][i] - mds_results['x'][j])**2 + (mds_results['y'][i] - mds_results['y'][j])**2)
+        
+            hemi2 = roi2.split('_')[0]           
+            roi_name2 = roi2.split('_')[1]
+            network2 = all_networks[all_rois.index(roi2)]
+            
+
+            roi_similarity = 'same' if roi_name1 == roi_name2 else 'diff'
+            network_similarity = 'same' if network1 == network2 else 'diff'
+            hemi_similarity = 'same' if hemi1 == hemi2 else 'diff'
+
+            #concat to dist_summary
+            curr_summary =  pd.concat([curr_summary, pd.DataFrame([[sub,ses,birth_age, scan_age,age_group, network1, hemi1, roi_name1, network2, hemi2, roi_name2,hemi_similarity, network_similarity, roi_similarity, dist]], columns = ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])], ignore_index=True)
+
+            
+
+    if subn != 0:
+        #load dist_summary
+        dist_summary = pd.read_csv(f'{results_dir}/{group}{suf}_{atlas}_roi_distance.csv')
+    else: 
+        dist_summary = pd.DataFrame(columns= ['sub','ses','birth_age','scan_age','age_group','network1','hemi1','roi1','network2', 'hemi2','roi2', 'hemi_similarity','network_similarity', 'roi_similarity', 'dist'])
+
+    #concat to dist_summary
+    dist_summary = pd.concat([dist_summary, curr_summary], ignore_index=True)
+            
+    #print(subn, len(group_df['sub'].unique()))
+    #plot_mds(fc_mat,  roi_labels['label'], roi_labels['network'])
+    #plot_mds(fc_mat,  all_rois, all_networks)
+
+
+    #save
+    dist_summary.to_csv(f'{results_dir}/{group}{suf}_{atlas}_roi_distance.csv', index = False)
+    
+    #delete mds_results
+    del dist_summary
+    del mds_results
+    del fc_mat
+    subn += 1
 
     

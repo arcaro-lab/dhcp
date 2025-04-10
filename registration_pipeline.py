@@ -46,6 +46,8 @@ anat_suf = group_info.anat_suf
 func_suf = group_info.func_suf
 
 
+
+
 #directory with preprocessing scripts
 script_dir = f'{git_dir}/fmri'
 
@@ -65,9 +67,9 @@ sub_list = full_sub_list[full_sub_list['to_run']==1]
 #sub_list = sub_list[int(len(sub_list)/2):]
 
 #number of subs to run in parallel
-n_jobs = 50
+n_jobs = 25
 #how long to wait between batches
-job_time = 15
+job_time = 30
 
 
 
@@ -94,7 +96,7 @@ reg_phase3 = False
 #Registers atlas to individual anat
 register_atlas = False
 #split atlas into individual rois
-split_atlas = True
+split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True

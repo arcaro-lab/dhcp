@@ -33,7 +33,12 @@ import subprocess
 from glob import glob as glob
 import shutil
 
-rerun = False
+
+
+rerun_exclusion = True
+rerun_waypoint = False
+rerun_brain = False
+
 
 def reg_to_template():
     '''
@@ -124,6 +129,7 @@ def reg_to_masks_to_subjects():
         last_waypoint_file = f'{sub_dir}/rois/waypointmasks/{os.path.basename(waypoint_files[-1]).replace('40wk', '')}'
         last_brain_file = f'{sub_dir}/rois/brain/{os.path.basename(brain_files[-1]).replace('40wk', 'dwi')}'
 
+        drop_out_mask = f'{sub_dir}/rois/drop_out/drop_out_mask_dwi.nii.gz'
 
 
         #check if xfm exists
@@ -137,7 +143,7 @@ def reg_to_masks_to_subjects():
 
             
             #check if last exclusion file already exists or rerun is True
-            if os.path.exists(last_exclusion_file) == False or rerun == True:
+            if os.path.exists(last_exclusion_file) == False or rerun_exclusion == True:
                 print('registering exclusion mask')
                 
                 #remove existing exclusion directory if it exists
@@ -153,6 +159,10 @@ def reg_to_masks_to_subjects():
                     bash_cmd = f'applywarp --ref={sub_dir}/dwi/nodif_brain.nii.gz --in={exclusion_file} --warp={xfm} --out={out_file} --interp=nn'
                     subprocess.run(bash_cmd, shell=True)
 
+                    #add dropout mask
+                    bash_cmd = f'fslmaths {out_file} -add {drop_out_mask} -bin {out_file}'
+                    subprocess.run(bash_cmd, shell=True)
+
                     #load file and apply dwi header
                     exclusion_img = image.load_img(out_file)
                     exclusion_img = image.new_img_like(dwi_img, exclusion_img.get_fdata(), affine = dwi_affine, copy_header = True)
@@ -161,7 +171,7 @@ def reg_to_masks_to_subjects():
 
             
             #check if last waypoint file already exists or rerun is True
-            if os.path.exists(last_waypoint_file) == False or rerun == True:
+            if os.path.exists(last_waypoint_file) == False or rerun_waypoint == True:
                 print('registering waypoint mask')
                 #remove existing waypoint directory if it exists
                 shutil.rmtree(waypoint_dir, ignore_errors = True)
@@ -191,7 +201,7 @@ def reg_to_masks_to_subjects():
 
             
             #check if last brain file already exists or rerun is True
-            if os.path.exists(last_brain_file) == False or rerun == True:
+            if os.path.exists(last_brain_file) == False or rerun_brain == True:
                 print('registering brain mask')                    
 
                 #loop through brain mask files
@@ -201,7 +211,7 @@ def reg_to_masks_to_subjects():
                     out_file = f'{sub_dir}/rois/brain/{os.path.basename(brain_file).replace('40wk', 'dwi')}'
                     
                     #check if file already exists or rerun is True
-                    if os.path.exists(out_file) and rerun == False:
+                    if os.path.exists(out_file) and rerun_brain == False:
                         continue
 
                     #apply transform to brain mask

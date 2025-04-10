@@ -36,6 +36,8 @@ group_info = dhcp_params.load_group_params(group)
 #load sub_list
 sub_info = group_info.sub_list
 
+sd_thresh =1.5
+
 def create_drop_out_mask(sub,ses, group_info):
 
     #set sub dir
@@ -74,7 +76,7 @@ def create_drop_out_mask(sub,ses, group_info):
     sd = np.std(brain_data, axis=1)[0]
 
     #compute threshold
-    threshold = mean - (1 * sd)
+    threshold = mean - (sd_thresh * sd)
 
 
 
@@ -91,12 +93,37 @@ def create_drop_out_mask(sub,ses, group_info):
     plotting.plot_roi(drop_out, bg_img=f'{out_dir}/{func}_1vol.nii.gz', title='Drop Out Mask', display_mode='ortho', cut_coords=(12, -12, 15), output_file=f'{git_dir}/fmri/qc/drop_out/{sub}_{ses}_drop_out_mask.png')
 
     #save drop out mask
-    drop_out.to_filename(f'{roi_dir}/drop_out_mask.nii.gz')
+    drop_out.to_filename(f'{roi_dir}/drop_out_mask_epi.nii.gz')
+
+    
+
+    #warp drop out mask to anat using flirt
+    #register atlas to anatomical space and then dwi space
+    bash_cmd = f'flirt -in {roi_dir}/drop_out_mask_epi.nii.gz -ref {anat_dir}/anat/{sub}_{ses}_{group_info.anat_suf}_brain.nii.gz -applyxfm -init {func2anat} -out {roi_dir}/drop_out_mask_anat.nii.gz -interp nearestneighbour'
+    subprocess.run(bash_cmd.split(), check = True)
+
+    
+    #check if anat2dwi exists
+    if os.path.isfile(anat2dwi):
+        bash_cmd = f'flirt -in {roi_dir}/drop_out_mask_anat.nii.gz -ref {out_dir}/dwi/nodif_brain.nii.gz -applyxfm -init {anat2dwi} -out {roi_dir}/drop_out_mask_dwi.nii.gz -interp nearestneighbour'
+        subprocess.run(bash_cmd.split(), check = True)
 
 
+#Creating drop out mask for sub-CC00560XX08 ses-159800
+#    sub = 'sub-CC00560XX08'
+#    ses = 'ses-159800'
 
+#Creating drop out mask for sub-CC00805XX13 ses-1700
 #loop through subs in sub_list
 for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
+
+
+    anat_dir = f'{group_info.out_dir}/{sub}/{ses}'
+
+    anat2func = group_info.anat2func.replace('*SUB*',sub).replace('*SES*',ses)
+    func2anat = group_info.func2anat.replace('*SUB*',sub).replace('*SES*',ses)
+
+    anat2dwi = group_info.anat2dwi.replace('*SUB*',sub).replace('*SES*',ses)
     #print progress
     print(f'Creating drop out mask for {sub} {ses}')
     try:
@@ -104,5 +131,7 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
         create_drop_out_mask(sub, ses, group_info)
     except:
         print(f'Error creating drop out mask for {sub} {ses}')
-        continue
+        
+
+    
 
