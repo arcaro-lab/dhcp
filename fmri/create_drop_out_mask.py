@@ -36,7 +36,7 @@ group_info = dhcp_params.load_group_params(group)
 #load sub_list
 sub_info = group_info.sub_list
 
-sd_thresh =1.5
+sd_thresh =1
 
 def create_drop_out_mask(sub,ses, group_info):
 

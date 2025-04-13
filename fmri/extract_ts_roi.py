@@ -84,9 +84,12 @@ drop_out_mask = image.math_img('1 - img', img=drop_out_mask)
 gc.collect()
 
 all_ts = []
+n = 0
 #loop through rois in labels file
 for hemi in ['lh','rh']:
     print(f'Extracting {atlas} {hemi} timeseries for {sub}...')
+    print(n)
+    n+=1
 
     curr_atlas = atlas_name.replace('hemi', hemi)
     
@@ -137,6 +140,7 @@ for hemi in ['lh','rh']:
 
     #append to all_ts
     all_ts.append(roi_ts)
+    pdb.set_trace()
     
 
             
@@ -151,6 +155,7 @@ all_ts = all_ts.T
 
 #compute correlation matrix across all rois
 corr_mat = np.corrcoef(all_ts)
+pdb.set_trace()
 
 #pdb.set_trace()
 

@@ -1,0 +1,9 @@
+10/04/2025 15:01:20: Error in extract_brain.py for sub-CC01025XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-CC01025XX11 ses-50230 infant ' returned non-zero exit status 1.
+10/04/2025 15:01:20: Error in phase1_registration.py for sub-CC00579XX19: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/phase1_registration.py sub-CC00579XX19 ses-173500 infant ' returned non-zero exit status 1.
+10/04/2025 15:01:21: Error in phase1_registration.py for sub-CC00605XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/phase1_registration.py sub-CC00605XX11 ses-172700 infant ' returned non-zero exit status 1.
+10/04/2025 15:01:21: Error in phase1_registration.py for sub-CC00605XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/phase1_registration.py sub-CC00605XX11 ses-187700 infant ' returned non-zero exit status 1.
+10/04/2025 15:01:21: Error in phase1_registration.py for sub-CC00805XX13: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/phase1_registration.py sub-CC00805XX13 ses-1700 infant ' returned non-zero exit status 1.
+10/04/2025 15:02:23: Error in extract_brain.py for sub-CC01025XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-CC01025XX11 ses-50230 infant ' returned non-zero exit status 1.
+10/04/2025 15:02:31: Error in extract_brain.py for sub-CC01025XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_brain.py sub-CC01025XX11 ses-50230 infant ' returned non-zero exit status 1.
+10/04/2025 15:09:27: Error in phase3_registration.py for sub-CC01025XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/phase3_registration.py sub-CC01025XX11 ses-50230 infant ' returned non-zero exit status 1.
+10/04/2025 15:39:58: Error in extract_ts_roi.py for sub-CC01025XX11: Command 'python /mnt/DataDrive3/vlad/git_repos/dhcp/fmri/extract_ts_roi.py sub-CC01025XX11 ses-50230 infant wang' returned non-zero exit status 1.

@@ -35,15 +35,15 @@ out_dir = f'{group_info.out_dir}/{sub}/{ses}'
 anat = f'anat/{sub}_{ses}_{group_info.anat_suf}' 
 func = f'func/{sub}_{ses}_{group_info.func_suf}'
 
-func2anat_xfm = group_info.func2anat_xfm.replace('*SUB*',sub).replace('*SES*',ses)
-anat2func_xfm = group_info.anat2func_xfm.replace('*SUB*',sub).replace('*SES*',ses)
+func2anat = group_info.func2anat.replace('*SUB*',sub).replace('*SES*',ses)
+anat2func = group_info.anat2func.replace('*SUB*',sub).replace('*SES*',ses)
 
 #apply registration to 1vol func data
-bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {anat_input}/{anat}_brain.nii.gz -out {out_dir}/{func}_1vol_reg.nii.gz -applyxfm -init {func2anat_xfm} -interp trilinear'
+bash_cmd = f'flirt -in {out_dir}/{func}_1vol.nii.gz -ref {anat_input}/{anat}_brain.nii.gz -out {out_dir}/{func}_1vol_reg.nii.gz -applyxfm -init {func2anat} -interp trilinear'
 subprocess.run(bash_cmd.split(), check = True)
 
 
 #apply registration to anat data
-bash_cmd = f'flirt -in {anat_input}/{anat}_brain.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -out {out_dir}/{anat}_brain_func.nii.gz -applyxfm -init {anat2func_xfm} -interp trilinear'
+bash_cmd = f'flirt -in {anat_input}/{anat}_brain.nii.gz -ref {out_dir}/{func}_1vol.nii.gz -out {out_dir}/{anat}_brain_func.nii.gz -applyxfm -init {anat2func} -interp trilinear'
 subprocess.run(bash_cmd.split(), check = True)
 

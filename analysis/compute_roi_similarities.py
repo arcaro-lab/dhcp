@@ -21,9 +21,9 @@ import dhcp_params as params
 
 import pdb
 
-
-
 import warnings
+import argparse
+
 warnings.filterwarnings("ignore")
 
 atlas = 'wang'
@@ -33,9 +33,11 @@ summary_type = 'fc'
 
 #read atlas and group info as args
 
-group = sys.argv[1]
+#group = sys.argv[1]
 
-atlas = sys.argv[2]
+#atlas = sys.argv[2]
+group = 'infant'
+atlas = 'wang'
 
 #load atlast name and roi labels
 atlas_info = params.load_atlas_info(atlas)
@@ -93,6 +95,8 @@ all_sub_df = pd.DataFrame(columns = ['sub', 'ses','sex','birth_age', 'scan_age',
 n=1
 for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
     print(sub, n , f'of {len(sub_info)}')
+    #sub = 'sub-CC01025XX11'
+    #ses = 'ses-50230'
     n +=1
     
     sex = sub_info.loc[(sub_info['participant_id'] == sub) & (sub_info['ses'] == ses), 'sex'].values[0]
@@ -130,7 +134,9 @@ for sub,ses in zip(sub_info['participant_id'], sub_info['ses']):
 
     
     curr_fc = np.load(f'{sub_dir}//derivatives/fc_matrix/{sub}_{ses}_{atlas}_fc.npy')
+    
     np.fill_diagonal(curr_fc, np.nan)
+    
 
     #melt so that you have an roi1 and roi1 column
     curr_df = pd.DataFrame(curr_fc, index = all_rois, columns = all_rois)

@@ -23,7 +23,8 @@ import pdb
 import warnings
 warnings.filterwarnings("ignore")
 
-group = sys.argv[1]
+#group = sys.argv[1]
+group = 'infant'
 atlas = 'wang'
 suf = ''
 
@@ -107,9 +108,10 @@ group_df['roi2'] = group_df['hemi2'] + '_' + group_df['roi2']
 
 
 subn = 0
+error_subs = []
 for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
-    #sub = 'sub-CC00505XX10'
-    #ses = 'ses-146900'
+    #sub = 'sub-CC01025XX11'
+    #ses = 'ses-50230'
     print(sub, ses, subn, len(sub_list))
     mds = MDS(n_components = 2, dissimilarity = 'euclidean')
    
@@ -119,16 +121,22 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
         #extract sub_df
         sub_df = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]
     except:
-        print('Error with sub', sub)
+        print('Error with sub', sub, ses)
+        error_subs.append(sub + ' ' +ses + ' error')
         continue
 
+    #check if sub_df has 48 unique rois
+    if len(sub_df['roi1'].unique()) != 48:
+        print('Not enough rois for sub', sub,ses)
+        error_subs.append(sub + ' ' +ses + ' rois')
+        continue
 
-
+    
     #pdb.set_trace()
 
     #extract fc matrix from sub_df
     fc_mat = create_mat(sub_df, col = 'fc')
-
+    
     #set diagonal to 1
     #np.fill_diagonal(fc_mat, 1)
     
@@ -194,5 +202,6 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     del mds_results
     del fc_mat
     subn += 1
-
     
+    
+print(error_subs)

@@ -35,6 +35,13 @@ group_names = ['Pre-Term','Early-Term','Term','Post-Term']
 atlas_info = params.load_atlas_info(atlas)
 group_params = params.load_group_params(group)
 
+sub_list = group_params.sub_list
+
+#extract only those where wang_ts = 1 and wang_exclude !=1
+sub_list = sub_list[(sub_list['wang_ts'] == 1) & (sub_list['wang_exclude'] != 1)]
+
+#
+
 roi_labels = atlas_info.roi_labels
 
 #load group data
@@ -46,7 +53,7 @@ networks = ['Occipital_v', 'Occipital_d', 'Ventral', 'Dorsal', 'Lateral']
 if group == 'infant':
     suf = '_all'
 
-dist_summary = pd.read_csv(f'{git_dir}/results/clustering/{group}{suf}_{atlas}_roi_distance.csv')
+dist_summary = pd.read_csv(f'{group_params.out_dir}/derivatives/clustering/{group}{suf}_{atlas}_roi_distance.csv')
 
 
 #average by hemi sub and roi
@@ -56,8 +63,23 @@ df_roi_summary = dist_summary[dist_summary['roi_similarity'] == 'diff']
 #group by roi1 and roi2
 hierarchy_summary = pd.DataFrame(columns = ['sub','ses','birth_age','scan_age','age_group', 'network', 'corr'])
 
-for sub in dist_summary['sub'].unique():
-    sub_summary = dist_summary[dist_summary['sub'] == sub]
+for sub,ses in zip(sub_list['participant_id'], sub_list['ses']):
+    sub_summary = dist_summary[(dist_summary['sub'] == sub) & (dist_summary['ses'] == ses)]
+
+    #check if sub_summary is empty
+    if sub_summary.empty:
+        print(f'Subject {sub} session {ses} has no data')
+        continue
+
+    #extract birth and scan age
+    birth_age = sub_list[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses)]['birth_age'].values[0]
+    scan_age = sub_list[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses)]['scan_age'].values[0]
+
+    #extract age group from sub_summary
+    age_group = sub_summary['age_group'].values[0]
+
+    #pdb.set_trace()
+
 
     sub_summary = sub_summary[sub_summary['roi_similarity'] == 'diff']
     sub_summary = sub_summary.groupby(['network1', 'roi1', 'network2', 'roi2', 'network_similarity']).mean(numeric_only=True).reset_index()
@@ -131,11 +153,11 @@ for sub in dist_summary['sub'].unique():
         corr = stats.pearsonr(temp_hierarchy_summary['anat_rank'], temp_hierarchy_summary['actual_rank'])[0]
 
         #add to hierarchy_summary
-        hierarchy_summary = pd.concat([hierarchy_summary, pd.DataFrame([[sub, network, corr]], columns = ['sub','ses','birth_age','scan_age','age_group', 'network', 'corr'])])
+        hierarchy_summary = pd.concat([hierarchy_summary, pd.DataFrame([[sub, ses, birth_age, scan_age, age_group, network, corr]], columns = ['sub','ses','birth_age','scan_age','age_group', 'network', 'corr'])])
 
 
 #save hierarchy_summary
-hierarchy_summary.to_csv(f'{git_dir}/results/clustering/{group}{suf}_{atlas}_roi_hierarchy.csv', index = False)
+hierarchy_summary.to_csv(f'{group_params.out_dir}/derivatives/clustering/{group}{suf}_{atlas}_roi_hierarchy.csv', index = False)
 
 
     
