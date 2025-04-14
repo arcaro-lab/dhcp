@@ -67,9 +67,9 @@ sub_list = full_sub_list[full_sub_list['to_run']==1]
 #sub_list = sub_list[int(len(sub_list)/2):]
 
 #number of subs to run in parallel
-n_jobs = 1
+n_jobs = 30
 #how long to wait between batches
-job_time = 0
+job_time = 20
 
 
 
@@ -86,23 +86,23 @@ Flags to determine which preprocessing steps to run
 find_eligible_subs = False
 
 #extract brain
-extract_brain = True
+extract_brain = False
 
 #Reg-phase1-3 : Register individual anat to fsaverage
-reg_phase1 = True
-reg_phase2 = True
-reg_phase3 = True
+reg_phase1 = False
+reg_phase2 = False
+reg_phase3 = False
 
 #Registers atlas to individual anat
-register_atlas = True
+register_atlas = False
 #split atlas into individual rois
-split_atlas = True
+split_atlas = False
 
 #extracts mean timeseries from each roi of atlas
 extract_ts_roi = True
 
 #Register volumetric roi to individual anat
-register_vol_roi = True
+register_vol_roi = False
 
 #extract voxel-wise timeseries from rois
 extract_ts_voxel = False
@@ -150,7 +150,7 @@ def launch_script(sub_list,script_name, analysis_name,pre_req='', atlas = ''):
 
         try:
             #run script
-            bash_cmd = f'python {script_dir}/{script_name} {sub} {ses} {group} {atlas}'
+            bash_cmd = f'python {script_dir}/{script_name} {sub} {ses} {group} {atlas} &'
             subprocess.run(bash_cmd, check=True, shell=True)
             
 

@@ -140,7 +140,7 @@ for hemi in ['lh','rh']:
 
     #append to all_ts
     all_ts.append(roi_ts)
-    pdb.set_trace()
+    
     
 
             
@@ -155,7 +155,7 @@ all_ts = all_ts.T
 
 #compute correlation matrix across all rois
 corr_mat = np.corrcoef(all_ts)
-pdb.set_trace()
+
 
 #pdb.set_trace()
 
