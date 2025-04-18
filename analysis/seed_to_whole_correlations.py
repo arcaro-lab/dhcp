@@ -536,25 +536,30 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     results_dir = f'{out_dir}/{sub}/{ses}/derivatives'
 
   
+    try: 
+        #compute seed to roi correlations
+        compute_correlations(sub, ses,group_params.raw_func_dir, seed_file)
+    except:
+        print(f'Error computing correlations for {sub} {ses}')
     
-    #compute seed to roi correlations
-    #compute_correlations(sub, ses,group_params.raw_func_dir, seed_file)
-
-    #register correlations to template group-specific template
-    #register_indiv_map_to_template(group, sub, ses)
-    
+    try:
+        #register correlations to template group-specific template
+        register_indiv_map_to_template(group, sub, ses)
+    except:
+        print(f'Error registering {sub} {ses} to template')
+        
     #register correlations to mni
     #register_40wk_to_mni(sub, ses)
 
     #compute 2nd order corr
     #compute_2ndorder_correlations(sub, ses)
 
-    break
+    
 
     
 
 
 
-create_group_map(group, sub_info,  '_second_order_MNI')
+#create_group_map(group, sub_info,  '_seed_to_whole')
 
 
