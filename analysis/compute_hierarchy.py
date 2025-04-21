@@ -71,12 +71,19 @@ for sub,ses in zip(sub_list['participant_id'], sub_list['ses']):
         print(f'Subject {sub} session {ses} has no data')
         continue
 
-    #extract birth and scan age
-    birth_age = sub_list[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses)]['birth_age'].values[0]
-    scan_age = sub_list[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses)]['scan_age'].values[0]
+    if group == 'infant':
+        #extract birth and scan age
+        birth_age = sub_list[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses)]['birth_age'].values[0]
+        scan_age = sub_list[(sub_list['participant_id'] == sub) & (sub_list['ses'] == ses)]['scan_age'].values[0]
+    else:
+        birth_age = ''
+        scan_age = ''
 
-    #extract age group from sub_summary
-    age_group = sub_summary['age_group'].values[0]
+    if group == 'infant':
+        #extract age group from sub_summary
+        age_group = sub_summary['age_group'].values[0]
+    else:
+        age_group = 'adult'
 
     #pdb.set_trace()
 

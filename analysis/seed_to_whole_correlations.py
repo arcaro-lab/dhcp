@@ -54,6 +54,15 @@ group_params = params.load_group_params(group)
 sub_info = group_params.sub_list
 sub_info = sub_info[(sub_info[f'{seed_atlas}_ts'] == 1) & (sub_info[f'{seed_atlas}_exclude'] != 1)]
 
+#add age
+sub_info['age'] = (sub_info['scan_age'] - sub_info['birth_age'])*7
+
+age_bins = [26,33, 38,42,46]
+age_groups = ['pre','early','term','post']
+
+#add age group to sub_info
+for i in range(len(age_bins)-1):
+    sub_info.loc[(sub_info['scan_age'] >= age_bins[i]) & (sub_info['scan_age'] < age_bins[i+1]), 'age_group'] = age_groups[i]
 
 #load only subs with two sessions
 #sub_info = sub_info[sub_info.duplicated(subset = 'participant_id', keep = False)]
@@ -447,19 +456,19 @@ def register_max_to_template(group, sub, ses,analysis_name, template,template_na
             
 
 
-def create_group_map(group, sub_list, suf ='_corr_MNI'):
+def create_group_map(group, sub_list, suf ='_corr_40wk',out_suf ='_day1'):
     '''
     Create group map by loading each subject's map and taking the mean 
     '''
     print(f'Creating group map for {group}')
     
-
+    group_params = params.load_group_params(group)
     #roi_info = params.load_roi_info(roi_name)
     #load template
-    template_file = f'{params.atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain.nii.gz'
+    template_file = group_params.group_template + '.nii.gz'
     #roi_name = f'{params.atlas_dir}/{roi_info.roi_name}.nii.gz'
 
-    brain_mask = f'{params.atlas_dir}/templates/mni_icbm152_t1_tal_nlin_asym_09a_brain_binary.nii.gz'
+    brain_mask = group_params.group_template + '_brain_mask.nii.gz'
     brain_masker = NiftiMasker(brain_mask, standardize = False)
 
     #load roi mask
@@ -490,7 +499,13 @@ def create_group_map(group, sub_list, suf ='_corr_MNI'):
             all_maps = []
             for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
                 sub_dir = f'{out_dir}/{sub}/{ses}'
+           
                 curr_map = f'{sub_dir}/derivatives/brain/{hemi}_{roi}{suf}.nii.gz'
+
+                #check if file exists
+                if os.path.exists(curr_map) == False:
+                    print(f'No map found for {sub} {ses} {hemi} {roi}')
+                    continue
 
                 curr_map = image.load_img(curr_map)
                 #apply mask
@@ -501,7 +516,7 @@ def create_group_map(group, sub_list, suf ='_corr_MNI'):
                 #fisher z transform
                 curr_map = np.arctanh(curr_map)
                 #standardize
-                curr_map = (curr_map - np.mean(curr_map)) / np.std(curr_map)
+                #curr_map = (curr_map - np.mean(curr_map)) / np.std(curr_map)
                 
                 all_maps.append(curr_map)
 
@@ -516,7 +531,7 @@ def create_group_map(group, sub_list, suf ='_corr_MNI'):
 
             #inverse transform to nifti
             group_img = brain_masker.inverse_transform(group_map)
-            group_img.to_filename(f'{results_dir}/{hemi}_{roi}{suf}.nii.gz')
+            group_img.to_filename(f'{results_dir}/{hemi}_{roi}{suf}{out_suf}.nii.gz')
 
         
 
@@ -526,6 +541,7 @@ def create_group_map(group, sub_list, suf ='_corr_MNI'):
 n = 0 
 #loop through subjects
 for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
+    break
     #print progress
     n += 1
     print(f'{n}/{len(sub_info)}')
@@ -557,9 +573,17 @@ for sub, ses in zip(sub_info['participant_id'], sub_info['ses']):
     
 
     
+#create group map for day 1 sub
+day1_subs = sub_info[(sub_info['age'] <= 1) & (sub_info['age_group'] == 'term') | (sub_info['age'] <= 1) & (sub_info['age_group'] == 'post')]
+#pdb.set_trace()
+create_group_map(group, day1_subs,  '_corr_40wk', '_day1')
 
 
-
-#create_group_map(group, sub_info,  '_seed_to_whole')
+#create group map by age group
+for i, age_group in enumerate(age_groups):
+    #get subs in age group
+    age_subs = sub_info[sub_info['age_group'] == age_group]
+    #create group map
+    create_group_map(group, age_subs,  '_corr_40wk', f'_{age_group}')
 
 

@@ -24,7 +24,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 #group = sys.argv[1]
-group = 'infant'
+group = 'adult'
 atlas = 'wang'
 suf = ''
 
@@ -140,11 +140,15 @@ for sub, ses in zip(sub_list['participant_id'], sub_list['ses']):
     #set diagonal to 1
     #np.fill_diagonal(fc_mat, 1)
     
-    #extract birth_age, scan_age, age_group for sub
-    birth_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['birth_age'].values[0]
-    scan_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['scan_age'].values[0]
-    age_group = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['age_group'].values[0]
-    
+    if group == 'infant':
+        #extract birth_age, scan_age, age_group for sub
+        birth_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['birth_age'].values[0]
+        scan_age = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['scan_age'].values[0]
+        age_group = group_df[(group_df['sub'] == sub) & (group_df['ses'] == ses)]['age_group'].values[0]
+    else:
+        birth_age = ''
+        scan_age = ''
+        age_group = 'adult'    
 
 
     mds_results = mds.fit(fc_mat).embedding_
