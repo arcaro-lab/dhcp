@@ -1,5 +1,5 @@
 #set data path
-data_path=/mnt/e/dhcp_analysis_full/
+data_path=/mnt/DataDrive1/data_preproc/human_mri/dhcp_preprocessed
 
 sub=sub-CC00056XX07
 ses=ses-10700
@@ -7,7 +7,7 @@ ses=ses-10700
 #create sub path
 sub_path=${data_path}/${sub}/${ses}/
 
-#fsaverage
+#fsaveragepwd
 fsaverage_path=/usr/local/freesurfer/7.4.1/subjects/fsaverage
 
 # cd to anat folder
@@ -18,7 +18,7 @@ afni -niml &
 suma -spec SUMA/std.141.${sub}_both.spec -sv anat/${sub}_${ses}_desc-restore_T2w.nii.gz
 
 afni -niml &
-suma -spec SUMA/std.141.sub-CC00056XX07_lh.spec -sv /mnt/e/dHCP_raw/rel3_dhcp_anat_pipeline/sub-CC00056XX07/ses-10700/anat/sub-CC00056XX07_ses-10700_desc-restore_T2w.nii.gz
+suma -spec SUMA/std.141.sub-CC00056XX07_both.spec -sv suma -spec SUMA/std.141.sub-CC00056XX07_both.spec -sv /mnt/DataDrive1/data_raw/human_mri/dhcp_raw/dhcp_anat_pipeline/sub-CC00056XX07/ses-10700/anat/sub-CC00056XX07_ses-10700_desc-restore_T2w.nii.gz
 
 # Viewing ROIS
 # 	a. Use std.141 spec file
