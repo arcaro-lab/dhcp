@@ -203,8 +203,8 @@ for roi in roi_labels['label']:
 for group in age_groups:
     #print(f'Preprocessing {group} {summary_type} data...')
     #preprocess_data(group, summary_type, all_rois, all_networks)
-    #conduct_loo_both_hemis(group, summary_type, all_rois, all_networks)
-    conduct_loo_single_hemis(group, summary_type, roi_labels['label'].to_list(), roi_labels['network'].to_list())
+    conduct_loo_both_hemis(group, summary_type, all_rois, all_networks)
+    #conduct_loo_single_hemis(group, summary_type, roi_labels['label'].to_list(), roi_labels['network'].to_list())
 
 '''
 summary_type = 'cross_hemi_fc'

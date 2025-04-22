@@ -23,7 +23,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 age_groups= ['infant', 'adult']
-age_groups = ['infant']
+#age_groups = ['infant']
 atlas = 'wang'
 
 #load roi labels
